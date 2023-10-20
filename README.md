@@ -1,85 +1,133 @@
-# Pipeline: Groovy Plugin
+Taketoday Tutorial4j
+==============
 
-## Introduction
+[![Java 17](https://img.shields.io/badge/java-17-green)](https://img.shields.io/badge/java-17-blue)
+![example workflow](https://github.com/tu-yucheng/taketoday-tutorial4j/actions/workflows/maven-ci.yml/badge.svg)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=tu-yucheng_taketoday-tutorial4j&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=tu-yucheng_taketoday-tutorial4j)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=tu-yucheng_taketoday-tutorial4j&metric=coverage)](https://sonarcloud.io/dashboard?id=tu-yucheng_taketoday-tutorial4j)
+[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=tu-yucheng_taketoday-tutorial4j&metric=ncloc)](https://sonarcloud.io/project/overview?id=tu-yucheng_taketoday-tutorial4j)
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=tu-yucheng_taketoday-tutorial4j&metric=bugs)](https://sonarcloud.io/summary/new_code?id=tu-yucheng_taketoday-tutorial4j)
+[![All Contributors](https://img.shields.io/badge/all_contributors-2-orange.svg?style=flat-square)](#contributors)
 
-A key component of the Pipeline plugin suite, this provides the standard execution engine for Pipeline steps, based on a custom [Groovy](https://www.groovy-lang.org/) interpreter that runs inside the Jenkins controller process.
+这个项目是**一个小型和重点教程的集合**，每个教程都涵盖了Java生态系统中一个明确定义的开发领域。当然，其中一个重点在于Spring框架、Spring Data、Spring Boot、Spring Cloud和Spring Security。除了Spring之外，这里的模块还涵盖了Java的许多方面。
 
-(In principle other execution engines could be supported, with `FlowDefinition` being the API entry point, but none has been prototyped and it would likely be a very substantial effort to write one.)
+**项目博客**：[tu-yucheng.github.io](https://tu-yucheng.github.io/)。
 
-Pipeline Groovy script code such as
+## 多版本JDK构建
 
-```groovy
-retry(3) {
-  for (int i = 0; i < 10; i++) {
-    branches["branch${i}"] = {
-      node {
-        retry(3) {
-          checkout scm
-        }
-        sh 'make world'
-      }
-    }
-  }
-}
-parallel branches
+就目前而言，大多数模块都是基于JDK 17(JAVA_HOME)才能正确构建和运行。此外，还有一些模块基于JDK 8/19，我们通过Maven工具链来保证这些模块能够使用单独的JDK构建。
+
+首先，你需要同时下载这些版本的JDK。然后配置Maven工具链，在你用户目录下的.m2文件夹中创建一个toolchains.xml文件：
+
+<img src=".mvn/img.png" align="left">
+
+在该文件中添加以下内容(务必将每个工具链的<jdkHome\>指向你本地该JDK版本的位置)：
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<toolchains xmlns="http://maven.apache.org/TOOLCHAINS/1.1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="http://maven.apache.org/TOOLCHAINS/1.1.0 http://maven.apache.org/xsd/toolchains-1.1.0.xsd">
+    <toolchain>
+        <type>jdk</type>
+        <provides>
+            <version>17</version>
+            <vendor>adopt</vendor>
+        </provides>
+        <configuration>
+            <jdkHome>D:\\xxx\\jdk-17.0.5</jdkHome>
+        </configuration>
+    </toolchain>
+    <toolchain>
+        <type>jdk</type>
+        <provides>
+            <version>8</version>
+            <vendor>adopt</vendor>
+        </provides>
+        <configuration>
+            <jdkHome>D:\\xxx\\jdk-8</jdkHome>
+        </configuration>
+    </toolchain>
+    <toolchain>
+        <type>jdk</type>
+        <provides>
+            <version>19</version>
+            <vendor>adopt</vendor>
+        </provides>
+        <configuration>
+            <jdkHome>D:\\xxx\\jdk-19.0.1</jdkHome>
+        </configuration>
+    </toolchain>
+</toolchains>
 ```
 
-gets run as a Groovy program, with certain special function calls called *steps* performing Jenkins-specific operations.
-In this example the step `parallel` is defined in this plugin, while `node`, `retry`, `checkout`, and `sh` are defined in other plugins in the Pipeline suite. The `scm` global variable is defined in the Pipeline Multibranch plugin.
+## Maven Profile
 
-The Groovy script is compiled to a class named `WorkflowScript`, so that is the name shown in stack traces instead of the script file-name (e.g. `Jenkinsfile`).
+我们使用Maven profile来隔离各种测试(单元测试、集成测试、实时测试...)的执行，不同类型的测试类名必须以指定后缀结尾：
 
-Unlike a regular Groovy program run from a command line, the complete state of a Pipeline build’s program is saved to disk every time an *asynchronous* operation is performed, which includes most Pipeline steps.
-Jenkins may be restarted while a build is running, and will resume running the program where it left off.
-This is not intended to be efficient, and so should be limited to high-level “glue” code directly related to Jenkins features;
-your project’s own build logic should be run from external programs on a build node, in a `sh` or `bat` step.
+| Profile     | 启用的测试类型                     |
+|-------------|-----------------------------|
+| unit        | *UnitTest                   |
+| integration | *IntegrationTest            |
+| all         | *IntegrationTest、\*UnitTest |
+| live        | *LiveTest                   |
+| parents     |         None                    |
 
-## Known limitations
+> **实时(live)测试是指需要与外部系统进行交互的测试，例如数据库、消息代理、文件系统等**。
 
-The [Pipeline Groovy epic](https://issues.jenkins-ci.org/browse/JENKINS-35390) in JIRA covers some known limitations in the Groovy interpreter.
-These issues stem from the fact that Pipeline cannot run Groovy directly, but must intercept each operation to save the program state.
+## 构建项目
 
-The [Pipeline Sandbox epic](https://issues.jenkins-ci.org/browse/JENKINS-35391) covers issues with the *Groovy sandbox* used to prevent malicious Pipeline scripts from taking control of Jenkins.
-Scripts run with the sandbox disabled can make direct calls to Jenkins internal APIs, which can be a useful workaround for missing step functionality, but for security reasons only administrators can approve such scripts.
+不需要经常一次构建整个仓库，因为我们通常关注特定的模块。
 
-The [Pipeline Snippet Generator epic](https://issues.jenkins-ci.org/browse/JENKINS-35393) covers issues with the tool used to provide samples of step syntax based on live configuration forms.
+但是，如果我们想在仅启用单元测试的情况下构建整个仓库，我们可以从仓库的根目录调用以下命令：
 
-## History
+`mvn clean install -Punit`
 
-This plugin was previously the "Workflow CPS plugin" or "Workflow Groovy Plugin". Accordingly it has the Maven `artifactId` `workflow-cps`, not `pipeline-groovy`.
+或者，如果我们想在启用集成测试的情况下构建整个仓库，我们可以执行以下操作：
 
-## Technical design
+`mvn clean install -Pintegration`
 
-The plugin uses the Groovy CPS library to implement a [continuation-passing style transformation](https://en.wikipedia.org/wiki/Continuation-passing_style) on the program as it is compiled.
-The standard Groovy compiler is used to create the AST, but generation of bytecode is intercepted by a `CompilationCustomizer` which replaces most operations with variants that throw a special “error”, `CpsCallableInvocation`.
-This is then caught by the engine, which uses information from it (such as arguments about to be passed to a method call) to pass control on to the next continuation.
+## 构建单个模块
 
-Pipeline scripts may mark designated methods with the annotation `@NonCPS`.
-These are then compiled normally (except for sandbox security checks), and so behave much like “binary” methods from the Java Platform, Groovy runtime, or Jenkins core or plugin code.
-`@NonCPS` methods may safely use non-`Serializable` objects as local variables, though they should not accept nonserializable parameters or return or store nonserializable values.
-You may not call regular (CPS-transformed) methods, or Pipeline steps, from a `@NonCPS` method, so they are best used for performing some calculations before passing a summary back to the main script.
-Note in particular that `@Override`s of methods defined in binary classes,
-such as `Object.toString()`,
-should in general be marked `@NonCPS` since it will commonly be binary code calling them.
+要构建特定模块，请在模块目录中运行命令：`mvn clean install`。
 
-Some kinds of objects are intrinsically not safe to serialize as such, yet we want to retain a reference to them in the program graph.
-An example is the `Executor` (~ executor slot on a built-in or agent node) which is part of the context passed by a `node` step to any step in its block, especially `sh`/`bat`.
-Pipeline uses the `Pickle` API to substitute serialization-safe versions of these objects.
-When a `WorkflowRun` is loaded from disk after a restart, the program state is deserialized, and pickles are deserialized (“rehydrated”) in parallel.
-If and when all pickles are successfully deserialized and the resulting objects placed back in the program state, the program begins running again, and `StepExecution.onResume` is called to restore timers and the like.
+你的模块可能是父模块的一部分，例如`parent-boot-2`，`parent-spring-5`等，然后你需要先构建父模块，这样才能构建你的模块。我们创建了一个`parents` profile，你可以使用它来构建父模块，只需按以下方式运行profile：`mvn clean install -Pparents`。
 
-All program logic is run inside a “CPS VM thread”, which is just a Java thread pool that can run binary methods and figure out which continuation to do next.
-The `parallel` step uses “green threads” (also known as coöperative multitasking): it records logical thread (~ branch) names for various actions, but does not literally run them simultaneously.
-The program may seem to perform tasks concurrently, but only because most steps run asynchronously, while the VM thread is idle, and they may overlap in time.
-No Java thread is consumed except during the typically brief intervals when Groovy code is actually being run on the VM thread.
-The executor widget only displays an entry for the “flyweight” executor on the built-in node when the VM thread is busy; normally it is hidden.
+## 从仓库的根目录构建模块
 
-* [Basics of CPS](doc/cps-basics.md)
-* [Continuation, Next, and Env](doc/cps-model.md) and how we interpret Groovy program
-* [How interpreted program is represented](doc/block-tree.md)
-* [CPS + Sandbox](doc/sandbox.md)
+要从仓库的根目录构建特定模块，请在根目录中运行命令：`mvn clean install --pl ddd,annotations -Punit`。
 
-## Development
+这里的ddd和annotations是我们要构建的模块，unit是要执行的测试类型的Maven profile。
 
-When developing the editor, edit `plugin/package.json` to set `mvnbuild` to `yarn dev` instead of `yarn prod`.
-This will allow you to do in situ debugging of JavaScript in your browser.
+## 运行Spring Boot模块
+
+要运行Spring Boot模块，请在模块目录中运行命令：
+
+`mvn spring-boot:run`
+
+## 导入到IDE
+
+该仓库包含大量模块，当你使用单个模块时，无需导入所有模块(或构建所有模块) - 你只需在Eclipse或IntelliJ中导入该特定模块即可。
+
+当你将项目导入到Intellij IDEA中时，默认不会加载任何子模块。你需要在IDE中转到Maven -> Profiles，然后选择你想要构建的子模块所属的profile，最后刷新等待IDE索引构建完成：
+
+<img src=".mvn/img_1.png">
+
+## 运行测试
+
+模块中的命令`mvn clean install`将运行该模块中的单元测试。对于Spring模块，这也将运行`SpringContextTest`(如果存在)。
+
+要同时运行单元和集成测试，请使用以下命令：
+
+`mvn clean install -Pall`
+
+## 贡献人员
+
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<table>
+  <tr>
+    <td align="center"><a href="https://github.com/tu-yucheng"><img src="https://avatars.githubusercontent.com/u/88582540?v=4s=100" width="100px;" alt=""/><br /><sub><b>tuyucheng</b></sub></a><br /><a href="#projectManagement-tuyucheng" title="Project Management">📆</a> <a href="#maintenance-tuyucheng" title="Maintenance">🚧</a> <a href="#content-tuyucheng" title="Content">🖋</a></td>
+    <td align="center"><a href="https://github.com/take-today"><img src="https://avatars.githubusercontent.com/u/116951809?v=4s=100" width="100px;" alt=""/><br /><sub><b>taketoday</b></sub></a><br /><a href="#content-taketoday" title="Content">🖋</a></td>
+  </tr>
+</table>
