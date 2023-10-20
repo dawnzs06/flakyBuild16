@@ -1,1 +1,0 @@
-httpSampler("https://myservice.com")

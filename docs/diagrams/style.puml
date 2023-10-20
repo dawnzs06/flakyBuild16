@@ -1,5 +1,0 @@
-@startuml
-skinparam monochrome true
-hide empty members
-hide circle
-@enduml
