@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+ * Copyright (c) 2000, 2022, Oracle and/or its affiliates.
  *
  * Licensed under the Universal Permissive License v 1.0 as shown at
  * https://oss.oracle.com/licenses/upl.
@@ -175,29 +175,19 @@ public abstract class AbstractClusteredRemoteReadWriteLockExtendIT
         member2.addListener(listener2);
 
         // Acquire the lock on first member (the lock will be held for 5 seconds)
-        Duration writeLockDuration = Duration.ofSeconds(5);
-
-        member1.submit(new AbstractClusteredRemoteReadWriteLockIT.AcquireWriteLock(sLockName, writeLockDuration));
+        member1.submit(new AbstractClusteredRemoteReadWriteLockIT.AcquireWriteLock(sLockName, Duration.ofSeconds(5)));
         // wait for the lock acquired event
         listener1.awaitWriteAcquired(Duration.ofMinutes(1));
-
-        long ldtStartLockHeld = System.currentTimeMillis();
 
         // try to acquire read lock on the second member (should time out after 500 millis)
         AbstractClusteredRemoteReadWriteLockIT.TryReadLock tryReadLock = new AbstractClusteredRemoteReadWriteLockIT.TryReadLock(sLockName, Duration.ofMillis(500));
         CompletableFuture<Boolean> futureTryRead = member2.submit(tryReadLock);
-        assertThat("client2 must not get read lock unless client1 has released write lock=" + listener1.isWriteReleased(),
-                   futureTryRead.get() == false ||
-                   (listener1.isWriteReleased() && (System.currentTimeMillis() - ldtStartLockHeld > writeLockDuration.toMillis())),
-                   is(true));
+        assertThat(futureTryRead.get(), is(false));
 
         // try to acquire write lock on the second member (should time out after 500 millis)
         AbstractClusteredRemoteReadWriteLockIT.TryWriteLock tryWriteLock = new AbstractClusteredRemoteReadWriteLockIT.TryWriteLock(sLockName, Duration.ofMillis(500));
         CompletableFuture<Boolean> futureTryWrite = member2.submit(tryWriteLock);
-        assertThat("client2 must not get write lock unless client1 has released write lock=" + listener1.isWriteReleased(),
-                   futureTryWrite.get() == false ||
-                   (listener1.isWriteReleased() && (System.currentTimeMillis() - ldtStartLockHeld > writeLockDuration.toMillis())),
-                   is(true));
+        assertThat(futureTryWrite.get(), is(false));
 
         // wait for the write lock released event from the first member
         listener1.awaitWriteReleased(Duration.ofMinutes(1));
