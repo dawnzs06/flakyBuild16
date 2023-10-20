@@ -1,72 +1,14 @@
-target
-GTAGS
-GRTAGS
-GPATH
-prop
-out
-
-# OS X
-.DS_Store
-
-# intellij
-.idea
-*.iml
-
-# eclipse
-.project
-.classpath
-.settings
-
-# editors
-*.sublime-project
-*.sublime-workspace
-*~
-*.swp
-
-# the build
-build-local.properties
+# Gradle
 .gradle
-build
+build/
 
-# Benchmark timings
-timings.log
+# IntelliJ
+out/
+*.iml
+.idea/*
+!.idea/codeStyles
+!.idea/inspectionProfiles
+!.idea/runConfigurations
 
-# JVM crash reports
-hs_err_pid*
-
-*-logs
-artio-system-tests/logs/
-logs/
-*acceptor-logs*
-acceptor_logs/
-
-*.pem
-
-# Profilers
-liblagent.so
-*.hpl
-*.jfr
-
-*attach_pid*
-file-leak-detector-*
-
-*/aeron-archive/*
-aeron-archive/
-buyer/
-buyer-archive/
-exchange-application/
-
-*-example
-artio-samples/src/main/java/uk/co/real_logic/artio/reproduction/
-
-client-aeron-archive/
-client-aeron/
-
-#iLink3
-artio-ilink3-codecs/src/main/resources/uk/co/real_logic/artio/ilink/ilinkbinary.xml
-artio-system-tests/generated/
-
-artio-system-tests/src/perf/java/br/
-benchmark-client-archive/
-latencies.csv
-latencies.png
+.java-version
+.DS_Store
