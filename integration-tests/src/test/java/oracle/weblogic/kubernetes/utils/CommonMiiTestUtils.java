@@ -186,45 +186,14 @@ public class CommonMiiTestUtils {
       String imageName,
       String adminServerPodName,
       String managedServerPrefix,
-      int replicaCount,
-      List<String> clusterNames,
-      boolean setDataHome,
-      String dataHome) {
-    return createMiiDomainAndVerify(domainNamespace, domainUid, imageName, adminServerPodName, managedServerPrefix,
-        replicaCount, clusterNames, setDataHome, dataHome, false);
-  }
-
-  /**
-   * Create a basic Kubernetes domain resource and wait until the domain is fully up.
-   *
-   * @param domainNamespace Kubernetes namespace that the pod is running in
-   * @param domainUid identifier of the domain
-   * @param imageName name of the image including its tag
-   * @param adminServerPodName name of the admin server pod
-   * @param managedServerPrefix prefix of the managed server pods
-   * @param replicaCount number of managed servers to start
-   * @param clusterNames names of clusters
-   * @param setDataHome whether to set dataHome in the domain spec
-   * @param dataHome dataHome override in the domain spec
-   * @param prefixDomainName whether prefix the domain name in front of cluster name
-   * @return DomainResource
-   */
-  public static DomainResource createMiiDomainAndVerify(
-      String domainNamespace,
-      String domainUid,
-      String imageName,
-      String adminServerPodName,
-      String managedServerPrefix,
       int replicaCount, 
       List<String> clusterNames,
       boolean setDataHome,
-      String dataHome,
-      boolean prefixDomainName) {
+      String dataHome) {
 
     LoggingFacade logger = getLogger();
     DomainResource domain =
-        createMiiDomain(domainNamespace, domainUid, imageName, replicaCount, clusterNames, setDataHome, dataHome,
-            prefixDomainName);
+        createMiiDomain(domainNamespace, domainUid, imageName, replicaCount, clusterNames, setDataHome, dataHome);
 
     // check admin server pod is ready
     logger.info("Wait for admin server pod {0} to be ready in namespace {1}",
@@ -272,32 +241,6 @@ public class CommonMiiTestUtils {
       List<String> clusterNames,
       boolean setDataHome,
       String dataHome) {
-    return createMiiDomain(domainNamespace, domainUid, imageName, replicaCount, clusterNames,
-        setDataHome, dataHome, false);
-  }
-
-  /**
-   * Create a basic Kubernetes domain resource and verify the domain is created.
-   *
-   * @param domainNamespace Kubernetes namespace that the pod is running in
-   * @param domainUid identifier of the domain
-   * @param imageName name of the image including its tag
-   * @param replicaCount number of managed servers to start
-   * @param clusterNames names of clusters
-   * @param setDataHome whether to set dataHome in the domain spec
-   * @param dataHome dataHome override in the domain spec
-   * @param prefixDomainName whether prefix domain name in front of cluster name
-   * @return DomainResource
-   */
-  public static DomainResource createMiiDomain(
-      String domainNamespace,
-      String domainUid,
-      String imageName,
-      int replicaCount,
-      List<String> clusterNames,
-      boolean setDataHome,
-      String dataHome,
-      boolean prefixDomainName) {
 
     LoggingFacade logger = getLogger();
     // this secret is used only for non-kind cluster
@@ -335,8 +278,7 @@ public class CommonMiiTestUtils {
         new String[]{TEST_IMAGES_REPO_SECRET_NAME},
         encryptionSecretName,
         replicaCount,
-        clusterNames,
-        prefixDomainName
+        clusterNames
     );
 
     // set the dataHome in the domain spec
