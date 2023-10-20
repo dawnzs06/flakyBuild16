@@ -1,0 +1,13 @@
+inherit_from: .rubocop_todo.yml
+
+AllCops:
+  EnabledByDefault: true
+
+Metrics/CyclomaticComplexity:
+  Max: 20
+
+Metrics/ClassLength:
+  Enabled: false
+
+Style/MissingElse:
+  Enabled: false

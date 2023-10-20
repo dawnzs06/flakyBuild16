@@ -1,0 +1,21 @@
+name: Check the content of Salt SLS files
+
+on:
+  push:
+    branches: [ uyuni ]
+
+
+
+jobs:
+  salt_sls_files_checks:
+
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+
+    - uses: mattsb42/not-grep@master
+      with:
+        config-file: ./.github/config/file-content-checks.toml
+        # If you don't set debug, passing checks will be hidden.
+        debug: true

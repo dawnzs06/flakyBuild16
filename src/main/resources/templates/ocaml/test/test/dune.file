@@ -1,6 +1,0 @@
-(executable
- (name test)
- (flags
-  (:standard -warn-error -A))
- (libraries ounit2 qcheck str assignment solution overrides)
- (promote))

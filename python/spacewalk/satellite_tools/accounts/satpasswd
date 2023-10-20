@@ -1,0 +1,80 @@
+#!/usr/bin/python
+#
+# Copyright (c) 2014--2015 Red Hat, Inc.
+#
+# This software is licensed to you under the GNU General Public License,
+# version 2 (GPLv2). There is NO WARRANTY for this software, express or
+# implied, including the implied warranties of MERCHANTABILITY or FITNESS
+# FOR A PARTICULAR PURPOSE. You should have received a copy of GPLv2
+# along with this software; if not, see
+# http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt.
+#
+# Red Hat trademarks are not licensed under GPLv2. No permission is
+# granted to use or replicate Red Hat trademarks that are incorporated
+# in this software or its documentation.
+
+import getpass
+import sys
+
+from spacewalk.common.rhnConfig import initCFG, CFG
+from spacewalk.server import rhnSQL, rhnUser
+
+
+def print_help():
+    print("Usage: satpasswd [OPTIONS] user\n")
+    print("Options:")
+    print("\t-h, --help\tPrint this help message.")
+    print("\t-s, --stdin\tRead the password from standard input.")
+
+
+def read_passwd(stdin, msg):
+    passwordIn = None
+    if stdin:
+        passwordIn = sys.stdin.readline().rstrip('\n')
+    else:
+        passwordIn = getpass.getpass(msg)
+    return passwordIn
+
+if __name__ == '__main__':
+    if '-h' in sys.argv or '--help' in sys.argv:
+        print_help()
+        sys.exit(0)
+
+    stdin = False
+    for a in ('-s', '--stdin'):
+        if a in sys.argv:
+            stdin = True
+            sys.argv.remove(a)
+
+    if len(sys.argv) != 2:
+        print_help()
+        sys.exit(1)
+
+    userIn = sys.argv.pop()
+
+    initCFG('server.satellite')
+    rhnSQL.initDB()
+
+    user = rhnUser.search(userIn)
+    if not user:
+        print("User %s is not a valid Satellite user." % userIn)
+        sys.exit(1)
+
+    passwordIn = read_passwd(stdin, "Password:")
+    passwordCheck = read_passwd(stdin, "Retype password:")
+
+    if passwordIn != passwordCheck:
+        print("Sorry, passwords do not match.")
+        sys.exit(1)
+
+    if len(passwordIn) == 0:
+        print("Empty password is not permitted.")
+        sys.exit(1)
+
+    if len(passwordIn) < CFG.MIN_PASSWD_LEN:
+        print(("User password should be at least %d characters long.") % CFG.MIN_PASSWD_LEN)
+        sys.exit(1)
+
+    user.contact['password'] = rhnUser.encrypt_password(passwordIn)
+    user.contact.save()
+    rhnSQL.commit()

@@ -1,0 +1,59 @@
+name: Update translation files
+
+on:
+  push:
+    branches: [ uyuni ]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+jobs:
+ run:
+   name: Update translation files
+   if: github.repository == 'uyuni-project/uyuni'
+   runs-on: ubuntu-latest
+   steps:
+   - name: Cancel Previous Runs
+     uses: styfle/cancel-workflow-action@0.10.0
+     with:
+         access_token: ${{ github.token }}
+
+   - name: Checkout repo
+     uses: actions/checkout@v3
+     with:
+       token: ${{ secrets.GH_TOKEN_GALAXY_CI }}
+
+   - name: Setup tooling
+     run: sudo apt-get install -y make git gettext intltool python3
+
+   - name: Setup git
+     run: |
+       git config --global user.name "Galaxy CI"
+       git config --global user.email "galaxy-ci@suse.de"
+
+   - name: Align translations files
+     run: scripts/translation/update-all-translation-strings.sh
+     env:
+       ADDITIONAL_SAFE_BRANCHNAME: master
+       GITHUB_TOKEN: ${{ secrets.GH_TOKEN_GALAXY_CI }}
+
+   - name: Push changes
+     run: git push origin HEAD

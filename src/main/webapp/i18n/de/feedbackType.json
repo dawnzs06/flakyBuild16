@@ -1,9 +1,0 @@
-{
-    "artemisApp": {
-        "FeedbackType": {
-            "null": "",
-            "AUTOMATIC": "AUTOMATIC",
-            "MANUAL": "MANUAL"
-        }
-    }
-}

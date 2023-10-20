@@ -1,0 +1,19 @@
+{
+    "SUSECloud": {
+        "hostname": "",
+        "module": "SUSECloud",
+        "password": "",
+        "port": 5000,
+        "protocol": "https",
+        "tenant": "openstack",
+        "username": ""
+    },
+    "VMware": {
+        "hostname": "",
+        "module": "VMware",
+        "port": 443,
+        "username": "",
+        "password": ""
+    }
+}
+

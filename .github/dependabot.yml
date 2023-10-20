@@ -1,16 +1,15 @@
 version: 2
 updates:
-
-  - package-ecosystem: "github-actions"
-    directory: "/"
+  - package-ecosystem: "npm" # This value means either NPM or Yarn, Yarn doesn't have a separate value
+    directory: "/web/html/src/**"
+    open-pull-requests-limit: 0
     schedule:
-      interval: "weekly"
-      day: "tuesday"
-      time: "08:30"
-    reviewers:
-      - "bassner"
-      - "Mtze"
-    open-pull-requests-limit: 2
-    labels:
-      - "ready for review"
-      - "dependencies"
+      interval: "daily"
+    # This is currently bugged, see https://github.com/dependabot/dependabot-core/issues/2521
+    allow:
+      - dependency-type: "production"
+
+  - package-ecosystem: "github-actions" # Check for updates to GitHub Actions every weekday
+    directory: "/"
+    schedule: 
+      interval: "daily"

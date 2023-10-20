@@ -1,0 +1,8 @@
+.bundle
+sqlnet.log
+*~
+buildy
+output_*
+failed.txt
+Gemfile.lock
+screenshots/

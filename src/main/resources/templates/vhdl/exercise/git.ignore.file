@@ -1,7 +1,0 @@
-*
-
-!*.vhd
-!Makefile
-!.gitignore
-
-!*/

@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN" "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+<hibernate-mapping>
+
+    <class name="com.redhat.rhn.domain.action.ActionChain" table="rhnActionChain">
+        <id name="id" type="long" column="id">
+            <generator class="org.hibernate.id.enhanced.SequenceStyleGenerator">
+                <param name="sequence_name">rhn_actionchain_id_seq</param>
+                <param name="increment_size">1</param>
+            </generator>
+        </id>
+
+        <property name="label" column="label" type="string"/>
+        <property name="dispatched" column="dispatched" type="yes_no"/>
+        <property name="created" column="created" type="timestamp" insert="false" update="false"/>
+        <property name="modified" column="modified" type="timestamp" insert="false"/>
+
+        <many-to-one name="user" column="user_id" not-null="true" class="com.redhat.rhn.domain.user.legacy.UserImpl"/>
+        <set name="entries" inverse="true" lazy="true" cascade="all-delete-orphan">
+            <key column="actionchain_id"/>
+            <one-to-many class="com.redhat.rhn.domain.action.ActionChainEntry"/>
+        </set>
+    </class>
+
+    <query name="ActionChain.getActionChain">
+        <![CDATA[
+            SELECT chain
+                FROM ActionChain chain
+                WHERE chain.id = :id
+                    AND chain.user = :user
+                    AND NOT EXISTS (SELECT entry FROM chain.entries entry JOIN ServerAction action ON entry.action.id = action.parentAction.id)
+        ]]>
+    </query>
+
+    <query name="ActionChain.getActionChainByLabel">
+        <![CDATA[
+            SELECT chain
+                FROM ActionChain chain
+                WHERE chain.label = :label
+                    AND chain.user = :user
+                    AND NOT EXISTS (SELECT entry FROM chain.entries entry JOIN ServerAction action ON entry.action.id = action.parentAction.id)
+        ]]>
+    </query>
+
+    <query name="ActionChain.getActionChains">
+        <![CDATA[
+            SELECT chain
+                FROM ActionChain chain
+                WHERE chain.user = :user
+                    AND NOT EXISTS (SELECT entry FROM chain.entries entry JOIN ServerAction action ON entry.action.id = action.parentAction.id)
+                ORDER BY chain.label ASC
+        ]]>
+    </query>
+
+    <query name="ActionChain.getActionChainsByModificationDate">
+        <![CDATA[
+            SELECT chain
+                FROM ActionChain chain
+                WHERE chain.user = :user
+                    AND NOT EXISTS (SELECT entry FROM chain.entries entry JOIN ServerAction action ON entry.action.id = action.parentAction.id)
+                ORDER BY chain.modified DESC
+        ]]>
+    </query>
+
+    <query name="ActionChain.getNextSortOrderValue">
+        <![CDATA[
+            SELECT COALESCE(MAX(entry.sortOrder) + 1, 0)
+                FROM ActionChainEntry entry
+                WHERE entry.actionChain.id = :id
+        ]]>
+    </query>
+
+    <query name="ActionChain.countMinionsInActionChain">
+        <![CDATA[
+            SELECT count(*)
+            FROM
+                com.redhat.rhn.domain.server.Server s,
+                com.redhat.rhn.domain.action.ActionChainEntry ace,
+                com.redhat.rhn.domain.action.ActionChain ac,
+                com.redhat.rhn.domain.action.Action a,
+                com.redhat.rhn.domain.action.server.ServerAction sa,
+                com.redhat.rhn.domain.server.MinionServer mi
+            WHERE
+                ac.id = :actionchain_id
+                AND ac.id = ace.actionChain.id
+                AND a.id = ace.action.id
+                AND a.id = sa.parentAction.id
+                AND sa.server.id = s.id
+                AND sa.server.id = mi.id
+        ]]>
+    </query>
+
+    <query name="ActionChain.getAllActionChains">
+        <![CDATA[
+            SELECT chain FROM ActionChain chain
+        ]]>
+    </query>
+
+    <query name="ActionChain.getActionChainsByServer">
+        <![CDATA[
+            SELECT DISTINCT ac
+            FROM
+                com.redhat.rhn.domain.action.ActionChainEntry ace,
+                com.redhat.rhn.domain.action.ActionChain ac,
+                com.redhat.rhn.domain.action.Action a,
+                com.redhat.rhn.domain.action.server.ServerAction sa
+            WHERE
+                ac.id = ace.actionChain.id
+                AND a.id = ace.action.id
+                AND a.id = sa.parentAction.id
+                AND sa.server.id = :id
+        ]]>
+    </query>
+
+</hibernate-mapping>

@@ -1,0 +1,13 @@
+# /etc/logrotate.d/rhn-proxy-redirect
+#
+
+/var/log/rhn/rhn_proxy_redirect.log {
+    rotate 5
+    copytruncate
+    compress
+    notifempty
+    size 10M
+    missingok
+    su wwwrun www
+}
+
