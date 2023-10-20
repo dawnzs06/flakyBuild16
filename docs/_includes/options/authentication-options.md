@@ -1,6 +1,0 @@
-| Option     | Long Version | Explanation                                                                                                                    | Default                                                  |
-|------------|--------------|--------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------|
-| `-u`       | `--user`     | Define the username for authentication.                                                                                        |                                                          |
-| `-pw`      | `--password` | Define the password for authentication directly. <br> If left blank the user will be prompted for the password in the console. |                                                          |
-| `-pw:env`  |              | Define that the password for authentication is read in from an environment variable.                                           | `MQTT_CLI_PW` if the option is specified without a value |
-| `-pw:file` |              | Define the path to a file from which the password is read from.                                                                |                                                          |
