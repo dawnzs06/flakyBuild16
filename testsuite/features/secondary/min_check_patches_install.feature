@@ -22,8 +22,7 @@ Feature: Display patches
   Scenario: Check all patches exist
     When I follow the left menu "Patches > Patch List > Relevant"
     Then I should see an update in the list
-    When I wait until I see "virgo-dummy" text, refreshing the page
-    Then I should see a "virgo-dummy-3456" link
+    And I should see a "virgo-dummy-3456" link
 
   Scenario: Check SLES release 6789 patches
     When I follow the left menu "Patches > Patch List > Relevant"
