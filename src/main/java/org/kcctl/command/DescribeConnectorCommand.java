@@ -26,7 +26,6 @@ import org.kcctl.completion.ConnectorNameCompletions;
 import org.kcctl.service.ConnectorInfo;
 import org.kcctl.service.ConnectorStatusInfo;
 import org.kcctl.service.KafkaConnectApi;
-import org.kcctl.service.KafkaConnectException;
 import org.kcctl.service.TaskState;
 import org.kcctl.service.TopicsInfo;
 import org.kcctl.util.Colors;
@@ -35,7 +34,6 @@ import org.kcctl.util.Connectors;
 import org.kcctl.util.Tuple;
 import org.kcctl.util.Version;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import picocli.CommandLine;
@@ -116,14 +114,7 @@ public class DescribeConnectorCommand implements Callable<Integer> {
             if (outputFormat != null) {
                 switch (outputFormat) {
                     case JSON:
-                        try {
-                            System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(connector));
-                        }
-                        catch (JsonProcessingException e) {
-                            spec.commandLine().getErr().println("Failed to serialize connector config as JSON"
-                                    + (e.getMessage() != null ? ": " + e.getMessage() : ""));
-                            return CommandLine.ExitCode.SOFTWARE;
-                        }
+                        System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(connector));
                         return 0;
                     case TEXT:
                         break;
@@ -197,9 +188,14 @@ public class DescribeConnectorCommand implements Callable<Integer> {
                 Tuple.print(topics);
             }
         }
-        catch (KafkaConnectException e) {
+        catch (Exception e) {
             if (!e.getMessage().contains("not found")) {
-                throw e;
+                try {
+                    throw e;
+                }
+                catch (Exception e1) {
+                    // yes not so nice, not sure how to handle exceptions in a cli app
+                }
             }
 
             spec.commandLine().getOut().println("Connector " + connectorToDescribe + " not found. The following connector(s) are available:");
