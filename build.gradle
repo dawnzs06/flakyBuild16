@@ -1,287 +1,146 @@
+import org.owasp.dependencycheck.reporting.ReportGenerator
+
 buildscript {
-	ext.isCI = System.getenv('GITHUB_ACTION') || System.getenv('bamboo_buildKey')
+    // include dependency versions from explicit dependencies.gradle file
+    apply from: 'dependencies.gradle'
 }
 
 plugins {
-	id 'java-library'
-	id 'eclipse'
-	id 'idea'
-	id 'jacoco'
-	id 'org.sonarqube' version '4.3.0.3225'
-	id 'checkstyle'
-	id 'org.ajoberstar.grgit' version '4.1.1'
-	id 'io.spring.dependency-management' version '1.1.2'
-	id 'com.jfrog.artifactory' version '4.33.1'
+    id 'ca.cutterslade.analyze' version '1.9.1'
+
+    id 'io.spring.dependency-management' version '1.1.2' apply(false)
+    id 'org.springframework.boot' version '3.1.1' apply(false)
+    id 'org.owasp.dependencycheck' version "8.3.1"
+    id 'com.diffplug.spotless' version '6.19.0'
 }
 
-description = 'Spring Integration AWS Support'
+applyDotEnvFileAsGradleProperties()
 
-group = 'org.springframework.integration'
+allprojects {
+    apply plugin: 'java'
+    apply plugin: 'maven-publish'
+    apply plugin: 'signing'
+    apply plugin: 'com.diffplug.spotless'
 
-repositories {
-	mavenCentral()
-	maven { url 'https://repo.spring.io/milestone' }
-	if (version.endsWith('SNAPSHOT')) {
-		maven { url 'https://repo.spring.io/snapshot' }
-	}
+    ext {
+        isSnapshot = Boolean.valueOf(project.findProperty('SNAPSHOT') as String)
+    }
+    group 'io.github.springwolf'
+    version System.getProperty("SPRINGWOLF_VERSION") + (isSnapshot ? '-SNAPSHOT' : '')
 
-	//	maven { url 'https://repo.spring.io/libs-staging-local' }
+    java {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    javadoc {
+        // Disable: warning: no comment
+        options.addStringOption('Xdoclint:none', '-quiet')
+    }
+
+    repositories {
+        // For local development with snapshots
+        mavenLocal() {
+            content {
+                includeGroup "io.github.springwolf"
+            }
+        }
+
+        mavenCentral()
+    }
+
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                from components.java
+
+                artifactId project.name
+                groupId project.group
+                version project.version
+
+                pom {
+                    name = ''
+                    description = ''
+                    url = 'https://www.springwolf.dev'
+
+                    licenses {
+                        license {
+                            name = 'The Apache License, Version 2.0'
+                            url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                        }
+                    }
+
+                    developers {
+                        developer {
+                            id = 'stavshamir'
+                            name = 'Stav Shamir'
+                            email = 'shamir.stav@gmail.com'
+                        }
+
+                        developer {
+                            id = 'timonback'
+                            name = 'Timon Back'
+                            email = 'timon.back+springwolf@gmail.com'
+                        }
+
+                        developer {
+                            id = 'sam0r040'
+                            name = 'David Müller'
+                            email = 'david.mueller@codecentric.de'
+                        }
+                    }
+
+                    scm {
+                        url = 'https://github.com/springwolf/springwolf-core'
+                    }
+                }
+            }
+        }
+
+        repositories {
+            maven {
+                def releasesRepoUrl = 'https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/'
+                def snapshotsRepoUrl = 'https://s01.oss.sonatype.org/content/repositories/snapshots/'
+                url = isSnapshot ? snapshotsRepoUrl : releasesRepoUrl
+                credentials {
+                    username = project.findProperty('MAVEN_USERNAME') ?: ''
+                    password = project.findProperty('MAVEN_PASSWORD') ?: ''
+                }
+            }
+        }
+    }
+
+    signing {
+        required { gradle.taskGraph.hasTask("publish") }
+        def signingKey = project.findProperty("SIGNINGKEY")
+        def signingPassword = project.findProperty("SIGNINGPASSWORD")
+        useInMemoryPgpKeys(signingKey, signingPassword)
+        sign publishing.publications.mavenJava
+    }
 }
 
-ext {
-	assertjVersion = '3.24.2'
-	awaitilityVersion = '4.2.0'
-	awsSdkVersion = '2.20.83'
-	jacksonVersion = '2.15.2'
-	junitVersion = '5.9.3'
-	log4jVersion = '2.20.0'
-	servletApiVersion = '6.0.0'
-	springCloudAwsVersion = '3.0.1'
-	springIntegrationVersion = '6.0.6'
-	kinesisClientVersion = '2.5.1'
-	kinesisProducerVersion = '0.15.7'
-	testcontainersVersion = '1.18.3'
-
-	idPrefix = 'aws'
-
-	linkHomepage = 'https://github.com/spring-projects/spring-integration-aws'
-	linkCi = 'https://build.spring.io/browse/INTEXT'
-	linkIssue = 'https://github.com/spring-projects/spring-integration-aws/issues'
-	linkScmUrl = 'https://github.com/spring-projects/spring-integration-aws'
-	linkScmConnection = 'https://github.com/spring-projects/spring-integration-aws.git'
-	linkScmDevConnection = 'git@github.com:spring-projects/spring-integration-aws.git'
-
-	modifiedFiles = files(grgit.status().unstaged.modified).filter { f -> f.name.endsWith('.java') }
+dependencyCheck {
+    outputDirectory = "$buildDir/reports/owasp-dependency-check"
+    formats = [ReportGenerator.Format.SARIF.toString()]
 }
 
-ext.javadocLinks = [
-		'https://docs.aws.amazon.com/AWSJavaSDK/latest/javadoc/'
-] as String[]
+def static readEnvFile(path = ".env") {
+    def env = [:]
 
-compileJava {
-	options.release = 17
+    def file = new File(path)
+    if (file.exists()) {
+        file.eachLine { line ->
+            line = line.trim()
+            if (line != "" && !line.startsWith("#")) {
+                def pair = line.split("=", 2)
+                env[pair[0].trim()] = pair.length == 2 ? pair[1].trim() : ""
+            }
+        }
+    }
+
+    return env
 }
 
-java {
-	withJavadocJar()
-	withSourcesJar()
-	registerFeature('optional') {
-		usingSourceSet(sourceSets.main)
-	}
+def static applyDotEnvFileAsGradleProperties() {
+    readEnvFile().each { key, value -> if (System.getProperty(key as String) == null) { System.setProperty(key as String, value as String) } }
 }
-
-sourceSets {
-	test {
-		resources {
-			srcDirs = ['src/test/resources', 'src/test/java']
-		}
-	}
-}
-
-dependencyManagement {
-	resolutionStrategy {
-		cacheChangingModulesFor 0, 'seconds'
-	}
-	applyMavenExclusions = false
-	generatedPomCustomization {
-		enabled = false
-	}
-	imports {
-		mavenBom "io.awspring.cloud:spring-cloud-aws-dependencies:$springCloudAwsVersion"
-		mavenBom "software.amazon.awssdk:bom:$awsSdkVersion"
-		mavenBom "org.springframework.integration:spring-integration-bom:$springIntegrationVersion"
-		mavenBom "com.fasterxml.jackson:jackson-bom:$jacksonVersion"
-		mavenBom "org.junit:junit-bom:$junitVersion"
-		mavenBom "org.testcontainers:testcontainers-bom:$testcontainersVersion"
-		mavenBom "org.apache.logging.log4j:log4j-bom:$log4jVersion"
-	}
-}
-
-jacoco {
-	toolVersion = '0.8.10'
-}
-
-checkstyle {
-	configDirectory.set(rootProject.file('src/checkstyle'))
-	toolVersion = '10.12.1'
-}
-
-dependencies {
-	api 'org.springframework.integration:spring-integration-core'
-	api 'io.awspring.cloud:spring-cloud-aws-core'
-	api 'com.fasterxml.jackson.core:jackson-databind'
-
-	optionalApi 'io.awspring.cloud:spring-cloud-aws-sns'
-	optionalApi 'io.awspring.cloud:spring-cloud-aws-sqs'
-	optionalApi 'io.awspring.cloud:spring-cloud-aws-s3'
-
-	optionalApi 'org.springframework.integration:spring-integration-file'
-	optionalApi 'org.springframework.integration:spring-integration-http'
-
-	optionalApi 'software.amazon.awssdk:kinesis'
-	optionalApi 'software.amazon.awssdk:dynamodb'
-	optionalApi 'software.amazon.awssdk:s3-transfer-manager'
-
-	optionalApi "software.amazon.kinesis:amazon-kinesis-client:$kinesisClientVersion"
-	optionalApi "com.amazonaws:amazon-kinesis-producer:$kinesisProducerVersion"
-
-	optionalApi "jakarta.servlet:jakarta.servlet-api:$servletApiVersion"
-
-	testImplementation 'software.amazon.awssdk:apache-client'
-
-	testImplementation('org.springframework.integration:spring-integration-test') {
-		exclude group: 'junit'
-	}
-	testImplementation "org.assertj:assertj-core:$assertjVersion"
-	testImplementation("org.awaitility:awaitility:$awaitilityVersion") {
-		exclude group: 'org.hamcrest'
-	}
-	testImplementation 'org.junit.jupiter:junit-jupiter-api'
-	testImplementation 'org.testcontainers:junit-jupiter'
-	testImplementation 'org.testcontainers:localstack'
-
-	testRuntimeOnly 'org.apache.logging.log4j:log4j-core'
-	testRuntimeOnly 'org.apache.logging.log4j:log4j-jcl'
-	testRuntimeOnly 'org.apache.logging.log4j:log4j-slf4j2-impl'
-	testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-}
-
-eclipse.project.natures += 'org.springframework.ide.eclipse.core.springnature'
-
-javadoc {
-	group = 'Documentation'
-	description = 'Generates the Javadoc API documentation.'
-	title = "${rootProject.description} ${version} API"
-
-	options.memberLevel = org.gradle.external.javadoc.JavadocMemberLevel.PROTECTED
-	options.author = true
-	options.header = project.description
-	options.overview = file('src/api/overview.html')
-	options.stylesheetFile = file('src/api/stylesheet.css')
-	options.splitIndex = true
-	options.links(project.ext.javadocLinks)
-	options.addStringOption('Xdoclint:none', '-quiet')
-	source = sourceSets.main.allJava
-	classpath = project.sourceSets.main.compileClasspath
-	destinationDir = file("$buildDir/api")
-
-	// suppress warnings due to cross-module @see and @link references;
-	// note that global 'api' task does display all warnings.
-	logging.captureStandardError LogLevel.INFO
-	logging.captureStandardOutput LogLevel.INFO // suppress "## warnings" message
-}
-
-// enable all compiler warnings; individual projects may customize further
-ext.xLintArg = '-Xlint:all,-options'
-[compileJava, compileTestJava]*.options*.compilerArgs = [xLintArg]
-
-test {
-	maxHeapSize = '1024m'
-	jacoco {
-		destinationFile = file("$buildDir/jacoco.exec")
-	}
-	useJUnitPlatform()
-	// suppress all console output during testing unless running `gradle -i`
-	logging.captureStandardOutput(LogLevel.INFO)
-}
-
-jacocoTestReport {
-	dependsOn test
-	reports {
-		xml.required = true
-		html.required = false
-	}
-}
-
-check.dependsOn javadoc
-tasks['sonarqube'].dependsOn jacocoTestReport
-
-task updateCopyrights {
-	onlyIf { !isCI }
-	inputs.files(modifiedFiles)
-	outputs.dir("$buildDir/classes")
-
-	doLast {
-		def now = Calendar.instance.get(Calendar.YEAR) as String
-		inputs.files.each { file ->
-			def line
-			file.withReader { reader ->
-				while (line = reader.readLine()) {
-					def matcher = line =~ /Copyright (20\d\d)-?(20\d\d)?/
-					if (matcher.count) {
-						def beginningYear = matcher[0][1]
-						if (now != beginningYear && now != matcher[0][2]) {
-							def years = "$beginningYear-$now"
-							def sourceCode = file.text
-							sourceCode = sourceCode.replaceFirst(/20\d\d(-20\d\d)?/, years)
-							file.text = sourceCode
-							println "Copyright updated for file: $file"
-						}
-						break
-					}
-				}
-			}
-		}
-	}
-}
-
-compileJava.dependsOn updateCopyrights
-
-sonar {
-	properties {
-		property 'sonar.links.homepage', linkHomepage
-		property 'sonar.links.ci', linkCi
-		property 'sonar.links.issue', linkIssue
-		property 'sonar.links.scm', linkScmUrl
-		property 'sonar.links.scm_dev', linkScmDevConnection
-	}
-}
-
-task docsZip(type: Zip) {
-	group = 'Distribution'
-	archiveClassifier = 'docs'
-	description = "Builds -${archiveClassifier} archive containing the JavaDoc api " +
-			"for deployment at static.springframework.org/spring-integration/docs."
-
-	from('.') {
-		include 'README.md'
-	}
-
-	from(javadoc) {
-		into 'api'
-	}
-}
-
-task distZip(type: Zip, dependsOn: docsZip) {
-	group = 'Distribution'
-	archiveClassifier = 'dist'
-	description = "Builds -${archiveClassifier} archive, containing all jars and docs, " +
-			"suitable for community download page."
-
-	ext.baseDir = "${project.name}-${project.version}";
-
-	from('src/dist') {
-		include 'license.txt'
-		include 'notice.txt'
-		into "${baseDir}"
-	}
-
-	from('.') {
-		include 'README.md'
-		into "${baseDir}"
-	}
-
-	into("${baseDir}/libs") {
-		from project.jar
-		from project.sourcesJar
-		from project.javadocJar
-	}
-}
-
-task dist(dependsOn: assemble) {
-	group = 'Distribution'
-	description = 'Builds -dist and -docs distribution archives.'
-}
-
-apply from: "${rootProject.projectDir}/publish-maven.gradle"

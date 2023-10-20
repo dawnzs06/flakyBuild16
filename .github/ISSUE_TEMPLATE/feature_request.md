@@ -1,25 +1,20 @@
 ---
 name: Feature request
-about: Suggest an idea for this project
+about: Suggest an idea
 title: ''
-labels: 'status: waiting-for-triage, type: enhancement'
+labels: enhancement
 assignees: ''
 
 ---
 
-**Expected Behavior**
+**Describe the feature request**
+A clear and concise description of what you want to happen.
 
-<!--- Tell us how it should work -->
+**Motivation**
+Please describe the motivation for adding this feature (what do you feel is missing, why do you think this enhancement is a good idea etc.)
 
-**Current Behavior**
+**Technical details**
+If possible, add technical details like design, implementation, etc. Any idea is welcome!
 
-<!--- Explain the difference from current behavior -->
-
-**Context**
-
-<!--- 
-How has this issue affected you?
-What are you trying to accomplish?
-What other alternatives have you considered?
-Are you aware of any workarounds?
--->
+**Describe alternatives you've considered**
+If you have considered alternatives, please describe them here.

@@ -1,35 +1,20 @@
 ---
 name: Bug report
-about: Create a report to help us improve
+about: Create a bug report
 title: ''
-labels: 'type: bug, status: waiting-for-triage'
+labels: bug
 assignees: ''
 
 ---
 
-**In what version(s) of Spring Integration AWS are you seeing this issue?**
-
-For example:
-
-2.5.3
-
-Between 2.5.0 and 3.0.0
-
 **Describe the bug**
-
 A clear and concise description of what the bug is.
 
-**To Reproduce**
+**Dependencies and versions used**
+For example, `springwolf-kafka` version `0.6.1`.
 
-Steps to reproduce the behavior.
+**Code example**
+If possible, an example project or snippet that reproduces the bug.
 
-**Expected behavior**
-
-A clear and concise description of what you expected to happen.
-
-**Sample**
-
-A link to a GitHub repository with a [minimal, reproducible sample](https://stackoverflow.com/help/minimal-reproducible-example).
-
-Reports that include a sample will take priority over reports that do not.
-At times, we may require a sample, so it is good to try and include a sample up front.
+**Stack trace and error logs**
+If an exception has been thrown or an error was logged by springwolf.

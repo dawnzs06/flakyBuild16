@@ -1,0 +1,17 @@
+{
+  "DocumentedSimpleFoo" : {
+    "required" : [ "s" ],
+    "type" : "object",
+    "properties" : {
+      "s" : {
+        "type" : "string",
+        "description" : "s field",
+        "example" : "s value"
+      }
+    },
+    "description" : "foo model",
+    "example" : {
+      "s" : "s value"
+    }
+  }
+}
