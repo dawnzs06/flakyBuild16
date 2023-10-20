@@ -57,7 +57,10 @@ class FunctionalChannelBeanData {
         Class<?> inputType = getReturnTypeGenerics(methodBean).get(0);
         Class<?> outputType = getReturnTypeGenerics(methodBean).get(1);
 
-        return Set.of(ofConsumer(name, inputType), ofSupplier(name, outputType));
+        return Set.of(
+                ofConsumer(name, inputType),
+                ofSupplier(name, outputType)
+        );
     }
 
     private static List<Class<?>> getReturnTypeGenerics(Method methodBean) {
@@ -82,12 +85,12 @@ class FunctionalChannelBeanData {
             return (Class<?>) rawType;
         }
 
-        throw new IllegalArgumentException(
-                "Cannot handle Type which is not Class or ParameterizedType, but was given: " + type.getClass());
+        throw new IllegalArgumentException("Cannot handle Type which is not Class or ParameterizedType, but was given: " + type.getClass());
     }
 
     enum BeanType {
         CONSUMER,
         SUPPLIER
     }
+
 }

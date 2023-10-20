@@ -21,8 +21,7 @@ class MonetaryAmountConverterTest {
 
         converters.addConverter(modelsConverter);
 
-        final Schema model =
-                converters.readAll(new AnnotatedType(MonetaryAmount.class)).get("MonetaryAmount");
+        final Schema model = converters.readAll(new AnnotatedType(MonetaryAmount.class)).get("MonetaryAmount");
         assertNotNull(model);
         assertEquals(2, model.getProperties().size());
 
@@ -35,4 +34,5 @@ class MonetaryAmountConverterTest {
         final Schema missingProperty = (Schema) model.getProperties().get("missing");
         assertNull(missingProperty);
     }
+
 }

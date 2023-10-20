@@ -6,7 +6,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class SpringwolfKafkaExampleApplication {
 
-    public static void main(String[] args) {
-        SpringApplication.run(SpringwolfKafkaExampleApplication.class, args);
-    }
+	public static void main(String[] args) {
+		SpringApplication.run(SpringwolfKafkaExampleApplication.class, args);
+	}
+
 }

@@ -53,4 +53,5 @@ public abstract class AbstractAnnotatedClassScanner<T extends Annotation> implem
             return Optional.empty();
         }
     }
+
 }

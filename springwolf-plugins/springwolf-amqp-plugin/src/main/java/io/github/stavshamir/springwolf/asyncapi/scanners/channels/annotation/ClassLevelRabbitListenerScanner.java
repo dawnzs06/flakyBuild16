@@ -81,4 +81,5 @@ public class ClassLevelRabbitListenerScanner extends AbstractClassLevelListenerS
     protected AsyncHeaders buildHeaders(Method method) {
         return new AsyncHeaders("SpringRabbitListenerDefaultHeaders");
     }
+
 }

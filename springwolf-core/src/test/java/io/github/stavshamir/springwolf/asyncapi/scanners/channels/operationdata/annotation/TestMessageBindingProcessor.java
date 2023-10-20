@@ -13,9 +13,8 @@ import java.util.Optional;
 
 public class TestMessageBindingProcessor implements MessageBindingProcessor {
 
-    public static final String TYPE = "testType";
-    public static final MessageBinding BINDING = new MessageBinding();
-
+    public final static String TYPE = "testType";
+    public final static MessageBinding BINDING = new MessageBinding();
     @Override
     public Optional<ProcessedMessageBinding> process(Method method) {
         return Arrays.stream(method.getAnnotations())
@@ -25,12 +24,12 @@ public class TestMessageBindingProcessor implements MessageBindingProcessor {
                 .map(this::mapToMessageBinding);
     }
 
-    private ProcessedMessageBinding mapToMessageBinding(
-            TestOperationBindingProcessor.TestOperationBinding bindingAnnotation) {
+    private ProcessedMessageBinding mapToMessageBinding(TestOperationBindingProcessor.TestOperationBinding bindingAnnotation) {
         return new ProcessedMessageBinding(TYPE, BINDING);
     }
 
     @Retention(RetentionPolicy.RUNTIME)
     @Target(value = {ElementType.METHOD})
-    public @interface TestMessageBinding {}
+    public @interface TestMessageBinding {
+    }
 }

@@ -32,6 +32,10 @@ public class AnotherPayloadDto {
 
     @Override
     public String toString() {
-        return "AnotherPayloadDto{" + "foo='" + foo + '\'' + ", example=" + example + '}';
+        return "AnotherPayloadDto{" +
+                "foo='" + foo + '\'' +
+                ", example=" + example +
+                '}';
     }
+
 }

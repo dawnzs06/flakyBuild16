@@ -10,4 +10,5 @@ public class ComponentClassScanner extends AbstractAnnotatedClassScanner<Compone
     protected Class<Component> getAnnotationClass() {
         return Component.class;
     }
+
 }

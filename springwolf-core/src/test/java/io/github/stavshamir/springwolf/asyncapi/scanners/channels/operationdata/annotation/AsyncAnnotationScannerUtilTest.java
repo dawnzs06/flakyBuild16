@@ -29,8 +29,7 @@ class AsyncAnnotationScannerUtilTest {
         StringValueResolver resolver = mock(StringValueResolver.class);
 
         // when
-        when(resolver.resolveStringValue(any()))
-                .thenAnswer(invocation -> invocation.getArgument(0).toString() + "Resolved");
+        when(resolver.resolveStringValue(any())).thenAnswer(invocation -> invocation.getArgument(0).toString()+"Resolved");
 
         // then
         AsyncHeaders headers = AsyncAnnotationScannerUtil.getAsyncHeaders(operation, resolver);
@@ -47,12 +46,10 @@ class AsyncAnnotationScannerUtilTest {
         Method m = ClassWithOperationBindingProcessor.class.getDeclaredMethod("methodWithAnnotation", String.class);
 
         // when
-        Map<String, OperationBinding> bindings = AsyncAnnotationScannerUtil.processOperationBindingFromAnnotation(
-                m, Collections.singletonList(new TestOperationBindingProcessor()));
+        Map<String, OperationBinding> bindings = AsyncAnnotationScannerUtil.processOperationBindingFromAnnotation(m, Collections.singletonList(new TestOperationBindingProcessor()));
 
         // then
-        assertEquals(
-                Maps.newHashMap(TestOperationBindingProcessor.TYPE, TestOperationBindingProcessor.BINDING), bindings);
+        assertEquals(Maps.newHashMap(TestOperationBindingProcessor.TYPE, TestOperationBindingProcessor.BINDING), bindings);
     }
 
     @Test
@@ -61,8 +58,7 @@ class AsyncAnnotationScannerUtilTest {
         Method m = ClassWithOperationBindingProcessor.class.getDeclaredMethod("methodWithAnnotation", String.class);
 
         // when
-        Map<String, MessageBinding> bindings = AsyncAnnotationScannerUtil.processMessageBindingFromAnnotation(
-                m, Collections.singletonList(new TestMessageBindingProcessor()));
+        Map<String, MessageBinding> bindings = AsyncAnnotationScannerUtil.processMessageBindingFromAnnotation(m, Collections.singletonList(new TestMessageBindingProcessor()));
 
         // then
         assertEquals(Maps.newHashMap(TestMessageBindingProcessor.TYPE, TestMessageBindingProcessor.BINDING), bindings);
@@ -71,8 +67,7 @@ class AsyncAnnotationScannerUtilTest {
     @Test
     void processMessageFromAnnotationWithoutAsyncMessage() throws NoSuchMethodException {
         // given
-        Method method =
-                ClassWithOperationBindingProcessor.class.getDeclaredMethod("methodWithAnnotation", String.class);
+        Method method = ClassWithOperationBindingProcessor.class.getDeclaredMethod("methodWithAnnotation", String.class);
 
         // when
         Message message = AsyncAnnotationScannerUtil.processMessageFromAnnotation(method);
@@ -85,8 +80,7 @@ class AsyncAnnotationScannerUtilTest {
     @Test
     void processMessageFromAnnotationWithAsyncMessage() throws NoSuchMethodException {
         // given
-        Method method = ClassWithOperationBindingProcessor.class.getDeclaredMethod(
-                "methodWithAsyncMessageAnnotation", String.class);
+        Method method = ClassWithOperationBindingProcessor.class.getDeclaredMethod("methodWithAsyncMessageAnnotation", String.class);
 
         // when
         Message message = AsyncAnnotationScannerUtil.processMessageFromAnnotation(method);
@@ -103,45 +97,35 @@ class AsyncAnnotationScannerUtilTest {
     }
 
     private static class ClassWithOperationBindingProcessor {
-        @AsyncListener(
-                operation =
-                        @AsyncOperation(
-                                channelName = "${test.property.test-channel}",
-                                description = "${test.property.description}",
-                                headers =
-                                        @AsyncOperation.Headers(
-                                                schemaName = "TestSchema",
-                                                values = {
-                                                    @AsyncOperation.Headers.Header(
-                                                            name = "header",
-                                                            value = "value",
-                                                            description = "description")
-                                                })))
+        @AsyncListener(operation = @AsyncOperation(
+                channelName = "${test.property.test-channel}",
+                description = "${test.property.description}",
+                headers = @AsyncOperation.Headers(
+                        schemaName = "TestSchema",
+                        values = {@AsyncOperation.Headers.Header(name = "header", value = "value", description = "description")}
+                )
+        ))
         @TestOperationBindingProcessor.TestOperationBinding()
-        private void methodWithAnnotation(String payload) {}
+        private void methodWithAnnotation(String payload) {
+        }
 
-        @AsyncListener(
-                operation =
-                        @AsyncOperation(
-                                channelName = "${test.property.test-channel}",
-                                description = "${test.property.description}",
-                                headers =
-                                        @AsyncOperation.Headers(
-                                                schemaName = "TestSchema",
-                                                values = {
-                                                    @AsyncOperation.Headers.Header(
-                                                            name = "header",
-                                                            value = "value",
-                                                            description = "description")
-                                                }),
-                                message =
-                                        @AsyncMessage(
-                                                description = "Message description",
-                                                messageId = "simpleFoo",
-                                                name = "SimpleFooPayLoad",
-                                                schemaFormat = "application/schema+json;version=draft-07",
-                                                title = "Message Title")))
+        @AsyncListener(operation = @AsyncOperation(
+                channelName = "${test.property.test-channel}",
+                description = "${test.property.description}",
+                headers = @AsyncOperation.Headers(
+                        schemaName = "TestSchema",
+                        values = {@AsyncOperation.Headers.Header(name = "header", value = "value", description = "description")}
+                ),
+                message = @AsyncMessage(
+                        description = "Message description",
+                        messageId = "simpleFoo",
+                        name = "SimpleFooPayLoad",
+                        schemaFormat = "application/schema+json;version=draft-07",
+                        title = "Message Title"
+                )
+        ))
         @TestOperationBindingProcessor.TestOperationBinding()
-        private void methodWithAsyncMessageAnnotation(String payload) {}
+        private void methodWithAsyncMessageAnnotation(String payload) {
+        }
     }
 }

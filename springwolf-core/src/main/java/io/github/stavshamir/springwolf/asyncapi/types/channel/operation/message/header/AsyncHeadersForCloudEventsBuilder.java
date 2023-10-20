@@ -25,15 +25,14 @@ public class AsyncHeadersForCloudEventsBuilder {
         return withContentTypeHeader(contentType, List.of(contentType));
     }
 
-    public AsyncHeadersForCloudEventsBuilder withContentTypeHeader(
-            MediaType exampleContentType, List<MediaType> contentTypeValues) {
-        List<String> contentTypeStringValues =
-                contentTypeValues.stream().map(MimeType::toString).toList();
+    public AsyncHeadersForCloudEventsBuilder withContentTypeHeader(MediaType exampleContentType, List<MediaType> contentTypeValues) {
+        List<String> contentTypeStringValues = contentTypeValues.stream().map(MimeType::toString).toList();
         return withHeader(
                 "content-type",
                 contentTypeStringValues,
                 exampleContentType.toString(),
-                "CloudEvent Content-Type Header");
+                "CloudEvent Content-Type Header"
+        );
     }
 
     public AsyncHeadersForCloudEventsBuilder withSpecVersionHeader(String specVersion) {
@@ -41,7 +40,12 @@ public class AsyncHeadersForCloudEventsBuilder {
     }
 
     public AsyncHeadersForCloudEventsBuilder withSpecVersionHeader(String specVersion, List<String> specValues) {
-        return withHeader("ce_specversion", specValues, specVersion, "CloudEvent Spec Version Header");
+        return withHeader(
+                "ce_specversion",
+                specValues,
+                specVersion,
+                "CloudEvent Spec Version Header"
+        );
     }
 
     public AsyncHeadersForCloudEventsBuilder withIdHeader(String idExample) {
@@ -49,7 +53,12 @@ public class AsyncHeadersForCloudEventsBuilder {
     }
 
     public AsyncHeadersForCloudEventsBuilder withIdHeader(String idExample, List<String> idValues) {
-        return withHeader("ce_id", idValues, idExample, "CloudEvent Id Header");
+        return withHeader(
+                "ce_id",
+                idValues,
+                idExample,
+                "CloudEvent Id Header"
+        );
     }
 
     public AsyncHeadersForCloudEventsBuilder withTimeHeader(String timeExample) {
@@ -57,7 +66,12 @@ public class AsyncHeadersForCloudEventsBuilder {
     }
 
     public AsyncHeadersForCloudEventsBuilder withTimeHeader(String timeExample, List<String> timeValues) {
-        return withHeader("ce_time", timeValues, timeExample, "CloudEvent Time Header");
+        return withHeader(
+                "ce_time",
+                timeValues,
+                timeExample,
+                "CloudEvent Time Header"
+        );
     }
 
     public AsyncHeadersForCloudEventsBuilder withTypeHeader(String typeExample) {
@@ -65,7 +79,12 @@ public class AsyncHeadersForCloudEventsBuilder {
     }
 
     public AsyncHeadersForCloudEventsBuilder withTypeHeader(String typeExample, List<String> typeValues) {
-        return withHeader("ce_type", typeValues, typeExample, "CloudEvent Payload Type Header");
+        return withHeader(
+                "ce_type",
+                typeValues,
+                typeExample,
+                "CloudEvent Payload Type Header"
+        );
     }
 
     public AsyncHeadersForCloudEventsBuilder withSourceHeader(String sourceExample) {
@@ -73,7 +92,12 @@ public class AsyncHeadersForCloudEventsBuilder {
     }
 
     public AsyncHeadersForCloudEventsBuilder withSourceHeader(String sourceExample, List<String> sourceValues) {
-        return withHeader("ce_source", sourceValues, sourceExample, "CloudEvent Source Header");
+        return withHeader(
+                "ce_source",
+                sourceValues,
+                sourceExample,
+                "CloudEvent Source Header"
+        );
     }
 
     public AsyncHeadersForCloudEventsBuilder withSubjectHeader(String subjectExample) {
@@ -81,16 +105,19 @@ public class AsyncHeadersForCloudEventsBuilder {
     }
 
     public AsyncHeadersForCloudEventsBuilder withSubjectHeader(String subjectExample, List<String> subjectValues) {
-        return withHeader("ce_subject", subjectValues, subjectExample, "CloudEvent Subject Header");
+        return withHeader(
+                "ce_subject",
+                subjectValues,
+                subjectExample,
+                "CloudEvent Subject Header"
+        );
     }
 
-    public AsyncHeadersForCloudEventsBuilder withExtension(
-            String headerName, List<String> values, String exampleValue, String description) {
+    public AsyncHeadersForCloudEventsBuilder withExtension(String headerName, List<String> values, String exampleValue, String description) {
         return withHeader(headerName, values, exampleValue, description);
     }
 
-    private AsyncHeadersForCloudEventsBuilder withHeader(
-            String headerName, List<String> values, String exampleValue, String description) {
+    private AsyncHeadersForCloudEventsBuilder withHeader(String headerName, List<String> values, String exampleValue, String description) {
         AsyncHeaderSchema header = AsyncHeaderSchema.headerBuilder()
                 .headerName(headerName)
                 .description(description)
@@ -104,4 +131,5 @@ public class AsyncHeadersForCloudEventsBuilder {
     public AsyncHeaders build() {
         return AsyncHeaders.from(this.headers, this.headers.getSchemaName());
     }
+
 }

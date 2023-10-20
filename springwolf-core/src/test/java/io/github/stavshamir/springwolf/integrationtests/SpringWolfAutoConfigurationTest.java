@@ -26,9 +26,10 @@ public class SpringWolfAutoConfigurationTest {
         private AsyncApiController asyncApiController;
 
         @Test
-        void autoconfigurationShouldBeLoaded() {
+        void autoconfigurationShouldBeLoaded(){
             assertThat(asyncApiController).isNotNull();
         }
+
     }
 
     @Nested
@@ -39,14 +40,17 @@ public class SpringWolfAutoConfigurationTest {
         @Autowired
         private ObjectProvider<AsyncApiController> asyncApiControllerObjectProvider;
 
+
         @Test
-        void autoconfigurationShouldNotBeLoaded() {
+        void autoconfigurationShouldNotBeLoaded(){
             assertThat(asyncApiControllerObjectProvider.getIfAvailable()).isNull();
         }
+
     }
 
+
     @SpringBootApplication
-    static class TestApplication {
+    static class TestApplication{
 
         @Bean
         public AsyncApiDocket docket() {
@@ -57,5 +61,7 @@ public class SpringWolfAutoConfigurationTest {
                             .build())
                     .build();
         }
+
     }
+
 }

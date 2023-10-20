@@ -24,21 +24,28 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class SpringwolfAmqpProducerConfigurationIntegrationTest {
 
     @ExtendWith(SpringExtension.class)
-    @ContextConfiguration(
-            classes = {DefaultAsyncApiDocketService.class, SpringwolfAmqpProducer.class, SpringwolfAmqpController.class
-            })
-    @EnableConfigurationProperties(value = {SpringWolfConfigProperties.class, SpringWolfAmqpConfigProperties.class})
-    @TestPropertySource(
-            properties = {
-                "springwolf.enabled=true",
-                "springwolf.docket.info.title=Info title was loaded from spring properties",
-                "springwolf.docket.info.version=1.0.0",
-                "springwolf.docket.base-package=io.github.stavshamir.springwolf.example",
-                "springwolf.docket.servers.test-protocol.protocol=test",
-                "springwolf.docket.servers.test-protocol.url=some-server:1234",
-                "springwolf.plugin.amqp.publishing.enabled=true"
-            })
-    @MockBeans(value = {@MockBean(ChannelsService.class), @MockBean(RabbitTemplate.class)})
+    @ContextConfiguration(classes = {
+            DefaultAsyncApiDocketService.class,
+            SpringwolfAmqpProducer.class,
+            SpringwolfAmqpController.class
+    })
+    @EnableConfigurationProperties(value = {
+            SpringWolfConfigProperties.class,
+            SpringWolfAmqpConfigProperties.class
+    })
+    @TestPropertySource(properties = {
+            "springwolf.enabled=true",
+            "springwolf.docket.info.title=Info title was loaded from spring properties",
+            "springwolf.docket.info.version=1.0.0",
+            "springwolf.docket.base-package=io.github.stavshamir.springwolf.example",
+            "springwolf.docket.servers.test-protocol.protocol=test",
+            "springwolf.docket.servers.test-protocol.url=some-server:1234",
+            "springwolf.plugin.amqp.publishing.enabled=true"
+    })
+    @MockBeans(value = {
+            @MockBean(ChannelsService.class),
+            @MockBean(RabbitTemplate.class)
+    })
     @Nested
     class AmqpProducerWillBeCreatedIfEnabledTest {
         @Autowired
@@ -55,21 +62,28 @@ public class SpringwolfAmqpProducerConfigurationIntegrationTest {
     }
 
     @ExtendWith(SpringExtension.class)
-    @ContextConfiguration(
-            classes = {DefaultAsyncApiDocketService.class, SpringwolfAmqpProducer.class, SpringwolfAmqpController.class
-            })
-    @EnableConfigurationProperties(value = {SpringWolfConfigProperties.class, SpringWolfAmqpConfigProperties.class})
-    @TestPropertySource(
-            properties = {
-                "springwolf.enabled=true",
-                "springwolf.docket.info.title=Info title was loaded from spring properties",
-                "springwolf.docket.info.version=1.0.0",
-                "springwolf.docket.base-package=io.github.stavshamir.springwolf.example",
-                "springwolf.docket.servers.test-protocol.protocol=test",
-                "springwolf.docket.servers.test-protocol.url=some-server:1234",
-                "springwolf.plugin.amqp.publishing.enabled=false"
-            })
-    @MockBeans(value = {@MockBean(ChannelsService.class), @MockBean(RabbitTemplate.class)})
+    @ContextConfiguration(classes = {
+            DefaultAsyncApiDocketService.class,
+            SpringwolfAmqpProducer.class,
+            SpringwolfAmqpController.class
+    })
+    @EnableConfigurationProperties(value = {
+            SpringWolfConfigProperties.class,
+            SpringWolfAmqpConfigProperties.class
+    })
+    @TestPropertySource(properties = {
+            "springwolf.enabled=true",
+            "springwolf.docket.info.title=Info title was loaded from spring properties",
+            "springwolf.docket.info.version=1.0.0",
+            "springwolf.docket.base-package=io.github.stavshamir.springwolf.example",
+            "springwolf.docket.servers.test-protocol.protocol=test",
+            "springwolf.docket.servers.test-protocol.url=some-server:1234",
+            "springwolf.plugin.amqp.publishing.enabled=false"
+    })
+    @MockBeans(value = {
+            @MockBean(ChannelsService.class),
+            @MockBean(RabbitTemplate.class)
+    })
     @Nested
     class AmqpProducerWillNotBeCreatedIfDisabledTest {
         @Autowired
@@ -84,4 +98,5 @@ public class SpringwolfAmqpProducerConfigurationIntegrationTest {
             assertThat(springwolfAmqpController).isNotPresent();
         }
     }
+
 }

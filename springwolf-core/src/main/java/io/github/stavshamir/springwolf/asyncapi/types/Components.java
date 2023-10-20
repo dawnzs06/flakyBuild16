@@ -22,4 +22,5 @@ import java.util.Map;
 public class Components {
 
     private Map<String, Schema> schemas;
+
 }

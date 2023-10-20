@@ -1,8 +1,7 @@
 package io.github.stavshamir.springwolf.asyncapi.scanners.classes;
 
-import io.github.stavshamir.springwolf.configuration.AsyncApiDocket;
-
 import java.util.Set;
+import io.github.stavshamir.springwolf.configuration.AsyncApiDocket;
 
 public interface ClassScanner {
 

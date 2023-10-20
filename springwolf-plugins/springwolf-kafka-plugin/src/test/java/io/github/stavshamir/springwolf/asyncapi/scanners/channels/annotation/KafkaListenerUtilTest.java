@@ -58,8 +58,7 @@ class KafkaListenerUtilTest {
         when(resolver.resolveStringValue("${group-id}")).thenReturn("group-id");
 
         // when
-        Map<String, ? extends OperationBinding> operationBinding =
-                KafkaListenerUtil.buildOperationBinding(annotation, resolver);
+        Map<String, ? extends OperationBinding> operationBinding = KafkaListenerUtil.buildOperationBinding(annotation, resolver);
 
         // then
         assertEquals(1, operationBinding.size());
@@ -70,6 +69,7 @@ class KafkaListenerUtilTest {
                 .build();
         assertEquals(expectedOperationBinding, operationBinding.get("kafka"));
     }
+
 
     @Test
     void buildMessageBinding() {

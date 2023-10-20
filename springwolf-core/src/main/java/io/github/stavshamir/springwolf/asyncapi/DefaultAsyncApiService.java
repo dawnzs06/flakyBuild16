@@ -30,8 +30,9 @@ public class DefaultAsyncApiService implements AsyncApiService {
 
         AsyncApiDocket docket = asyncApiDocketService.getAsyncApiDocket();
 
-        Components components =
-                Components.builder().schemas(schemasService.getDefinitions()).build();
+        Components components = Components.builder()
+                .schemas(schemasService.getDefinitions())
+                .build();
 
         asyncAPI = AsyncAPI.builder()
                 .info(docket.getInfo())
@@ -42,7 +43,7 @@ public class DefaultAsyncApiService implements AsyncApiService {
                 .components(components)
                 .build();
 
-        for (AsyncApiCustomizer customizer : customizers) {
+        for (AsyncApiCustomizer customizer: customizers) {
             customizer.customize(asyncAPI);
         }
     }
@@ -51,4 +52,5 @@ public class DefaultAsyncApiService implements AsyncApiService {
     public AsyncAPI getAsyncAPI() {
         return asyncAPI;
     }
+
 }

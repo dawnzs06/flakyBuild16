@@ -41,4 +41,5 @@ public class DefaultChannelsService implements ChannelsService {
     public Map<String, ChannelItem> getChannels() {
         return channels;
     }
+
 }

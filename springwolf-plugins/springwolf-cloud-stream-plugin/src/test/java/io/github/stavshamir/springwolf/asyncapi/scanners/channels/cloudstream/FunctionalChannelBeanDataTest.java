@@ -15,6 +15,7 @@ import static io.github.stavshamir.springwolf.asyncapi.scanners.channels.cloudst
 import static io.github.stavshamir.springwolf.asyncapi.scanners.channels.cloudstream.FunctionalChannelBeanData.BeanType.SUPPLIER;
 import static org.assertj.core.api.Assertions.assertThat;
 
+
 class FunctionalChannelBeanDataTest {
 
     @Test
@@ -38,14 +39,14 @@ class FunctionalChannelBeanDataTest {
         Set<FunctionalChannelBeanData> data = FunctionalChannelBeanData.fromMethodBean(method);
 
         assertThat(data)
-                .containsExactly(
-                        new FunctionalChannelBeanData("consumerBean", String.class, CONSUMER, "consumerBean-in-0"));
+                .containsExactly(new FunctionalChannelBeanData("consumerBean", String.class, CONSUMER, "consumerBean-in-0"));
     }
 
     @Bean
     private Consumer<String> consumerBean() {
         return System.out::println;
     }
+
 
     @Test
     void testSupplierBean() throws NoSuchMethodException {
@@ -54,8 +55,7 @@ class FunctionalChannelBeanDataTest {
         Set<FunctionalChannelBeanData> data = FunctionalChannelBeanData.fromMethodBean(method);
 
         assertThat(data)
-                .containsExactly(
-                        new FunctionalChannelBeanData("supplierBean", String.class, SUPPLIER, "supplierBean-out-0"));
+                .containsExactly(new FunctionalChannelBeanData("supplierBean", String.class, SUPPLIER, "supplierBean-out-0"));
     }
 
     @Bean
@@ -69,10 +69,10 @@ class FunctionalChannelBeanDataTest {
 
         Set<FunctionalChannelBeanData> data = FunctionalChannelBeanData.fromMethodBean(method);
 
-        assertThat(data)
-                .containsExactlyInAnyOrder(
-                        new FunctionalChannelBeanData("functionBean", String.class, CONSUMER, "functionBean-in-0"),
-                        new FunctionalChannelBeanData("functionBean", Integer.class, SUPPLIER, "functionBean-out-0"));
+        assertThat(data).containsExactlyInAnyOrder(
+                new FunctionalChannelBeanData("functionBean", String.class, CONSUMER, "functionBean-in-0"),
+                new FunctionalChannelBeanData("functionBean", Integer.class, SUPPLIER, "functionBean-out-0")
+        );
     }
 
     @Bean
@@ -104,8 +104,7 @@ class FunctionalChannelBeanDataTest {
         Set<FunctionalChannelBeanData> data = FunctionalChannelBeanData.fromMethodBean(method);
 
         assertThat(data)
-                .containsExactly(
-                        new FunctionalChannelBeanData(methodName, String.class, CONSUMER, methodName + "-in-0"));
+                .containsExactly(new FunctionalChannelBeanData(methodName, String.class, CONSUMER, methodName + "-in-0"));
     }
 
     @Bean
@@ -116,4 +115,5 @@ class FunctionalChannelBeanDataTest {
     private static Method getMethod(String methodName) throws NoSuchMethodException {
         return FunctionalChannelBeanDataTest.class.getDeclaredMethod(methodName);
     }
+
 }

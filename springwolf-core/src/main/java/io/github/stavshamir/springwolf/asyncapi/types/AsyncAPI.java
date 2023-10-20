@@ -91,4 +91,5 @@ public class AsyncAPI {
     @NonNull
     @Builder.Default
     private Set<Tag> tags = Collections.emptySet();
+
 }

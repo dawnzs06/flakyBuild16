@@ -42,15 +42,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.when;
 
+
 @ExtendWith(SpringExtension.class)
-@ContextConfiguration(
-        classes = {
-            MethodLevelRabbitListenerScanner.class,
-            DefaultSchemasService.class,
-            MethodLevelRabbitListenerScannerTest.ClassWithRabbitListenerAnnotationsBindingBean.class
-        })
+@ContextConfiguration(classes = {
+        MethodLevelRabbitListenerScanner.class,
+        DefaultSchemasService.class,
+        MethodLevelRabbitListenerScannerTest.ClassWithRabbitListenerAnnotationsBindingBean.class
+})
 @TestPropertySource(properties = "amqp.queues.test=test-queue")
 class MethodLevelRabbitListenerScannerTest {
+
 
     @Autowired
     private MethodLevelRabbitListenerScanner rabbitListenerScanner;
@@ -63,17 +64,16 @@ class MethodLevelRabbitListenerScannerTest {
 
     private static final String QUEUE = "test-queue";
     private static final Map<String, Object> defaultOperationBinding =
-            Map.of("amqp", AMQPOperationBinding.builder().cc(List.of(QUEUE)).build());
+            Map.of("amqp", AMQPOperationBinding.builder()
+                    .cc(List.of(QUEUE))
+                    .build());
     private static final Map<String, ? extends MessageBinding> defaultMessageBinding =
             Map.of("amqp", new AMQPMessageBinding());
-    private static final Map<String, Object> defaultChannelBinding = Map.of(
-            "amqp",
-            AMQPChannelBinding.builder()
-                    .is("routingKey")
-                    .exchange(AMQPChannelBinding.ExchangeProperties.builder()
-                            .name("")
-                            .build())
-                    .build());
+    private static final Map<String, Object> defaultChannelBinding = Map.of("amqp", AMQPChannelBinding.builder()
+            .is("routingKey")
+            .exchange(AMQPChannelBinding.ExchangeProperties.builder().name("").build())
+            .build());
+
 
     private void setClassToScan(Class<?> classToScan) {
         Set<Class<?>> classesToScan = singleton(classToScan);
@@ -86,7 +86,8 @@ class MethodLevelRabbitListenerScannerTest {
 
         Map<String, ChannelItem> channels = rabbitListenerScanner.scan();
 
-        assertThat(channels).isEmpty();
+        assertThat(channels)
+                .isEmpty();
     }
 
     @Test
@@ -125,7 +126,8 @@ class MethodLevelRabbitListenerScannerTest {
                 .publish(operation)
                 .build();
 
-        assertThat(actualChannelItems).containsExactly(Map.entry(QUEUE, expectedChannelItem));
+        assertThat(actualChannelItems)
+                .containsExactly(Map.entry(QUEUE, expectedChannelItem));
     }
 
     @Test
@@ -164,7 +166,8 @@ class MethodLevelRabbitListenerScannerTest {
                 .publish(operation)
                 .build();
 
-        assertThat(actualChannelItems).containsExactly(Map.entry(QUEUE, expectedChannelItem));
+        assertThat(actualChannelItems)
+                .containsExactly(Map.entry(QUEUE, expectedChannelItem));
     }
 
     @Test
@@ -191,11 +194,9 @@ class MethodLevelRabbitListenerScannerTest {
         Operation operation = Operation.builder()
                 .description("Auto-generated description")
                 .operationId("test-queue_publish_methodWithAnnotation1")
-                .bindings(Map.of(
-                        "amqp",
-                        AMQPOperationBinding.builder()
-                                .cc(Collections.singletonList("key"))
-                                .build()))
+                .bindings(Map.of("amqp", AMQPOperationBinding.builder()
+                        .cc(Collections.singletonList("key"))
+                        .build()))
                 .message(message)
                 .build();
 
@@ -204,7 +205,8 @@ class MethodLevelRabbitListenerScannerTest {
                 .publish(operation)
                 .build();
 
-        assertThat(actualChannelItems).containsExactly(Map.entry(QUEUE, expectedChannelItem));
+        assertThat(actualChannelItems)
+                .containsExactly(Map.entry(QUEUE, expectedChannelItem));
     }
 
     @Test
@@ -231,11 +233,9 @@ class MethodLevelRabbitListenerScannerTest {
         Operation operation = Operation.builder()
                 .description("Auto-generated description")
                 .operationId("binding-bean-queue_publish_methodWithAnnotation1")
-                .bindings(Map.of(
-                        "amqp",
-                        AMQPOperationBinding.builder()
-                                .cc(Collections.singletonList("binding-bean-key"))
-                                .build()))
+                .bindings(Map.of("amqp", AMQPOperationBinding.builder()
+                        .cc(Collections.singletonList("binding-bean-key"))
+                        .build()))
                 .message(message)
                 .build();
 
@@ -244,7 +244,8 @@ class MethodLevelRabbitListenerScannerTest {
                 .publish(operation)
                 .build();
 
-        assertThat(actualChannelItems).containsExactly(Map.entry("binding-bean-queue", expectedChannelItem));
+        assertThat(actualChannelItems)
+                .containsExactly(Map.entry("binding-bean-queue", expectedChannelItem));
     }
 
     @Test
@@ -255,7 +256,8 @@ class MethodLevelRabbitListenerScannerTest {
         setClassToScan(ClassWithRabbitListenerAnnotationMultipleParamsWithoutPayloadAnnotation.class);
 
         // Then an exception is thrown when scan is called
-        assertThatThrownBy(() -> rabbitListenerScanner.scan()).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> rabbitListenerScanner.scan())
+                .isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
@@ -268,8 +270,7 @@ class MethodLevelRabbitListenerScannerTest {
         // When scan is called
         Map<String, ChannelItem> actualChannelItems = rabbitListenerScanner.scan();
 
-        // Then the returned collection contains the channel, and the payload is of the parameter annotated with
-        // @Payload
+        // Then the returned collection contains the channel, and the payload is of the parameter annotated with @Payload
         AMQPChannelBinding.ExchangeProperties properties = new AMQPChannelBinding.ExchangeProperties();
         properties.setName("");
         ChannelBinding channelBinding = AMQPChannelBinding.builder()
@@ -297,39 +298,44 @@ class MethodLevelRabbitListenerScannerTest {
                 .publish(operation)
                 .build();
 
-        assertThat(actualChannelItems).containsExactly(Map.entry(QUEUE, expectedChannelItem));
+        assertThat(actualChannelItems)
+                .containsExactly(Map.entry(QUEUE, expectedChannelItem));
     }
 
     private static class ClassWithoutRabbitListenerAnnotations {
 
-        private void methodWithoutAnnotation() {}
+        private void methodWithoutAnnotation() {
+        }
+
     }
 
     private static class ClassWithRabbitListenerAnnotationHardCodedTopic {
 
         @RabbitListener(queues = QUEUE)
-        private void methodWithAnnotation(SimpleFoo payload) {}
+        private void methodWithAnnotation(SimpleFoo payload) {
+        }
 
-        private void methodWithoutAnnotation() {}
+        private void methodWithoutAnnotation() {
+        }
+
     }
 
     private static class ClassWithRabbitListenerAnnotationUsingBindings {
 
-        @RabbitListener(
-                bindings = {
-                    @QueueBinding(
-                            exchange = @Exchange(name = "name", type = "topic"),
-                            key = "key",
-                            value = @Queue(name = "test-queue"))
-                })
-        private void methodWithAnnotation1(SimpleFoo payload) {}
+        @RabbitListener(bindings = {
+                @QueueBinding(
+                        exchange = @Exchange(name = "name", type = "topic"),
+                        key = "key",
+                        value = @Queue(name = "test-queue"))
+        })
+        private void methodWithAnnotation1(SimpleFoo payload) {
+        }
     }
 
     public static class ClassWithRabbitListenerAnnotationsBindingBean {
         @Bean
         public Binding binding() {
-            return new Binding(
-                    "binding-bean-queue",
+            return new Binding("binding-bean-queue",
                     Binding.DestinationType.QUEUE,
                     "binding-bean-exchange",
                     "binding-bean-key",
@@ -337,25 +343,32 @@ class MethodLevelRabbitListenerScannerTest {
         }
 
         @RabbitListener(queues = "binding-bean-queue")
-        private void methodWithAnnotation1(SimpleFoo payload) {}
+        private void methodWithAnnotation1(SimpleFoo payload) {
+        }
     }
 
     private static class ClassWithRabbitListenerAnnotationsEmbeddedValueTopic {
 
         @RabbitListener(queues = "${amqp.queues.test}")
-        private void methodWithAnnotation1(SimpleFoo payload) {}
+        private void methodWithAnnotation1(SimpleFoo payload) {
+        }
+
     }
 
     private static class ClassWithRabbitListenerAnnotationMultipleParamsWithoutPayloadAnnotation {
 
         @RabbitListener(queues = QUEUE)
-        private void methodWithAnnotation(SimpleFoo payload, String anotherParam) {}
+        private void methodWithAnnotation(SimpleFoo payload, String anotherParam) {
+        }
+
     }
 
     private static class ClassWithRabbitListenerAnnotationMultipleParamsWithPayloadAnnotation {
 
         @RabbitListener(queues = QUEUE)
-        private void methodWithAnnotation(String anotherParam, @Payload SimpleFoo payload) {}
+        private void methodWithAnnotation(String anotherParam, @Payload SimpleFoo payload) {
+        }
+
     }
 
     @Data
@@ -364,4 +377,5 @@ class MethodLevelRabbitListenerScannerTest {
         private String s;
         private boolean b;
     }
+
 }

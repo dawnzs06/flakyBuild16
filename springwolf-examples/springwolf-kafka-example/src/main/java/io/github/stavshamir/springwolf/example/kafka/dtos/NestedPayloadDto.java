@@ -32,6 +32,9 @@ public class NestedPayloadDto {
 
     @Override
     public String toString() {
-        return "NestedPayloadDto{" + "someStrings=" + someStrings + ", examplePayloads=" + examplePayloads + '}';
+        return "NestedPayloadDto{" +
+                "someStrings=" + someStrings +
+                ", examplePayloads=" + examplePayloads +
+                '}';
     }
 }

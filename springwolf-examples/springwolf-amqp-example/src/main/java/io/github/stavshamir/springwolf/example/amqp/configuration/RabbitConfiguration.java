@@ -52,4 +52,5 @@ public class RabbitConfiguration {
                 .with("example-topic-routing-key")
                 .noargs();
     }
+
 }

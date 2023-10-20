@@ -77,4 +77,5 @@ public class ClassLevelKafkaListenerScanner extends AbstractClassLevelListenerSc
                 .withTypeIdHeader(payloadType.getTypeName())
                 .build();
     }
+
 }

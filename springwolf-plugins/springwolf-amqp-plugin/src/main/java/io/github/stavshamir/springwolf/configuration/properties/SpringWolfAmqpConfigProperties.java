@@ -32,6 +32,7 @@ public class SpringWolfAmqpConfigProperties {
          * Enables/Disables the possibility to publish messages through springwolf on the configured amqp instance.
          */
         private boolean enabled = false;
+
     }
 
     @Getter
@@ -50,4 +51,5 @@ public class SpringWolfAmqpConfigProperties {
             private boolean enabled = true;
         }
     }
+
 }

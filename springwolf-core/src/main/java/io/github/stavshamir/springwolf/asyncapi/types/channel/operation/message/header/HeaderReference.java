@@ -22,4 +22,5 @@ public class HeaderReference {
     public static HeaderReference fromModelName(String modelName) {
         return new HeaderReference("#/components/schemas/" + modelName);
     }
+
 }

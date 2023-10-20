@@ -16,6 +16,7 @@ import org.springframework.web.server.ResponseStatusException;
 import static io.github.stavshamir.springwolf.configuration.properties.SpringWolfAmqpConfigConstants.SPRINGWOLF_AMQP_CONFIG_PREFIX;
 import static io.github.stavshamir.springwolf.configuration.properties.SpringWolfAmqpConfigConstants.SPRINGWOLF_AMQP_PLUGIN_PUBLISHING_ENABLED;
 
+
 @Slf4j
 @RestController
 @RequestMapping("/springwolf/amqp")
@@ -35,4 +36,5 @@ public class SpringwolfAmqpController {
         log.info("Publishing to amqp queue {}: {}", topic, message.getPayload());
         amqpProducer.send(topic, message.getPayload());
     }
+
 }
