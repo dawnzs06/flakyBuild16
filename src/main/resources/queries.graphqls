@@ -1,6 +1,0 @@
-type Query {
-    rootNode: EnvironmentNode!
-    environmentNodes(filter: EnvironmentNodeFilterInput): [EnvironmentNode!]!
-    targetNodes(filter: TargetNodesFilterInput): [TargetNode!]!
-    archivedRecordings(filter: ArchivedRecordingFilterInput): Archived!
-}

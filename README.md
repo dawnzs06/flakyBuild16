@@ -1,379 +1,291 @@
-<a target="_blank" href="https://cryostat.io">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="./docs/images/cryostat_logo_hori_rgb_reverse.svg">
-    <img src="./docs/images/cryostat_logo_hori_rgb_default.svg">
-  </picture>
-</a>
-
-[![CI build](https://github.com/cryostatio/cryostat/actions/workflows/push-ci.yml/badge.svg)](https://github.com/cryostatio/cryostat/actions/workflows/push-ci.yml)
-[![Quay Repository](https://quay.io/repository/cryostat/cryostat/status "Quay Repository")](https://quay.io/repository/cryostat/cryostat)
-[![Google Group : Cryostat Development](https://img.shields.io/badge/Google%20Group-Cryostat%20Development-blue.svg)](https://groups.google.com/g/cryostat-development)
-
-A container-native JVM application which acts as a bridge to other containerized JVMs and exposes a secure API for producing, analyzing, and retrieving JDK Flight Recorder data from your cloud workloads.
+Apache Kafka
+=================
+See our [web site](https://kafka.apache.org) for details on the project.
 
-## SEE ALSO
+You need to have [Java](http://www.oracle.com/technetwork/java/javase/downloads/index.html) installed.
 
-* [cryostat.io](https://cryostat.io) : upstream documentation website with user
-  guides, tutorials, blog posts, and other user-facing content. Start here if
-  what you've read so far sounds interesting and you want to know more as a
-  **user**, rather than as a _developer_.
+We build and test Apache Kafka with Java 8, 11, 17 and 20. We set the `release` parameter in javac and scalac
+to `8` to ensure the generated binaries are compatible with Java 8 or higher (independently of the Java version
+used for compilation). Java 8 support has been deprecated since Apache Kafka 3.0 and will be removed in Apache
+Kafka 4.0 (see [KIP-750](https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=181308223) for more details).
 
-* [cryostat-core](https://github.com/cryostatio/cryostat-core) :
-the core library providing a convenience wrapper and headless stubs for use of
-JFR using JDK Mission Control internals.
+Scala 2.12 and 2.13 are supported and 2.13 is used by default. Scala 2.12 support has been deprecated since
+Apache Kafka 3.0 and will be removed in Apache Kafka 4.0 (see [KIP-751](https://cwiki.apache.org/confluence/pages/viewpage.action?pageId=181308218)
+for more details). See below for how to use a specific Scala version or all of the supported Scala versions.
 
-* [cryostat-operator](https://github.com/cryostatio/cryostat-operator)
- : an OpenShift Operator deploying Cryostat in your OpenShift
-cluster as well as exposing the Cryostat API as Kubernetes Custom Resources.
+### Build a jar and run it ###
+    ./gradlew jar
 
-* [cryostat-web](https://github.com/cryostatio/cryostat-web) : the React
-frontend included as a submodule in Cryostat and built into
-Cryostat's (non-headless mode) OCI images.
+Follow instructions in https://kafka.apache.org/quickstart
 
-* [JDK Mission Control](https://github.com/openjdk/jmc) for the original JDK
-Mission Control, which is the desktop application complement to JFR. Some parts
-of JMC are borrowed and re-used to form the basis of Cryostat. JMC is still
-a recommended tool for more full-featured analysis of JFR files beyond what
-Cryostat currently implements.
+### Build source jar ###
+    ./gradlew srcJar
 
-## CONTRIBUTING
+### Build aggregated javadoc ###
+    ./gradlew aggregatedJavadoc
 
-We welcome and appreciate any contributions from our community. Please visit our guide on how you can take part in improving Cryostat.
-
-[See contribution guide →](./CONTRIBUTING.md)
+### Build javadoc and scaladoc ###
+    ./gradlew javadoc
+    ./gradlew javadocJar # builds a javadoc jar for each module
+    ./gradlew scaladoc
+    ./gradlew scaladocJar # builds a scaladoc jar for each module
+    ./gradlew docsJar # builds both (if applicable) javadoc and scaladoc jars for each module
 
-## REQUIREMENTS
-Build Requirements:
-- Git
-- JDK17+
-- Maven 3+
-- Podman 2.0+
-- `qemu-user-static` to build container images for other archs
+### Run unit/integration tests ###
+    ./gradlew test # runs both unit and integration tests
+    ./gradlew unitTest
+    ./gradlew integrationTest
+    
+### Force re-running tests without code change ###
+    ./gradlew test --rerun
+    ./gradlew unitTest --rerun
+    ./gradlew integrationTest --rerun
 
-Run Requirements:
-- Kubernetes/OpenShift/Minishift, Podman/Docker, or other container platform
-- `systemctl --user enable --now podman.socket` to enable the user podman.socket for podman discovery
+### Running a particular unit/integration test ###
+    ./gradlew clients:test --tests RequestResponseTest
 
-## BUILD
-
-### Setup Dependencies
-
-* Clone and install [cryostat-core](https://github.com/cryostatio/cryostat-core) via it's [instructions](https://github.com/cryostatio/cryostat-core/blob/main/README.md)
-* Initialize submodules via:  `git submodule init && git submodule update`
+### Repeatedly running a particular unit/integration test ###
+    I=0; while ./gradlew clients:test --tests RequestResponseTest --rerun --fail-fast; do (( I=$I+1 )); echo "Completed run: $I"; sleep 1; done
 
-### Build project locally
-* `./mvnw compile`
+### Running a particular test method within a unit/integration test ###
+    ./gradlew core:test --tests kafka.api.ProducerFailureHandlingTest.testCannotSendToInternalTopic
+    ./gradlew clients:test --tests org.apache.kafka.clients.MetadataTest.testTimeToNextUpdate
 
-### Build and run project locally in development hot-reload mode
-* `sh devserver.sh` - this will start the Vert.x backend in hot-reload mode, so
-any modifications to files in `src/` will cause a re-compilation and re-deploy.
-This is only intended for use during development. The `web-client` assets will
-not be built and will not be included in the application classpath. To set up
-the `web-client` frontend for hot-reload development, see
-[cryostat-web Development Server](https://github.com/cryostatio/cryostat-web/blob/main/README.md#development-server).
+### Running a particular unit/integration test with log4j output ###
+Change the log4j setting in either `clients/src/test/resources/log4j.properties` or `core/src/test/resources/log4j.properties`
 
-### Build and push to local podman image registry
-* `./mvnw package`
-* Run `./mvnw -Dheadless=true clean package` to exclude web-client assets.
-The `clean` phase should always be specified here, or else previously-generated
-client assets will still be included into the built image.
-* For other OCI builders, use the `imageBuilder` Maven property. For example, to
-use docker, run: `./mvnw -DimageBuilder=$(which docker) clean verify`
+    ./gradlew clients:test --tests RequestResponseTest
 
-## TEST
+### Specifying test retries ###
+By default, each failed test is retried once up to a maximum of five retries per test run. Tests are retried at the end of the test task. Adjust these parameters in the following way:
 
-### Unit tests
-* `./mvnw test`
+    ./gradlew test -PmaxTestRetries=1 -PmaxTestRetryFailures=5
+    
+See [Test Retry Gradle Plugin](https://github.com/gradle/test-retry-gradle-plugin) for more details.
 
-### Integration tests and analysis tools
-* `./mvnw verify`
+### Generating test coverage reports ###
+Generate coverage reports for the whole project:
 
-### Skipping tests
-* `-DskipUTs=true` to skip unit tests
-* `-DskipITs=true` to skip integration tests
-* `-DskipTests=true` to skip all tests
+    ./gradlew reportCoverage -PenableTestCoverage=true -Dorg.gradle.parallel=false
 
-### Running integration tests without rebuild
-* `./mvnw exec:exec@create-pod exec:exec@start-jfr-datasource
-exec:exec@start-grafana-dashboard exec:exec@start-container
-exec:exec@wait-for-container failsafe:integration-test
-exec:exec@stop-jfr-datasource exec:exec@stop-grafana exec:exec@stop-container
-exec:exec@destroy-pod`
-* or `bash repeated-integration-tests.bash 1`.
-* To run selected integration tests without rebuilding, append the name(s) of your itest class(es) as an argument to `repeated-integration-tests.bash`, e.g. `bash repeated-integration-tests.bash 1 AutoRulesIT,RecordingWorkflowIT`. Note that modifying a test file does not require a rebuild.
+Generate coverage for a single module, i.e.: 
 
-## RUN
-
-### Run on Kubernetes/Openshift
-* See the [cryostat-operator](https://github.com/cryostatio/cryostat-operator)
+    ./gradlew clients:reportCoverage -PenableTestCoverage=true -Dorg.gradle.parallel=false
+    
+### Building a binary release gzipped tar ball ###
+    ./gradlew clean releaseTarGz
 
-### Run on local podman*
-* `run.sh`
-
-Note: If you get a 'No plugin found' error, it is because maven has not downloaded all the necessary plugins. To resolve this error, manually run `./mvnw help:evaluate` to prompt maven to download the missing help plugin.
-
-### Run on local podman with Grafana, jfr-datasource and demo application*
-* `smoketest.sh`
-
-To run on local podman, [cgroups v2](https://www.kernel.org/doc/html/latest/admin-guide/cgroup-v2.html) should be enabled.
-This allows resource configuration for any rootless containers running on podman. To ensure podman works with cgroups v2, follow these [instructions](https://podman.io/blogs/2019/10/29/podman-crun-f31.html).
-
-Note: If your podman runtime is set to runc v1.0.0-rc91 or later it is not necessary to change it to crun as recommended in the instructions, since this version of runc supports cgroups v2. The article refers to an older version of runc.
-
-## CONFIGURATION
-
-Cryostat can be configured via the following environment variables:
-
-#### Configuration for cryostat
-
-* `CRYOSTAT_WEB_HOST`: the hostname used by the cryostat web server. Defaults to reverse-DNS resolving the host machine's hostname.
-* `CRYOSTAT_WEB_PORT`: the internal port used by the cryostat web server. Defaults to 8181.
-* `CRYOSTAT_EXT_WEB_PORT`: the external port used by the cryostat web server. Defaults to be equal to `CRYOSTAT_WEB_PORT`.
-* `CRYOSTAT_CORS_ORIGIN`: the origin for CORS to load a different cryostat-web instance. Defaults to the empty string, which disables CORS.
-* `CRYOSTAT_MAX_WS_CONNECTIONS`: the maximum number of websocket client connections allowed (minimum 1, maximum `Integer.MAX_VALUE`, default `Integer.MAX_VALUE`)
-* `CRYOSTAT_AUTH_MANAGER`: the authentication/authorization manager used for validating user accesses. See the `USER AUTHENTICATION / AUTHORIZATION` section for more details. Set to the fully-qualified class name of the auth manager implementation to use, ex. `io.cryostat.net.BasicAuthManager`. Defaults to an AuthManager corresponding to the selected deployment platform, whether explicit or automatic (see below).
-* `CRYOSTAT_PLATFORM`: the platform clients used for performing platform-specific actions, such as listing available target JVMs. If `CRYOSTAT_AUTH_MANAGER` is not specified then a default auth manager will also be selected corresponding to the highest priority platform, whether those platforms are specified by the user or automatically detected. Set to the fully-qualified names of the platform detection strategy implementations to use, ex. `io.cryostat.platform.internal.KubeApiPlatformStrategy,io.cryostat.platform.internal.PodmanPlatformStrategy`.
-* `CRYOSTAT_ENABLE_JDP_BROADCAST`: enable the Cryostat JVM to broadcast itself via JDP (Java Discovery Protocol). Defaults to `true`.
-* `CRYOSTAT_JDP_ADDRESS`: the JDP multicast address to send discovery packets. Defaults to `224.0.23.178`.
-* `CRYOSTAT_JDP_PORT`: the JDP multicast port to send discovery packets. Defaults to `7095`.
-* `CRYOSTAT_CONFIG_PATH`: the filesystem path for the configuration directory. Defaults to `/opt/cryostat.d/conf.d`.
-* `CRYOSTAT_DISABLE_BUILTIN_DISCOVERY`: set to `true` to disable built-in target discovery mechanisms (see `CRYOSTAT_PLATFORM`). Custom Target "discovery" remains available, but discovery via JDP, Kubernetes API, or Podman API is disabled and ignored. This will still allow platform detection to automatically select an `AuthManager`. This is intended for use when Cryostat Discovery Plugins are the only desired mechanism for locating target applications. See #936 and [cryostat-agent](https://github.com/cryostatio/cryostat-agent). Defaults to `false`.
-* `CRYOSTAT_K8S_NAMESPACES`: set to a comma-separated list of Namespaces that Cryostat should query to discover target JVM applications with its built-in discovey mechanism.
-
-#### Configuration for Automated Analysis Reports
-
-* `CRYOSTAT_REPORT_GENERATION_MAX_HEAP`: the maximum heap size used by the container subprocess which forks to perform automated rules analysis report generation. The default is `200`, representing a `200MiB` maximum heap size. Too small of a heap size will lead to report generation failing due to Out-Of-Memory errors. Too large of a heap size may lead to the subprocess being forcibly killed and the parent process failing to detect the reason for the failure, leading to inaccurate failure error messages and API responses.
-
-#### Configuration for JMX Connections and Cache
-
-* `CRYOSTAT_JMX_CONNECTION_TIMEOUT_SECONDS`: the maximum wait time for a JMX
-  connection to open and a single operation to complete. This is only used for
-  specific internally-fired operations that are expected to execute very quickly
-  after the connection opens. Default `3`, minimum `1`.
-* `CRYOSTAT_TARGET_MAX_CONCURRENT_CONNECTIONS`: the maximum number of concurrent
-  JMX connections open. When this number of connections are open any requests
-  requiring further connections will block until a previous connection closes.
-  Defaults to `-1` which indicates an unlimited number of connections.
-* `CRYOSTAT_TARGET_CACHE_TTL`: the time to live (in seconds) for cached JMX
-connections. Defaults to `10`, minimum `1`. Any values less than `1` will be
-overridden with `1`.
-
-#### Configuration for Logging
-
-* `CRYOSTAT_JUL_CONFIG` : the `java.util.logging.config.file` configuration file for logging via SLF4J Some of Cryostat's dependencies also use java.util.logging for their logging. Cryostat disables [some of these](https://github.com/cryostatio/cryostat-core/tree/main/src/main/resources/config/logging.properties) by default, because they generate unnecessary logs. However, they can be reenabled by overriding the default configuration file and setting the disabled loggers to the desired level.
-
-#### Configuration for Event Templates
-
-* `CRYOSTAT_TEMPLATE_PATH`: the storage path for Cryostat event templates
-
-#### Configuration for Archiving
-
-* `CRYOSTAT_ARCHIVE_PATH`: the storage path for archived recordings
-* `CRYOSTAT_PUSH_MAX_FILES`: the maximum number of archived recordings stored in a FIFO manner per target JVM when pushing JFR files using the RecordingsFromIdPostHandler. Mainly used with the [cryostat-agent](https://github.com/cryostatio/cryostat-agent) as a global default configuration for the maximum number of archived JFR recordings to keep on disk per-agent-attached-target, which can be overridden by the agent itself. Defaults to `Integer.MAX_VALUE`, minimum `1`. Any values less than `1` will be overridden with `1`.
-
-#### Configuration for database
-
-* `CRYOSTAT_JDBC_DRIVER`: driver to use for communicating with the database. Defaults to `org.h2.Driver`. `org.postgresql.Driver` is also supported.
-* `CRYOSTAT_JDBC_URL`: URL for connecting to the database. Defaults to `jdbc:h2:mem:cryostat;INIT=create domain if not exists jsonb as other` for an h2 in-memory database. Also supported: `jdbc:h2:file:/opt/cryostat.d/conf.d/h2;INIT=create domain if not exists jsonb as other`, or a PostgreSQL URL such as `jdbc:postgresql://cryostat:5432/cryostat`.
-* `CRYOSTAT_JDBC_USERNAME`: username for JDBC connection.
-* `CRYOSTAT_JDBC_PASSWORD`: password for JDBC connection.
-* `CRYOSTAT_JMX_CREDENTIALS_DB_PASSWORD`: encryption password for stored JMX
-  credentials.
-* `CRYOSTAT_HIBERNATE_DIALECT`: Defaults to `org.hibernate.dialect.H2Dialect`. Also supported: `org.hibernate.dialect.PostgreSQL95Dialect`.
-* `CRYOSTAT_HBM2DDL`: Control Hibernate schema DDL. Defaults to `create`.
-* `CRYOSTAT_LOG_DB_QUERIES`: Enable verbose logging of database queries. Defaults to `false`.
-
-## MONITORING APPLICATIONS
-In order for `cryostat` to be able to monitor JVM application targets the
-targets must have RJMX enabled or have the Cryostat Agent installed and
-configured. `cryostat` has several strategies for automatic discovery of
-potential targets.
-
-The first target discovery mechanism uses the OpenShift/Kubernetes API to list
-service endpoints and expose all discovered services as potential targets. This
-is runtime dynamic, allowing `cryostat` to discover new services which come
-online after `cryostat`, or to detect when known services disappear later.
-This requires the `cryostat` pod to have authorization to list services
-within its own namespace.
-
-The second discovery mechanism is JDP (Java Discovery Protocol). This relies on
-target JVMs being configured with the JVM flags to enable JDP and requires the
-targets to be reachable and in the same subnet as `cryostat`. JDP can be enabled
-by passing the flag `"-Dcom.sun.management.jmxremote.autodiscovery=true"` when
-starting target JVMs; for more configuration options, see
-[this document](https://docs.oracle.com/javase/10/management/java-discovery-protocol.htm)
-. Once the targets are properly configured, `cryostat` will automatically
-discover their JMX Service URLs, which includes the RJMX port number for that
-specific target.
-
-The third discovery mechanism is the Podman API. If the Podman API socket is
-available at its default filesystem location then Cryostat will query the
-`libpod/containers` endpoint to determine what target applications may be
-available. Containers must have the Podman label `io.cryostat.connectUrl`
-applied, and the value should be the remote JMX or Cryostat Agent HTTP
-connection URL that Cryostat can use to communicate with the target.
-
-To enable RJMX on port 9091, the following JVM flag should be passed at target
-startup:
-
-```
-    '-Dcom.sun.management.jmxremote.port=9091'
-```
-
-The port number 9091 is arbitrary and may be configured to suit individual
-deployments, so long as the `port` property above matches the desired port
-number and the deployment network configuration allows connections on the
-configured port.
-
-Additionally, the following flags are recommended to enable JMX authentication
-and connection encryption:
-
-```
--Dcom.sun.management.jmxremote.authenticate=true # enable JMX authentication
--Dcom.sun.management.jmxremote.password.file=/app/resources/jmxremote.password # define users for JMX auth
--Dcom.sun.management.jmxremote.access.file=/app/resources/jmxremote.access # set permissions for JMX users
--Dcom.sun.management.jmxremote.ssl=true # enable JMX SSL
--Dcom.sun.management.jmxremote.registry.ssl=true # enable JMX registry SSL
--Djavax.net.ssl.keyStore=/app/resources/keystore # set your SSL keystore
--Djavax.net.ssl.keyStorePassword=somePassword # set your SSL keystore password
-```
-
-### JMX Connectors
-
-Cryostat supports end-user target applications using other JMX connectors than
-RMI (for example, WildFly `remote+http`) using "client library" configuration.
-The path pointed to by the environment variable `CRYOSTAT_CLIENTLIB_PATH` is
-appended to Cryostat's classpath. This path should be a directory within a
-volume mounted to the Cryostat container and containing library JARs (ex.
-`jboss-client.jar`) in a flat structure.
-
-In the particular case of WildFly `remote+http`, you might do something like
-the following to add this capability:
-
-```bash
-$ podman cp wildfly:/opt/jboss/wildfly/bin/client/jboss-client.jar clientlib/
-```
-
-## EVENT TEMPLATES
-
-JDK Flight Recorder has event templates, which are preset definition of a set of
-events, and for each a set of options and option values. A given JVM is likely
-to have some built-in templates ready for use out-of-the-box, but Cryostat
-also hosts its own small catalog of templates within its own storage. This
-catalog is stored at the path specified by the environment variable
-`CRYOSTAT_TEMPLATE_PATH`. Templates can be uploaded to Cryostat and
-then used to create recordings.
-
-## ARCHIVING RECORDINGS
-
-`cryostat` supports a concept of "archiving" recordings. This simply means
-taking the contents of a recording at a point in time and saving these contents
-to a file to the `cryostat` process (as opposed to "active"
-recordings, which exist within the memory of the JVM target and continue to grow
-over time). The default directory used is `/flightrecordings`, but the
-environment variable `CRYOSTAT_ARCHIVE_PATH` can be used to specify a
-different path. To enable `cryostat` archive support ensure that the
-directory specified by `CRYOSTAT_ARCHIVE_PATH` (or `/flightrecordings` if
-not set) exists and has appropriate permissions. `cryostat` will detect the
-path and enable related functionality. `run.sh` has an example of a `tmpfs`
-volume being mounted with the default path and enabling the archive
-functionality.
-
-## SECURING COMMUNICATION CHANNELS
-
-To specify the SSL certificate for HTTPS/WSS and JMX, one can set
-`KEYSTORE_PATH` to point to a `.jks`, `.pfx` or `.p12` certificate file *and*
-`KEYSTORE_PASS` to the plaintext password to such a keystore. Alternatively, one
-can set `KEY_PATH` to a PEM encoded key file *and* `CERT_PATH` to a PEM encoded
-certificate file.
-
-In the absence of these environment variables, `cryostat` will look for a
-certificate at the following locations, in an orderly fashion:
-
-- `$HOME/cryostat-keystore.jks` (used together with `KEYSTORE_PASS`)
-- `$HOME/cryostat-keystore.pfx` (used together with `KEYSTORE_PASS`)
-- `$HOME/cryostat-keystore.p12` (used together with `KEYSTORE_PASS`)
-- `$HOME/cryostat-key.pem` and `$HOME/cryostat-cert.pem`
-
-If no certificate can be found, `cryostat` will autogenerate a self-signed
-certificate and use it to secure HTTPS/WSS and JMX connections.
-
-If HTTPS/WSS (SSL) and JMX auth credentials must be disabled then the
-environment variables `CRYOSTAT_DISABLE_SSL=true` and/or
-`CRYOSTAT_DISABLE_JMX_AUTH=true` can be set.
-
-In case `cryostat` is deployed behind an SSL proxy, set the environment
-variable `CRYOSTAT_SSL_PROXIED` to a non-empty value. This informs
-`cryostat` that the URLs it reports pointing back to itself should use
-the secure variants of protocols, even though it itself does not encrypt the
-traffic. This is only required if Cryostat's own SSL is disabled as above.
-
-If the certificate used for SSL-enabled Grafana/jfr-datasource connections is
-self-signed or otherwise untrusted, set the environment variable
-`CRYOSTAT_ALLOW_UNTRUSTED_SSL` to permit uploads of recordings.
-
-Target JVMs with SSL enabled on JMX connections are also supported. In order to
-allow Cryostat to establish a connection, the target's certificate must be
-copied into Cryostat's `/truststore` directory before Cryostat's
-startup. If Cryostat attempts to connect to an SSL-enabled target and no
-matching trusted certificate is found then the connection attempt will fail.
-
-## USER AUTHENTICATION / AUTHORIZATION
-
-Cryostat has multiple authz manager implementations for handling user
-authentication and authorization against various platforms and mechanisms. This
-can be controlled using an environment variable (see the `RUN` section above),
-or automatically using platform detection.
-
-In all scenarios, the presence of an auth manager (other than
-NoopAuthManager) causes Cryostat to expect a token or credentials via an
-`Authorization` header on all potentially sensitive requests, ex. recording
-creations and downloads, report generations.
-
-The OpenShiftPlatformClient.OpenShiftAuthManager uses token authentication.
-These tokens are passed through to the OpenShift API for authz and this result
-determines whether Cryostat accepts the request.
-
-The BasicAuthManager uses basic credential authentication configured with a
-standard Java properties file at
-`$CRYOSTAT_CONFIG_PATH/cryostat-users.properties`.  The credentials stored in
-the Java properties file are the user name and a SHA-256 sum hex of the user's
-password. The property file contents should look like:
-```
-user1=abc123
-user2=def987
-```
-Where `abc123` and `def987` are substituted for the SHA-256 sum hexes of the
-desired user passwords. These can be obtained by ex.
-`echo -n PASS | sha256sum | cut -d' ' -f1`.
-
-Token-based auth managers expect an HTTP `Authorization: Bearer TOKEN` header
-and a
-`Sec-WebSocket-Protocol: base64url.bearer.authorization.cryostat.${base64(TOKEN)}`
-WebSocket SubProtocol header.
-The token is never stored in any form, only kept in-memory long enough to
-process the external token validation.
-
-Basic credentials-based auth managers expect an HTTP
-`Authorization: Basic ${base64(user:pass)}` header and a
-`Sec-WebSocket-Protocol: basic.authorization.cryostat.${base64(user:pass)}`
-WebSocket SubProtocol header.
-
-If no appropriate auth manager is configured or can be automatically determined
-then the fallback is the NoopAuthManager, which does no external validation
-calls and simply accepts any provided token or credentials.
-
-## INCOMING JMX CONNECTION AUTHENTICATION
-
-JMX connections into `cryostat` are secured using the default username
-`"cryostat"` and a randomly generated password.  The environment variables
-`CRYOSTAT_RJMX_USER` and `CRYOSTAT_RJMX_PASS` can be used to override
-the default username and specify a password.
-
-## API
-
-Cryostat exposes an HTTP API that provides the backing for its web interface,
-but is also intended as an automation or extension point for external clients.
-For details about this API see [HTTP_API.md](./docs/HTTP_API.md),
-[GRAPHQL.md](./docs/GRAPHQL.md), and
-[DISCOVERY_PLUGINS.md](./docs/DISCOVERY_PLUGINS.md).
+The release file can be found inside `./core/build/distributions/`.
+
+### Building auto generated messages ###
+Sometimes it is only necessary to rebuild the RPC auto-generated message data when switching between branches, as they could
+fail due to code changes. You can just run:
+ 
+    ./gradlew processMessages processTestMessages
+
+### Running a Kafka broker in KRaft mode
+
+    KAFKA_CLUSTER_ID="$(./bin/kafka-storage.sh random-uuid)"
+    ./bin/kafka-storage.sh format -t $KAFKA_CLUSTER_ID -c config/kraft/server.properties
+    ./bin/kafka-server-start.sh config/kraft/server.properties
+
+### Running a Kafka broker in ZooKeeper mode
+
+    ./bin/zookeeper-server-start.sh config/zookeeper.properties
+    ./bin/kafka-server-start.sh config/server.properties
+
+### Cleaning the build ###
+    ./gradlew clean
+
+### Running a task with one of the Scala versions available (2.12.x or 2.13.x) ###
+*Note that if building the jars with a version other than 2.13.x, you need to set the `SCALA_VERSION` variable or change it in `bin/kafka-run-class.sh` to run the quick start.*
+
+You can pass either the major version (eg 2.12) or the full version (eg 2.12.7):
+
+    ./gradlew -PscalaVersion=2.12 jar
+    ./gradlew -PscalaVersion=2.12 test
+    ./gradlew -PscalaVersion=2.12 releaseTarGz
+
+### Running a task with all the scala versions enabled by default ###
+
+Invoke the `gradlewAll` script followed by the task(s):
+
+    ./gradlewAll test
+    ./gradlewAll jar
+    ./gradlewAll releaseTarGz
+
+### Running a task for a specific project ###
+This is for `core`, `examples` and `clients`
+
+    ./gradlew core:jar
+    ./gradlew core:test
+
+Streams has multiple sub-projects, but you can run all the tests:
+
+    ./gradlew :streams:testAll
+
+### Listing all gradle tasks ###
+    ./gradlew tasks
+
+### Building IDE project ####
+*Note that this is not strictly necessary (IntelliJ IDEA has good built-in support for Gradle projects, for example).*
+
+    ./gradlew eclipse
+    ./gradlew idea
+
+The `eclipse` task has been configured to use `${project_dir}/build_eclipse` as Eclipse's build directory. Eclipse's default
+build directory (`${project_dir}/bin`) clashes with Kafka's scripts directory and we don't use Gradle's build directory
+to avoid known issues with this configuration.
+
+### Publishing the jar for all versions of Scala and for all projects to maven ###
+The recommended command is:
+
+    ./gradlewAll publish
+
+For backwards compatibility, the following also works:
+
+    ./gradlewAll uploadArchives
+
+Please note for this to work you should create/update `${GRADLE_USER_HOME}/gradle.properties` (typically, `~/.gradle/gradle.properties`) and assign the following variables
+
+    mavenUrl=
+    mavenUsername=
+    mavenPassword=
+    signing.keyId=
+    signing.password=
+    signing.secretKeyRingFile=
+
+### Publishing the streams quickstart archetype artifact to maven ###
+For the Streams archetype project, one cannot use gradle to upload to maven; instead the `mvn deploy` command needs to be called at the quickstart folder:
+
+    cd streams/quickstart
+    mvn deploy
+
+Please note for this to work you should create/update user maven settings (typically, `${USER_HOME}/.m2/settings.xml`) to assign the following variables
+
+    <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+                           https://maven.apache.org/xsd/settings-1.0.0.xsd">
+    ...                           
+    <servers>
+       ...
+       <server>
+          <id>apache.snapshots.https</id>
+          <username>${maven_username}</username>
+          <password>${maven_password}</password>
+       </server>
+       <server>
+          <id>apache.releases.https</id>
+          <username>${maven_username}</username>
+          <password>${maven_password}</password>
+        </server>
+        ...
+     </servers>
+     ...
+
+
+### Installing ALL the jars to the local Maven repository ###
+The recommended command to build for both Scala 2.12 and 2.13 is:
+
+    ./gradlewAll publishToMavenLocal
+
+For backwards compatibility, the following also works:
+
+    ./gradlewAll install
+
+### Installing specific projects to the local Maven repository ###
+
+    ./gradlew -PskipSigning=true :streams:publishToMavenLocal
+    
+If needed, you can specify the Scala version with `-PscalaVersion=2.13`.
+
+### Building the test jar ###
+    ./gradlew testJar
+
+### Running code quality checks ###
+There are two code quality analysis tools that we regularly run, spotbugs and checkstyle.
+
+#### Checkstyle ####
+Checkstyle enforces a consistent coding style in Kafka.
+You can run checkstyle using:
+
+    ./gradlew checkstyleMain checkstyleTest
+
+The checkstyle warnings will be found in `reports/checkstyle/reports/main.html` and `reports/checkstyle/reports/test.html` files in the
+subproject build directories. They are also printed to the console. The build will fail if Checkstyle fails.
+
+#### Spotbugs ####
+Spotbugs uses static analysis to look for bugs in the code.
+You can run spotbugs using:
+
+    ./gradlew spotbugsMain spotbugsTest -x test
+
+The spotbugs warnings will be found in `reports/spotbugs/main.html` and `reports/spotbugs/test.html` files in the subproject build
+directories.  Use -PxmlSpotBugsReport=true to generate an XML report instead of an HTML one.
+
+### JMH microbenchmarks ###
+We use [JMH](https://openjdk.java.net/projects/code-tools/jmh/) to write microbenchmarks that produce reliable results in the JVM.
+    
+See [jmh-benchmarks/README.md](https://github.com/apache/kafka/blob/trunk/jmh-benchmarks/README.md) for details on how to run the microbenchmarks.
+
+### Dependency Analysis ###
+
+The gradle [dependency debugging documentation](https://docs.gradle.org/current/userguide/viewing_debugging_dependencies.html) mentions using the `dependencies` or `dependencyInsight` tasks to debug dependencies for the root project or individual subprojects.
+
+Alternatively, use the `allDeps` or `allDepInsight` tasks for recursively iterating through all subprojects:
+
+    ./gradlew allDeps
+
+    ./gradlew allDepInsight --configuration runtimeClasspath --dependency com.fasterxml.jackson.core:jackson-databind
+
+These take the same arguments as the builtin variants.
+
+### Determining if any dependencies could be updated ###
+    ./gradlew dependencyUpdates
+
+### Common build options ###
+
+The following options should be set with a `-P` switch, for example `./gradlew -PmaxParallelForks=1 test`.
+
+* `commitId`: sets the build commit ID as .git/HEAD might not be correct if there are local commits added for build purposes.
+* `mavenUrl`: sets the URL of the maven deployment repository (`file://path/to/repo` can be used to point to a local repository).
+* `maxParallelForks`: maximum number of test processes to start in parallel. Defaults to the number of processors available to the JVM.
+* `maxScalacThreads`: maximum number of worker threads for the scalac backend. Defaults to the lowest of `8` and the number of processors
+available to the JVM. The value must be between 1 and 16 (inclusive). 
+* `ignoreFailures`: ignore test failures from junit
+* `showStandardStreams`: shows standard out and standard error of the test JVM(s) on the console.
+* `skipSigning`: skips signing of artifacts.
+* `testLoggingEvents`: unit test events to be logged, separated by comma. For example `./gradlew -PtestLoggingEvents=started,passed,skipped,failed test`.
+* `xmlSpotBugsReport`: enable XML reports for spotBugs. This also disables HTML reports as only one can be enabled at a time.
+* `maxTestRetries`: maximum number of retries for a failing test case.
+* `maxTestRetryFailures`: maximum number of test failures before retrying is disabled for subsequent tests.
+* `enableTestCoverage`: enables test coverage plugins and tasks, including bytecode enhancement of classes required to track said
+coverage. Note that this introduces some overhead when running tests and hence why it's disabled by default (the overhead
+varies, but 15-20% is a reasonable estimate).
+* `keepAliveMode`: configures the keep alive mode for the Gradle compilation daemon - reuse improves start-up time. The values should 
+be one of `daemon` or `session` (the default is `daemon`). `daemon` keeps the daemon alive until it's explicitly stopped while
+`session` keeps it alive until the end of the build session. This currently only affects the Scala compiler, see
+https://github.com/gradle/gradle/pull/21034 for a PR that attempts to do the same for the Java compiler.
+* `scalaOptimizerMode`: configures the optimizing behavior of the scala compiler, the value should be one of `none`, `method`, `inline-kafka` or
+`inline-scala` (the default is `inline-kafka`). `none` is the scala compiler default, which only eliminates unreachable code. `method` also
+includes method-local optimizations. `inline-kafka` adds inlining of methods within the kafka packages. Finally, `inline-scala` also
+includes inlining of methods within the scala library (which avoids lambda allocations for methods like `Option.exists`). `inline-scala` is
+only safe if the Scala library version is the same at compile time and runtime. Since we cannot guarantee this for all cases (for example, users
+may depend on the kafka jar for integration tests where they may include a scala library with a different version), we don't enable it by
+default. See https://www.lightbend.com/blog/scala-inliner-optimizer for more details.
+
+### Running system tests ###
+
+See [tests/README.md](tests/README.md).
+
+### Running in Vagrant ###
+
+See [vagrant/README.md](vagrant/README.md).
+
+### Contribution ###
+
+Apache Kafka is interested in building the community; we would welcome any thoughts or [patches](https://issues.apache.org/jira/browse/KAFKA). You can reach us [on the Apache mailing lists](http://kafka.apache.org/contact.html).
+
+To contribute follow the instructions here:
+ * https://kafka.apache.org/contributing.html 
