@@ -1,0 +1,74 @@
+plugins {
+  id 'org.sonarqube' version '4.3.0.3225'
+}
+
+ext.buildSystemPath = file("${System.env.VIVIDUS_BUILD_SYSTEM_HOME?:buildSystemRootDir}/${buildSystemVersion}")
+
+apply from: "${buildSystemPath}/gradle/project.gradle"
+apply from: "${buildSystemPath}/gradle/jacoco.gradle"
+
+subprojects {
+    dependencies {
+        modules {
+            module('org.hamcrest:hamcrest-core') {
+                replacedBy('org.hamcrest:hamcrest', 'Use latest hamcrest version')
+            }
+            module('commons-logging:commons-logging') {
+                replacedBy('org.slf4j:jcl-over-slf4j', 'Use SLF4J over JCL to unify logging approach')
+            }
+            module('org.springframework:spring-jcl') {
+                // https://github.com/spring-projects/spring-framework/issues/20611#issuecomment-453462024
+                replacedBy('org.slf4j:jcl-over-slf4j', 'Use SLF4J over JCL instead of Spring over JCL implementation')
+            }
+            module('org.slf4j:slf4j-log4j12') {
+                // https://www.slf4j.org/manual.html#swapping
+                replacedBy('org.slf4j:slf4j-reload4j', 'Reload4j is a drop-in replacement for log4j version 1.2.17')
+            }
+            module('log4j:log4j') {
+                // https://reload4j.qos.ch/
+                replacedBy('ch.qos.reload4j:reload4j', 'Reload4j is a drop-in replacement for log4j version 1.2.17')
+            }
+        }
+    }
+}
+
+configure([project(':vividus-tests'), project(':vividus-docker-bundler')]) {
+    apply from: "${buildSystemPath}/vividus-test-subproject.gradle"
+}
+
+def nonTestSubprojects = subprojects.findAll { !it.name.equals('vividus-tests') && !it.name.equals('vividus-docker-bundler') }
+configure(nonTestSubprojects) {
+    apply from: "${buildSystemPath}/vividus-library-subproject.gradle"
+
+    publishing {
+        repositories {
+            maven {
+                name = 'GitHubPackages'
+                url = 'https://maven.pkg.github.com/vividus-framework/vividus'
+                credentials {
+                    username = System.getenv('GITHUB_ACTOR')
+                    password = System.getenv('GITHUB_TOKEN')
+                }
+            }
+        }
+    }
+}
+
+task jacocoAggregatedReport(type: JacocoReport) {
+    nonTestSubprojects.each {
+      executionData it.tasks.withType(Test)
+    }
+    dependsOn nonTestSubprojects.collect { it.tasks.withType(Test) }
+    sourceDirectories.from(subprojects.sourceSets.main.java.sourceDirectories)
+    classDirectories.from(subprojects.sourceSets.main.output)
+}
+
+project.description = 'Vividus'
+
+ext {
+    versions = [
+        jbehave:                '5.1.2-alpha',
+        slf4j:                  '2.0.7',
+        powermock:              'a0be5c4bbe'
+    ]
+}

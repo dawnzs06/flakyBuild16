@@ -1,15 +1,23 @@
 version: 2
 updates:
-  - package-ecosystem: "npm" # This value means either NPM or Yarn, Yarn doesn't have a separate value
-    directory: "/web/html/src/**"
-    open-pull-requests-limit: 0
-    schedule:
-      interval: "daily"
-    # This is currently bugged, see https://github.com/dependabot/dependabot-core/issues/2521
-    allow:
-      - dependency-type: "production"
-
-  - package-ecosystem: "github-actions" # Check for updates to GitHub Actions every weekday
-    directory: "/"
-    schedule: 
-      interval: "daily"
+- package-ecosystem: gradle
+  directory: "/"
+  schedule:
+    interval: weekly
+    day: sunday
+    time: "02:00"
+  open-pull-requests-limit: 99
+- package-ecosystem: github-actions
+  directory: "/"
+  schedule:
+    interval: weekly
+    day: sunday
+    time: "02:00"
+  open-pull-requests-limit: 99
+- package-ecosystem: gitsubmodule
+  directory: "/"
+  schedule:
+    interval: weekly
+    day: sunday
+    time: "02:00"
+  open-pull-requests-limit: 99

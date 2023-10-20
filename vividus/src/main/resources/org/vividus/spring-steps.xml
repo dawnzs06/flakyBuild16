@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:util="http://www.springframework.org/schema/util"
+    xsi:schemaLocation="
+        http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/util https://www.springframework.org/schema/util/spring-util.xsd"
+    default-lazy-init="true">
+
+    <bean class="org.vividus.steps.SpringStepFactoryBeanPostProcessor" />
+
+    <bean id="archiveSteps" class="org.vividus.steps.ArchiveSteps" />
+    <bean id="assertSteps" class="org.vividus.steps.AssertSteps" />
+
+    <bean id="variablesSteps" class="org.vividus.steps.VariablesSteps" />
+
+    <bean id="freemarkerSteps" class="org.vividus.steps.FreemarkerSteps">
+        <constructor-arg index="0" value="${template-processor.resolve-bdd-variables}" />
+        <constructor-arg index="1">
+            <bean parent="abstractFreemarkerConfig">
+                <property name="templateLoader">
+                    <bean class="freemarker.cache.ClassTemplateLoader">
+                        <constructor-arg index="0" value="org.vividus.steps.FreemarkerSteps" />
+                        <constructor-arg index="1" value="/" />
+                    </bean>
+                </property>
+            </bean>
+        </constructor-arg>
+    </bean>
+
+    <bean id="debugSteps" class="org.vividus.steps.DebugSteps" />
+    <bean id="executableSteps" class="org.vividus.steps.ExecutableSteps" />
+    <bean id="fileSteps" class="org.vividus.steps.FileSteps" />
+    <bean id="setupSteps" class="org.vividus.steps.LoggingExecutionResultsSteps" />
+
+    <bean class="org.vividus.publishing.DiffAttachmentPublisher">
+        <property name="textLengthDiffThreshold" value="${report.text-length-diff-threshold}" />
+    </bean>
+
+    <util:list id="stepBeanNames-Vividus">
+        <idref bean="archiveSteps" />
+        <idref bean="assertSteps" />
+        <idref bean="variablesSteps" />
+        <idref bean="fileSteps" />
+        <idref bean="executableSteps" />
+        <idref bean="setupSteps" />
+        <idref bean="debugSteps" />
+        <idref bean="freemarkerSteps" />
+    </util:list>
+
+</beans>

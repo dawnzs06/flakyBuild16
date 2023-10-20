@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:util="http://www.springframework.org/schema/util"
+    xsi:schemaLocation="
+        http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/util https://www.springframework.org/schema/util/spring-util.xsd"
+    default-lazy-init="true">
+
+    <bean class="org.vividus.azure.storage.StorageAccountEndpointsManager">
+        <constructor-arg>
+            <bean factory-bean="propertyMapper" factory-method="readValues">
+                <constructor-arg value="azure.storage-account." />
+                <constructor-arg value="org.vividus.azure.storage.StorageAccountEndpointsManager.StorageAccountEndpoint" />
+            </bean>
+        </constructor-arg>
+    </bean>
+
+    <bean id="azureBlobStorageClientFactory" class="org.vividus.azure.storage.blob.BlobServiceClientFactory" />
+
+    <bean id="blobSteps" class="org.vividus.azure.storage.blob.BlobStorageSteps" />
+
+    <bean id="fileShareSteps" class="org.vividus.azure.storage.fileshare.FileShareSteps" />
+
+    <bean class="org.vividus.azure.storage.blob.ExamplesTableToBlobFilterConverter" />
+
+    <util:list id="stepBeanNames-Azure-StorageAccount" value-type="java.lang.String">
+        <idref bean="blobSteps" />
+        <idref bean="fileShareSteps" />
+    </util:list>
+</beans>

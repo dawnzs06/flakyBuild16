@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:util="http://www.springframework.org/schema/util"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/util https://www.springframework.org/schema/util/spring-util.xsd"
+    default-lazy-init="true">
+
+    <bean id="keyStoreFactory" class="org.vividus.http.keystore.KeyStoreFactory" >
+        <constructor-arg>
+            <bean class="org.vividus.http.keystore.KeyStoreOptions">
+                <constructor-arg index="0" value="${http.key-store.path}" />
+                <constructor-arg index="1" value="${http.key-store.password}" />
+                <constructor-arg index="2" value="${http.key-store.type}" />
+            </bean>
+        </constructor-arg>
+    </bean>
+
+    <bean id="sslContextFactory" class="org.vividus.http.client.SslContextFactory" />
+
+    <bean id="httpClientFactory" class="org.vividus.http.client.HttpClientFactory">
+        <property name="privateKeyPassword" value="${http.ssl.private-key-password}" />
+    </bean>
+
+    <bean id="httpClient" class="org.vividus.http.client.HttpClient"
+        factory-bean="httpClientFactory" factory-method="buildHttpClient">
+        <constructor-arg ref="httpClientConfig" />
+    </bean>
+
+    <bean id="httpClientConfig" class="org.vividus.http.client.HttpClientConfig">
+        <property name="sslConfig">
+            <bean class="org.vividus.http.client.SslConfig">
+                <property name="sslCertificateCheckEnabled" value="${http.ssl.check-certificate}" />
+                <property name="sslHostnameVerificationEnabled" value="${http.ssl.verify-hostname}" />
+            </bean>
+        </property>
+        <property name="circularRedirectsAllowed" value="${http.circular-redirects-allowed}" />
+        <property name="connectionRequestTimeout" value="${http.connection-request-timeout}" />
+        <property name="connectTimeout" value="${http.connect-timeout}" />
+        <property name="maxTotalConnections" value="${http.max-total-connections}" />
+        <property name="maxConnectionsPerRoute" value="${http.max-connections-per-route}" />
+        <property name="socketTimeout" value="${http.socket-timeout}" />
+        <property name="cookieSpec" value="${http.cookie-spec}" />
+        <property name="dnsResolver">
+            <bean class="org.vividus.http.dns.LocalDnsResolver" >
+                <property name="dnsMappingStorage" ref="localDnsStorage" />
+                <property name="fallbackDnsResolver" >
+                    <util:constant static-field="org.apache.hc.client5.http.SystemDefaultDnsResolver.INSTANCE"/>
+                </property>
+            </bean>
+        </property>
+        <property name="httpRequestRetryStrategy">
+            <bean class="org.vividus.http.client.HttpRequestRetryStrategy">
+                <constructor-arg index="0" value="${http.service-unavailable-retry.max-retries}" />
+                <constructor-arg index="1" value="${http.service-unavailable-retry.retry-interval}" />
+                <constructor-arg index="2" value="${http.service-unavailable-retry.status-codes}" />
+                <property name="idempotentMethodsSendingRequestBody" value="${http.idempotent-methods-sending-request-body}" />
+            </bean>
+        </property>
+        <property name="authConfig">
+            <bean class="org.vividus.http.client.AuthConfig">
+                <property name="username" value="${http.auth.username}" />
+                <property name="password" value="${http.auth.password}" />
+                <property name="preemptiveAuthEnabled" value="${http.auth.preemptive-auth-enabled}" />
+            </bean>
+        </property>
+        <property name="skipResponseEntity" value="false" />
+        <property name="firstRequestInterceptor">
+            <bean class="org.vividus.http.client.LoggingHttpRequestInterceptor">
+                <constructor-arg value="org.vividus.http.client.HttpClient" type="java.lang.Class" />
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="localDnsStorage" factory-bean="propertyParser"
+        factory-method="getPropertyValuesByPrefix">
+        <constructor-arg value="http.local-dns-storage." />
+    </bean>
+
+</beans>

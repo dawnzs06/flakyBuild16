@@ -1,0 +1,101 @@
+plugins {
+    id 'com.bmuschko.docker-remote-api' version '9.3.2'
+}
+
+project.description = 'VIVIDUS Docker bundler'
+
+tasks {
+    publish.enabled = false
+    testVividusInitialization.enabled = false
+    validateKnownIssues.enabled = false
+}
+
+dependencies {
+    implementation project(':vividus')
+    implementation project(':vividus-plugin-accessibility')
+
+    // https://github.com/applitools/eyes.sdk.java3/issues/591
+    // implementation project(':vividus-plugin-applitools')
+
+    implementation project(':vividus-plugin-avro')
+    implementation project(':vividus-plugin-aws-dynamodb')
+    implementation project(':vividus-plugin-aws-kinesis')
+    implementation project(':vividus-plugin-aws-lambda')
+    implementation project(':vividus-plugin-aws-s3')
+    implementation project(':vividus-plugin-azure-cosmos-db')
+    implementation project(':vividus-plugin-azure-data-factory')
+    implementation project(':vividus-plugin-azure-event-grid')
+    implementation project(':vividus-plugin-azure-event-hub')
+    implementation project(':vividus-plugin-azure-functions')
+    implementation project(':vividus-plugin-azure-resource-manager')
+    implementation project(':vividus-plugin-azure-storage-account')
+    implementation project(':vividus-plugin-azure-storage-queue')
+    implementation project(':vividus-plugin-browserstack')
+    implementation project(':vividus-plugin-csv')
+    implementation project(':vividus-plugin-datetime')
+    implementation project(':vividus-plugin-db')
+    implementation project(':vividus-plugin-electron')
+    implementation project(':vividus-plugin-email')
+    implementation project(':vividus-plugin-excel')
+    implementation project(':vividus-plugin-html')
+    implementation project(':vividus-plugin-json')
+    implementation project(':vividus-plugin-kafka')
+    implementation project(':vividus-plugin-lambdatest')
+    implementation project(':vividus-plugin-lighthouse')
+    implementation project(':vividus-plugin-mobile-app')
+    implementation project(':vividus-plugin-mobitru')
+    implementation project(':vividus-plugin-mongodb')
+    implementation project(':vividus-plugin-parquet')
+    implementation project(':vividus-plugin-rest-api')
+    implementation project(':vividus-plugin-saucelabs')
+    implementation project(':vividus-plugin-shell')
+    implementation project(':vividus-plugin-ssh')
+    implementation project(':vividus-plugin-visual')
+    implementation project(':vividus-plugin-web-app-to-rest-api')
+    implementation project(':vividus-plugin-web-app')
+    implementation project(':vividus-plugin-websocket')
+    implementation project(':vividus-plugin-winrm')
+    implementation project(':vividus-plugin-xml')
+    implementation project(':vividus-plugin-yaml')
+
+    implementation project(':vividus-agent-reportportal')
+
+    implementation(group: 'com.mysql', name: 'mysql-connector-j', version: '8.1.0')
+    implementation(group: 'com.microsoft.sqlserver', name: 'mssql-jdbc', version: '12.4.0.jre11-preview')
+    implementation(group: 'org.postgresql', name: 'postgresql', version: '42.6.0')
+    implementation(group: 'com.oracle.database.jdbc', name: 'ojdbc10', version: '19.20.0.0')
+    implementation(group: 'com.ibm.db2.jcc', name: 'db2jcc', version: 'db2jcc4')
+    implementation(group: 'net.sourceforge.csvjdbc', name: 'csvjdbc', version: '1.0.40')
+    implementation(group: 'com.h2database', name: 'h2', version: '2.2.220')
+    implementation(group: 'net.snowflake', name: 'snowflake-jdbc', version: '3.14.0')
+}
+
+task copyRuntimeLibs(type: Copy) {
+    into "$buildDir/docker/libs"
+    from configurations.runtimeClasspath
+}
+
+import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
+import com.bmuschko.gradle.docker.tasks.image.DockerPushImage
+import com.bmuschko.gradle.docker.tasks.image.Dockerfile
+
+task createDockerfile(type: Dockerfile) {
+    dependsOn copyRuntimeLibs
+
+    from('eclipse-temurin:17-jre-alpine')
+    label(['maintainer': 'Vividus Team "vividus.team@vividus.dev"'])
+    instruction('RUN apk add gcompat')
+    workingDir('vividus')
+    copyFile('libs', 'libs/')
+    entryPoint('java', '-cp', '/vividus/resources:/vividus/libs/*', 'org.vividus.runner.StoriesRunner')
+}
+
+task buildImage(type: DockerBuildImage) {
+    dependsOn createDockerfile
+    images.add("vividus/vividus:${project.version}")
+}
+
+task pushImage(type: DockerPushImage) {
+    dependsOn buildImage
+    images = buildImage.images
+}

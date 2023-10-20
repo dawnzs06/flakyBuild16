@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:util="http://www.springframework.org/schema/util"
+    xsi:schemaLocation="
+        http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/util https://www.springframework.org/schema/util/spring-util.xsd"
+    default-lazy-init="true">
+
+    <bean id="contextStartedEventListener" class="org.vividus.ContextStartedEventListener" />
+
+    <bean id="eventBus" class="com.google.common.eventbus.EventBus" />
+
+    <bean id="issueStateProvider" class="org.vividus.issue.IssueStateProvider" />
+
+    <bean id="testInfoProvider" class="org.vividus.issue.TestInfoProvider" />
+    <bean class="org.vividus.log.TestInfoLogger" />
+
+    <bean class="org.vividus.issue.KnownIssueProvider" init-method="init">
+        <property name="fileName" value="${known-issue-provider.fileName}" />
+        <property name="knownIssueIdentifiers" ref="knownIssues" />
+        <property name="propertyParser" ref="propertyParser" />
+    </bean>
+
+    <bean class="org.vividus.issue.KnownIssueVariableDataProvider" />
+
+    <bean class="org.vividus.spring.SubscriberRegisteringBeanPostProcessor" />
+
+    <util:map id="knownIssues" />
+
+    <bean id="startContextListener" class="org.vividus.spring.StartContextListener"
+          lazy-init="false">
+        <property name="cleanableDirectories" value="${start-context-listener.cleanable-directories}" />
+    </bean>
+
+    <bean id="storyReporter" class="org.vividus.TestContextStoryReporter">
+        <property name="next">
+            <bean class="org.vividus.replacement.DeprecatedCompositeStepsReporter">
+                <property name="next" ref="runContextStoryReporter" />
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="runContextStoryReporter" class="org.vividus.RunContextStoryReporter">
+        <property name="next" ref="reportControlStoryReporter" />
+    </bean>
+
+    <bean id="reportControlStoryReporter" class="org.vividus.ReportControlStoryReporter" lazy-init="false">
+        <property name="next" ref="allureStoryReporter" />
+    </bean>
+
+    <bean id="allureStoryReporter" class="org.vividus.report.allure.AllureStoryReporter" lazy-init="false">
+        <property name="next">
+            <bean class="org.vividus.variable.VariableStoryReporter">
+                <property name="next" ref="collectingStatisticsStoryReporter" />
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="collectingStatisticsStoryReporter" class="org.vividus.results.CollectingStatisticsStoryReporter">
+        <constructor-arg index="0" value="${statistics.print-failures}" />
+        <constructor-arg index="1" value="${statistics.folder}" />
+        <property name="next">
+            <bean class="org.jbehave.core.reporters.DelegatingStoryReporter">
+                <constructor-arg>
+                    <bean class="org.vividus.spring.ListMergerFactoryBean">
+                        <property name="lists">
+                            <list>
+                                <ref bean="storyReporters" />
+                                <list>
+                                    <bean class="org.vividus.log.LoggingStoryReporter" />
+                                </list>
+                            </list>
+                        </property>
+                    </bean>
+                </constructor-arg>
+            </bean>
+        </property>
+    </bean>
+
+
+    <bean class="org.vividus.groovy.VariableContextAwareGroovyScriptEvaluator" />
+
+    <util:list id="storyReporters" />
+
+
+    <bean id="running-scenario" class="org.vividus.variable.RunningScenarioNameDynamicVariable"/>
+    <bean id="running-story" class="org.vividus.variable.RunningStoryNameDynamicVariable"/>
+
+    <bean id="CARTESIAN_PRODUCT" class="org.vividus.transformer.CartesianProductTableTransformer" />
+    <bean id="DISTINCTING" class="org.vividus.transformer.DistinctingTableTransformer" />
+    <bean id="FILTERING" class="org.vividus.transformer.FilteringTableTransformer" />
+    <bean id="INDEXING" class="org.vividus.transformer.IndexingTableTransformer" />
+    <bean id="INNER_JOIN" class="org.vividus.transformer.InnerJoinTableTransformer" />
+    <bean id="ITERATING" class="org.vividus.transformer.IteratingTableTransformer" />
+    <bean id="JOINING" class="org.vividus.transformer.JoiningTableTransformer" />
+    <bean id="MERGING" class="org.vividus.transformer.MergingTableTransformer" />
+    <bean id="REPEATING" class="org.vividus.transformer.RepeatingTableTransformer" />
+    <bean id="RESOLVING_EXPRESSIONS_EAGERLY" class="org.vividus.transformer.ResolvingExpressionsEagerlyTransformer" />
+    <bean id="RESOLVING_SELF_REFERENCES_EAGERLY" class="org.jbehave.core.model.TableTransformers.ResolvingSelfReferences">
+        <constructor-arg index="0" ref="parameterControls" />
+    </bean>
+
+    <bean id="SORTING" class="org.vividus.transformer.SortingTableTransformer" />
+
+    <bean class="org.vividus.expression.Base64ExpressionProcessors" />
+    <bean class="org.vividus.expression.EvalExpressionProcessor" />
+    <bean class="org.vividus.expression.GroovyExpressionProcessor" />
+    <bean class="org.vividus.expression.HashExpressionProcessors" />
+    <bean class="org.vividus.expression.LoadBinaryResourceExpressionProcessor" />
+    <bean class="org.vividus.expression.RandomIntExpressionProcessor" />
+    <bean class="org.vividus.expression.ReplaceByRegExpProcessors" />
+    <bean class="org.vividus.expression.RoundExpressionProcessor" />
+    <bean class="org.vividus.expression.StringExpressionProcessors" />
+    <bean class="org.vividus.expression.UrlExpressionProcessors" />
+</beans>

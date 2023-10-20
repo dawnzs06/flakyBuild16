@@ -1,0 +1,223 @@
+= Azure Resource Manager Plugin
+
+The plugin provides the ability to collect information about Azure resources,
+also to create, update and delete them.
+
+:plugin-short-name: azure-resource-manager
+include::partial$plugin-installation.adoc[]
+
+== Resource management
+
+=== Configuration
+
+include::partial$azure-authentication.adoc[leveloffset=+1]
+
+==== Azure environment selection
+
+https://docs.microsoft.com/en-us/azure/active-directory/develop/authentication-national-cloud[Azure environment]
+could be optionally specified using global property `azure.environment`
+(sets the environment for all Azure plugins). The default value is `AZURE`.
+
+The supported environments are only:
+
+- `AZURE`
+- `AZURE_CHINA`
+- `AZURE_GERMANY`
+- `AZURE_US_GOVERNMENT`
+
+==== Azure subscription selection
+
+Azure subscription must be configured via `AZURE_SUBSCRIPTION_ID` environment variable.
+
+
+=== Steps
+
+==== Get information about Azure resource
+
+Gets the info about the specified Azure resource using the declared Azure API
+version and saves it to a variable. For more information, see the
+https://docs.microsoft.com/en-us/rest/api/azure/[Azure REST API reference].
+
+[source,gherkin]
+----
+When I get Azure resource with identifier `$azureResourceIdentifier` using API version `$apiVersion` and save it to $scopes variable `$variableName`
+----
+
+* `$azureResourceIdentifier` - This is a VIVIDUS-only term. It's used to specify Azure resource uniquely. From
+the technical perspective it's a part of Azure resource REST API URL path. For example, if the full Azure resource URL is
++
+[source,gherkin]
+----
+https://management.azure.com/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/sample-resource-group/providers/Microsoft.KeyVault/vaults/sample-vault?api-version=2021-10-01
+----
+then the resource identifier will be
++
+[source,gherkin]
+----
+resourceGroups/sample-resource-group/providers/Microsoft.KeyVault/vaults/sample-vault
+----
+* `$apiVersion` - Azure resource provider API version. Note API versions may vary depending on the resource type.
+* `$scopes` - xref:commons:variables.adoc#_scopes[The comma-separated set of the variables scopes].
+* `$variableName` - The variable name to store the Azure resource info.
+
+.Retrieve the Key Vault properties
+[source,gherkin]
+----
+When I get Azure resource with identifier `resourceGroups/TEST-RG/providers/Microsoft.KeyVault/vaults/KEY-VAULT-NAME` using API version `2021-10-01` and save it to scenario variable `key-vault-properties`
+----
+
+==== Get information about Azure resource using Azure resource URL
+
+Gets the info about the specified Azure resource using the declared Azure resource URL and saves it to a variable. For more information, see the
+https://docs.microsoft.com/en-us/rest/api/azure/[Azure REST API reference].
+
+[source,gherkin]
+----
+When I get Azure resource with URL `$azureResourceUrl` and save it to $scopes variable `$variableName`
+----
+
+* `$azureResourceURL` - It's used to specify Azure resource uniquely. For example:
++
+[source,gherkin]
+----
+https://management.azure.com/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/sample-resource-group/providers/Microsoft.KeyVault/vaults/sample-vault?api-version=2021-10-01
+----
++
+or
++
+[source,gherkin]
+----
+https://api.loganalytics.io/v1/workspaces/00000000-0000-0000-0000-000000000000/query?query=Syslog
+----
+* `$scopes` - xref:commons:variables.adoc#_scopes[The comma-separated set of the variables scopes].
+* `$variableName` - The variable name to store the Azure resource info.
+
+.Query Log Analytics
+[source,gherkin]
+----
+When I get Azure resource with URL `https://api.loganalytics.io/v1/workspaces/00000000-0000-0000-0000-000000000000/query?query=Syslog` and save it to scenario variable `logAnalyticsQueryResult`
+----
+
+.Get secret from Key Vault
+[source,gherkin]
+----
+When I get Azure resource with URL `https://KEY-VAULT-NAME.vault.azure.net/secrets/SECRET-NAME?api-version=7.3` and save it to scenario variable `keyVaultSecret`
+----
+
+==== Create/Update Azure resource
+
+Creates (if resource doesn't exist) or updates the specified Azure resource
+using the declared Azure API version. For more information, see the
+https://docs.microsoft.com/en-us/rest/api/azure/[Azure REST API reference].
+
+[source,gherkin]
+----
+When I configure Azure resource with identifier `$azureResourceIdentifier` and body `$azureResourceBody` using API version `$apiVersion`
+----
+
+* `$azureResourceIdentifier` - This is a VIVIDUS-only term. It's used to specify Azure resource uniquely. From
+the technical perspective it's a part of Azure resource REST API URL path. For example, if the full Azure resource URL is
++
+[source,gherkin]
+----
+https://management.azure.com/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/sample-resource-group/providers/Microsoft.KeyVault/vaults/sample-vault?api-version=2021-10-01
+----
+then the resource identifier will be
++
+[source,gherkin]
+----
+resourceGroups/sample-resource-group/providers/Microsoft.KeyVault/vaults/sample-vault
+----
+* `$azureResourceBody` - The Azure resource configuration in JSON format.
+* `$apiVersion` - Azure resource provider API version. Note API versions may vary depending on the resource type.
+
+
+.Create linked service in Azure DataFactory
+[source,gherkin]
+----
+When I configure Azure resource with identifier `resourceGroups/TEST-RG/providers/Microsoft.DataFactory/factories/TEST-ADF/linkedservices/test-datalake` and body `
+{
+    "properties": {
+        "annotations": [],
+        "type": "AzureBlobFS",
+        "typeProperties": {
+            "url": "https://storageaccount.dfs.core.windows.net/"
+        }
+    }
+}
+` using API version `2018-06-01`
+----
+
+==== Execute Azure operation
+
+Executes the specified Azure operation using the declared Azure API version and
+saves the result to a variable. For more information, see the
+https://docs.microsoft.com/en-us/rest/api/azure/[Azure REST API reference].
+
+[source,gherkin]
+----
+When I execute Azure operation with identifier `$azureOperationIdentifier` using API version `$apiVersion` and body `$azureOperationBody` and save result to $scopes variable `$variableName`
+----
+
+* `$azureOperationIdentifier` - This is a VIVIDUS-only term. It's used to specify Azure operation uniquely. From
+the technical perspective it's a part of Azure operation REST API URL path. For
+example, if the full Azure operation URL is
++
+[source,gherkin]
+----
+https://management.azure.com/subscriptions/00000000-0000-0000-0000-000000000000/providers/Microsoft.KeyVault/checkNameAvailability?api-version=2021-10-01
+----
+then the operation identifier will be
++
+[source,gherkin]
+----
+providers/Microsoft.KeyVault/checkNameAvailability
+----
+* `$apiVersion` - Azure resource provider API version. Note API versions may vary depending on the resource type.
+* `$azureOperationBody` - The Azure operation definition in JSON format.
+* `$scopes` - xref:commons:variables.adoc#_scopes[The comma-separated set of the variables scopes].
+* `$variableName` - The variable name to store the result of Azure operation execution.
+
+.Check Key Vault name availability
+[source,gherkin]
+----
+When I execute Azure operation with identifier `providers/Microsoft.KeyVault/checkNameAvailability` using API version `2021-10-01` and body `
+{
+  "name": "my-super-vault",
+  "type": "Microsoft.KeyVault/vaults"
+}
+` and save result to scenario variable `keyVaultNameAvailabilityCheckResult`
+----
+
+==== Delete Azure resource
+
+Deletes the specified Azure resource using the declared Azure API version.
+For more information, see the
+https://docs.microsoft.com/en-us/rest/api/azure/[Azure REST API reference].
+
+[source,gherkin]
+----
+When I delete Azure resource with identifier `$azureResourceIdentifier` using API version `$apiVersion`
+----
+
+* `$azureResourceIdentifier` - This is a VIVIDUS-only term. It's used to specify Azure resource uniquely. From
+the technical perspective it's a part of Azure resource REST API URL path. For example, if the full Azure resource URL is
++
+[source,gherkin]
+----
+https://management.azure.com/subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/sample-resource-group/providers/Microsoft.KeyVault/vaults/sample-vault?api-version=2021-10-01
+----
+then the resource identifier will be
++
+[source,gherkin]
+----
+resourceGroups/sample-resource-group/providers/Microsoft.KeyVault/vaults/sample-vault
+----
+* `$apiVersion` - Azure resource provider API version. Note API versions may vary depending on the resource type.
+
+
+.Delete linked service from Azure DataFactory
+[source,gherkin]
+----
+When I delete Azure resource with identifier `resourceGroups/TEST-RG/providers/Microsoft.DataFactory/factories/TEST-ADF/linkedservices/test-datalake` using API version `2018-06-01`
+----

@@ -1,0 +1,121 @@
+:test-cloud-name: SauceLabs
+:test-cloud-key: saucelabs
+:test-cloud-link: https://saucelabs.com/
+:test-cloud-capabilities: https://wiki.saucelabs.com/display/DOCS/Platform+Configurator#/
+
+include::partial$test-cloud-header.adoc[]
+
+== Profiles
+
+The plugin defines profiles with a set of the preconfigured properties.
+
+[cols="1,2"]
+|===
+
+|`saucelabs/web`
+|Use in conjunction with xref:plugins:plugin-web-app.adoc#_desktop[web application profiles].
+
+|`saucelabs/web/phone/iphone`
+a|Use in conjunction with xref:plugins:plugin-web-app.adoc#_phone[web application phone profiles].
+
+Required properties:
+
+* `selenium.grid.device-name`
+* `selenium.grid.platform-version`
+
+|`saucelabs/web/phone/android`
+a|Use in conjunction with xref:plugins:plugin-web-app.adoc#_phone[web application phone profiles].
+
+Required properties:
+
+* `selenium.grid.device-name`
+* `selenium.grid.platform-version`
+
+|`saucelabs/mobile_app`
+a|Use in conjunction with xref:plugins:plugin-mobile-app.adoc#_profiles[native mobile application profiles].
+
+Required properties:
+
+* `selenium.grid.device-name`
+* `selenium.grid.appium-version`
+* `selenium.grid.platform-version`
+|===
+
+include::partial$test-cloud-usage.adoc[]
+
+== Properties
+
+NOTE: The properties marked with *bold* are mandatory.
+
+[cols="3,2,1,3", options="header"]
+|===
+|Property Name
+|Acceptable values
+|Default
+|Description
+
+|[subs=+quotes]`*selenium.grid.host*`
+|hostname
+|`<empty>`
+|https://wiki.saucelabs.com/display/DOCS/Data+Center+Endpoints[Sauce Labs OnDemand host] to be used to create a new session
+
+|[subs=+quotes]`*selenium.grid.username*`
+|username
+|`<empty>`
+|https://docs.saucelabs.com/basics/data-center-endpoints/#authorization-credentials[Sauce Labs username]
+
+|[subs=+quotes]`*selenium.grid.password*`
+|password
+|`<empty>`
+|https://docs.saucelabs.com/basics/data-center-endpoints/#authorization-credentials[Sauce Labs access key]
+
+|[subs=+quotes]`*saucelabs.data-center*`
+a|
+* `US_WEST` +
+* `US_EAST` +
+* `EU_CENTRAL` +
+
+[WARNING]
+====
+The data centers listed below are deprecated and will be removed in VIVIDUS 0.6.0:
+
+* `US` (use `US_WEST` instead)
+* `EU` (use `EU_CENTRAL` instead)
+====
+
+|
+|https://wiki.saucelabs.com/display/DOCS/Data+Center+Endpoints[Sauce Labs data center] to use
+
+|`saucelabs.sauce-connect.enabled`
+a|`true` +
+`false`
+|`false`
+|Enables https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy[Sauce Connect Proxy]
+
+|`saucelabs.sauce-connect.use-latest-version`
+a|`true` +
+`false`
+|`true`
+|If `false`, then use embedded Sauce Connect (https://changelog.saucelabs.com/en?category=sauce%20connect[4.8.2]), otherwise check and download newer version if available.
+
+|`saucelabs.sauce-connect.command-line-arguments`
+|String line with CLI flags
+|
+|Used to provide set of custom https://wiki.saucelabs.com/display/DOCS/Sauce+Connect+Proxy+Command-Line+Quick+Reference+Guide[Sauce Connect command line arguments]
+
+|`saucelabs.sauce-connect.skip-host-glob-patterns`
+|Comma (,) separated list of host https://developer.mozilla.org/en-US/docs/Web/HTTP/Proxy_servers_and_tunneling/Proxy_Auto-Configuration_PAC_file#shexpmatch[glob patterns]
+|
+a|This property comes into effect only if proxy is used, otherwise its value is ignored. The property specifies
+the list of glob patterns for hosts that are connected-to directly, others are connected through the proxy. By default
+the list inicludes
+
+* `*.miso.saucelabs.com`
+* `*.api.testobject.com`
+* `*.saucelabs.com`
+* `saucelabs.com`
+
+host patterns to avoid sending of status information by SauceConnect to SauceLabs REST API throughout the lifetime of
+a tunnel via proxy used by tests.
+
+|===

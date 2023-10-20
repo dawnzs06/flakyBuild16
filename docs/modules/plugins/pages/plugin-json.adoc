@@ -1,0 +1,413 @@
+= JSON Plugin
+
+The plugin provides a set of actions for transformation and validation of JSON data.
+
+:plugin-short-name: json
+include::partial$plugin-installation.adoc[]
+
+== xref:commons:variables.adoc[Dynamic variables]
+
+=== JSON context
+The variable provides the HTTP response body of the latest executed HTTP call
+by default or the current JSON element for steps iterating over JSON.
+
+[source,gherkin]
+----
+${json-context}
+----
+
+.Validate the HTTP response matches the regular expression
+[source,gherkin]
+----
+When I execute HTTP GET request for resource with relative URL `/get?productsPerPage=5`
+Then number of JSON elements from `${json-context}` by JSON path `$.product` is equal to 5
+----
+
+== Steps
+
+:json-path: https://github.com/json-path/JsonPath#path-examples[JSON Path]
+:json-schema: https://json-schema.org/understanding-json-schema/[JSON Schema]
+
+The steps syntax uses two internal (VIVIDUS-only) terms:
+
+ * "JSON element" - any part of JSON document including both complex data
+   structures like `array`, `object` and scalar values like `string` in
+   double quotes, `number`, `boolean` (`true` or `false`) and `null`.
+ * "JSON element value" or "value of JSON element" - scalar values like
+   `string` _not wrapped_ into double quotes, `number`, `boolean`
+   (`true` or `false`) and `null`.
+
+TIP: Use https://jsonpath-c48u.onrender.com/[JsonPath online validator] to test your JsonPath.
+
+=== Save JSON element value
+
+Saves a value of JSON element found in the given JSON into the variable with
+the specified name and scope.
+
+[source,gherkin]
+----
+When I save JSON element value from `$json` by JSON path `$jsonPath` to $scopes variable `$variableName`
+----
+
+* `$json` - The JSON used to find JSON element value.
+* `$jsonPath` - The {json-path} used to find JSON element value.
+* `$scopes` - xref:commons:variables.adoc#_scopes[The comma-separated set of the variables scopes].
+* `$variableName` - The name of the variable to save the found JSON element value.
+
+.Validate the title of the second book
+[source,gherkin]
+----
+When I execute HTTP GET request for resource with URL `https://raw.githubusercontent.com/json-path/JsonPath/master/json-path-web-test/src/main/resources/webapp/json/goessner.json`
+When I save JSON element value from `${response}` by JSON path `$.store.book[1].title` to scenario variable `title-of-second-book`
+Then `${title-of-second-book}` is equal to `Sword of Honour`
+----
+
+=== Save JSON element
+
+Saves a JSON element found in the given JSON into the variable with the
+specified name and scope.
+
+[source,gherkin]
+----
+When I save JSON element from `$json` by JSON path `$jsonPath` to $scopes variable `$variableName`
+----
+
+* `json` - The JSON used to find JSON element.
+* `jsonPath` - The {json-path} used to find JSON element value.
+* `$scopes` - xref:commons:variables.adoc#_scopes[The comma-separated set of the variables scopes].
+* `$variableName` - The name of the variable to save the found JSON element.
+
+.Validate the title of the second book
+[source,gherkin]
+----
+When I execute HTTP GET request for resource with URL `https://raw.githubusercontent.com/json-path/JsonPath/master/json-path-web-test/src/main/resources/webapp/json/goessner.json`
+When I save JSON element from `${response}` by JSON path `$.store.book[1].title` to scenario variable `title-of-second-book`
+Then `${title-of-second-book}` is equal to `"Sword of Honour"`
+----
+
+=== Save number of JSON elements
+
+Saves the number of elements found in the JSON by JSON path into the variable
+with the specified name and scope.
+
+[source,gherkin]
+----
+When I save number of elements from `$json` found by JSON path `$jsonPath` to $scopes variable `$variableName`
+----
+
+* `json` - The JSON used to find JSON elements.
+* `jsonPath` - The {json-path} used to find JSON elements.
+* `$scopes` - xref:commons:variables.adoc#_scopes[The comma-separated set of the variables scopes].
+* `$variableName` - The name of the variable to save the number of elements found in the JSON.
+
+.Save number of elements from the JSON
+[source,gherkin]
+----
+When I save number of elements from `[{"key" : "passed"}, {"key" : "failed"}]` found by JSON path `$..[?(@.key == "failed")]` to scenario variable `messageCount`
+----
+
+=== Convert JSON to variable
+
+Converts JSON element into the variable with the specified name and scope.
+
+[source,gherkin]
+----
+When I convert JSON `$json` to $scopes variable `$variableName`
+----
+
+* `$json` - The JSON used to find JSON element value.
+* `$scopes` - xref:commons:variables.adoc#_scopes[The comma-separated set of the variables scopes].
+* `$variableName` - The name of the variable to save the found JSON element.
+
+.Validate the title of the second book
+[source,gherkin]
+----
+When I convert JSON `{
+    "store": {
+        "book": [
+            {
+                "category": "reference",
+                "author": "Nigel Rees",
+                "title": "Sayings of the Century",
+                "price": 8.95
+            },
+            {
+                "category": "fiction",
+                "author": "Evelyn Waugh",
+                "title": "Sword of Honour",
+                "price": 12.99
+            }
+        ],
+    }
+}` to scenario variable `jsonData`
+Then `${jsonData.store.book[1].title}` is equal to `Sword of Honour`
+----
+
+=== Patch JSON
+
+Modified an input JSON using a sequence of operations defined in JSON patch.
+
+[source,gherkin]
+----
+When I patch JSON `$sourceJson` using `$jsonPatch` and save result to $scopes variable `$variableName`
+----
+
+* `$sourceJson` - JSON data to be patched.
+* `$jsonPatch` - JSON data with required patch actions according to https://datatracker.ietf.org/doc/html/rfc6902#section-4[RFC-6902]
+* `$scopes` - xref:commons:variables.adoc#_scopes[The comma-separated set of the variables scopes].
+* `$variableName` - The name of the variable to save the patched JSON.
+
+.Patch JSON data
+[source,gherkin]
+----
+When I patch JSON `{"a":"b"}` using `[{ "op": "replace", "path": "/a", "value": "c" }]` and save result to SCENARIO variable `patchedJson`
+Then `{"a":"c"}` is equal to `${patchedJson}`
+----
+
+=== Execute steps on JSON elements
+
+Executes steps against all elements found by JSON path in the JSON data.
+The actions performed by the step are:
+
+* searches for elements using JSON path;
+* checks the elements number matches comparison rule;
+* passes if the comparison rule matches and the elements number is 0;
+* otherwise switches JSON context to each found element and executes all steps (no steps will be executed in case of comparison rule mismatch);
+* restores previous JSON context.
+
+[source,gherkin]
+----
+When I find $comparisonRule `$elementsNumber` JSON elements from `$json` by `$jsonPath` and for each element do$stepsToExecute
+----
+
+.Alias
+[source,gherkin]
+----
+When I find $comparisonRule '$elementsNumber' JSON elements from '$json' by '$jsonPath' and for each element do$stepsToExecute
+----
+
+* `comparisonRule` - xref:parameters:comparison-rule.adoc[The comparison rule].
+* `elementsNumber` - The expected number of elements.
+* `json` - The JSON used to find JSON elements.
+* `jsonPath` - The {json-path} used to find JSON elements.
+* `stepsToExecute` - The xref:ROOT:glossary.adoc#_examplestable[ExamplesTable] with a single column containing the steps to execute for each found JSON element.
+
+.Validate each `accountId` consists of digits
+[source,gherkin]
+----
+When I find > `0` JSON elements from `
+{
+  "accounts": [
+    {
+      "accountId": 00,
+      "status": "Active"
+    },
+    {
+      "accountId": 01,
+      "status": "Active"
+    },
+    {
+      "accountId": 10,
+      "status": "Active"
+    }
+  ]
+}
+` by `$.accounts.*` and for each element do
+|step                                                                                                         |
+|Then number of JSON elements from `${json-context}` by JSON path `$[?(@.accountId =~ /\d+/i)]` is equal to 1 |
+----
+
+=== Execute steps on JSON elements and exit on condition
+
+Executes steps against all elements found by JSON path in the JSON data until
+the variable is not set or its value corresponds to the expected one. The
+actions performed by the step are:
+
+* searches for elements using JSON path;
+* checks the elements number matches comparison rule;
+* passes if the comparison rule matches and the elements number is 0;
+* otherwise switches JSON context to each found element and executes all steps until the variable is not set or mismatches the expected value (no steps will be executed in case of comparison rule mismatch);
+* restores previous JSON context;
+* fails if the variable has never been set during the iterations execution.
+
+[source,gherkin]
+----
+When I find $comparisonRule `$elementsNumber` JSON elements in `$json` by `$jsonPath` and until variable `$variableName` $variableMatcher `$expectedValue` for each element I do:$stepsToExecute
+----
+
+.Alias
+[source,gherkin]
+----
+When I find $comparisonRule '$elementsNumber' JSON elements in '$json' by '$jsonPath' and until variable '$variableName' $variableMatcher '$expectedValue' for each element I do:$stepsToExecute
+----
+
+* `comparisonRule` - xref:parameters:comparison-rule.adoc[The comparison rule].
+* `elementsNumber` - The expected number of elements.
+* `json` - The JSON used to find JSON elements.
+* `jsonPath` - The {json-path} used to find JSON elements.
+* `variableName` - The name of the variable to validate.
+* `variableMatcher` - xref:parameters:string-comparison-rule.adoc[The string comparison rule].
+* `expectedValue` - The expected value of the variable.
+* `stepsToExecute` - The xref:ROOT:glossary.adoc#_examplestable[ExamplesTable] with a single column containing the steps to execute for each found JSON element.
+
+.Find the title from JSON
+[source,gherkin]
+----
+When I execute HTTP GET request for resource with URL `https://raw.githubusercontent.com/json-path/JsonPath/master/json-path-web-test/src/main/resources/webapp/json/goessner.json`
+When I find > `1` JSON elements in `${response}` by `$.store.book` and until variable `title` matches `M.+` for each element I do:
+|step|
+|When I save JSON element value from `${json-context}` by JSON path `$.title` to scenario variable `title`|
+Then `Moby Dick` is = `${title}`
+----
+
+=== Validate JSON element value
+
+Validates if the given JSON contains the expected JSON element value matching
+the comparison rule by the specified JSON path.
+
+[source,gherkin]
+----
+Then JSON element value from `$json` by JSON path `$jsonPath` $comparisonRule `$expectedValue`
+----
+
+* `$json` - The JSON used to find JSON element value.
+* `$jsonPath` - The {json-path} used to find JSON element value.
+* `$comparisonRule` - The comparison rule to match JSON element value depending on the https://www.json.org/json-en.html[element type]:
+  ** for `string` - xref:parameters:string-comparison-rule.adoc[string comparison rules] are applicable,
+  ** for `number` - xref:parameters:comparison-rule.adoc[regular comparison rules] are applicable,
+  ** for `boolean` - only single rule `IS_EQUAL_TO` (readable form: `is equal to`) is allowed,
+  ** for `null` - only two rules `IS_EQUAL_TO` and `IS_NOT_EQUAL_TO` (readable forms: `is equal to` and `is not equal to`) are allowed
+  ** `array` and `object` are complex types and must be validated using another steps dedicated for JSON elements.
+* `$expectedValue` - The expected value of JSON element to match according to the comparison rule.
+
+.Validate the price of the fourth book is greater than 22.50
+[source,gherkin]
+----
+When I execute HTTP GET request for resource with URL `https://raw.githubusercontent.com/json-path/JsonPath/master/json-path-web-test/src/main/resources/webapp/json/goessner.json`
+Then JSON element value from `${response}` by JSON path `$.store.book[3].price` is greater than `22.50`
+----
+
+=== Validate JSON element
+
+Validates if the given JSON contains the expected JSON element matching the
+comparison rule by the specified JSON path.
+
+[source,gherkin]
+----
+Then JSON element from `$json` by JSON path `$jsonPath` is equal to `$expectedData`$options
+----
+
+* `json` - The JSON used to find the actual JSON element.
+* `jsonPath` - The {json-path} used to find the actual JSON element.
+* `expectedData` - The expected JSON element to compare against.
+* `options` - The set of https://github.com/lukas-krecan/JsonUnit/blob/master/README.md#options[JSON comparison options].
+
+.Validate JSON contains string value by JSON path
+[source,gherkin]
+----
+Then JSON element from `
+{
+  "accountId": 12345,
+  "status": "Active"
+}
+` by JSON path `$.status` is equal to `"Active"`
+----
+
+=== Validate number of JSON elements
+
+Validates the number of JSON elements found by the JSON path matches the
+expected number according to the specified comparison rule.
+
+[source,gherkin]
+----
+Then number of JSON elements from `$json` by JSON path `$jsonPath` is $comparisonRule $elementsNumber
+----
+
+* `json` - The JSON used to find the actual JSON elements.
+* `jsonPath` - The {json-path} used to find JSON elements.
+* `comparisonRule` - xref:parameters:comparison-rule.adoc[The comparison rule].
+* `elementsNumber` - The expected number of JSON elements.
+
+.Validate the number of accounts in JSON is equal to 2
+[source,gherkin]
+----
+Then number of JSON elements from `
+[
+  {
+    "accountId": 843
+  },
+  {
+    "accountId": 233
+  }
+]
+` by JSON path `$..accountId` is equal to 2
+----
+
+=== Validate JSON against schema
+
+Validates JSON against {json-schema}.
+
+[source,gherkin]
+----
+Then JSON `$json` is valid against schema `$schema`
+----
+
+* `$json` - The JSON to validate.
+* `$schema` - The {json-schema}.
+
+[IMPORTANT]
+====
+The step validates JSON according to https://json-schema.org/specification-links.html[schema specification] version provided in the schema itself, e.g.:
+[source,gherkin]
+----
+"$schema": "https://json-schema.org/draft/2020-12/schema"
+----
+If the version is not present in the schema then JSON is validated according to https://json-schema.org/specification-links.html#2020-12[2020-12] version.
+====
+
+.Validate product for sale information
+[source,gherkin]
+----
+Then JSON `
+{
+   "productId": 1,
+   "productName": "A desk lamp",
+   "price": 12.50,
+   "tags": [ "lamp", "desk" ]
+}
+` is valid against schema `
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/product.schema.json",
+  "title": "Product",
+  "description": "A product from catalog",
+  "type": "object",
+  "properties": {
+    "productId": {
+      "description": "The unique identifier for a product",
+      "type": "integer"
+    },
+    "productName": {
+      "type": "string"
+    },
+    "price": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "tags": {
+      "description": "Tags for the product",
+      "type": "array",
+      "prefixItems": [{
+        "type": "string",
+        "enum": ["lamp", "desk"]
+      }],
+      "minItems": 1,
+      "uniqueItems": true
+    }
+  },
+  "required": [ "productId", "productName", "price", "tags" ]
+}
+`
+----
+
+include::partial$plugin-json-matchers.adoc[]

@@ -1,0 +1,1184 @@
+= Web Application Plugin
+:given-step: Given I am on page with URL `https://www.google.com/search?q=vividus`
+
+The plugin provides functionality to interact with Web applications.
+
+:plugin-short-name: web-app
+include::partial$plugin-installation.adoc[]
+
+include::partial$locator-header.adoc[]
+
+include::plugins:partial$plugin-web-app-locators.adoc[]
+
+== Properties
+
+NOTE: The properties marked with *bold* are mandatory.
+
+:application-under-test: browser
+:session-scope-property-base: web-application
+[cols="6,3,2,6", options="header"]
+|===
+|Property Name
+|Acceptable values
+|Default
+|Description
+
+|`selenium.grid.platform-name`
+|Valid target platform name
+|empty
+|Identifies the operating system for the testing. e.g. `Windows`
+
+|`selenium.grid.platform-version`
+|Valid target platform version
+|empty
+|Identifies the operating system version for the testing. e.g. `10`
+
+include::partial$selenium-properties.adoc[]
+include::partial$proxy-properties.adoc[]
+
+|`screenshot.on-failure.debug-modes`
+|`proxy`
+|`<empty>`
+|Provides possibility to attach screenshot for failed proxy steps
+
+|`web.driver.<browser-name>.command-line-arguments`
+|string with arguments
+|`<empty>`
+a|The command line (CLI) arguments to use when starting browser.
+
+`<browser-name>` is one of the browsers supporting CLI arguments:
+
+* https://peter.sh/experiments/chromium-command-line-switches/[`chrome`]
+* https://www-archive.mozilla.org/docs/command-line-args/[`firefox`],
+* https://docs.microsoft.com/en-us/previous-versions/windows/internet-explorer/ie-developer/general-info/hh826025(v=vs.85)?redirectedfrom=MSDN/[`iexplore`].
+
+|`web-application.sticky-header-size-percentage`
+|header size as a viewport size percent
+|`25`
+|Before the click VIVIDUS scrolls element into the viewport, the property defines top edge indent in viewport percent for the scroll
+
+|===
+
+=== How to configure user preferences for Chrome browser?
+In addition to the command line arguments, user preferences (see the _Preferences_ file in Chrome's user data directory or open `chrome://prefs-internals/` link in Chrome browser for examples) can be customised.
+
+Here is an example how to configure third-party cookies behaviour.
+
+.Add the following property to allow all cookies
+[source,properties]
+----
+web.driver.chrome.experimental-options={"prefs": {"profile": {"cookie_controls_mode": 0}}}
+----
+The allowed values for the preference from the example are:
+
+* `0` - allow all cookies;
+* `1` - block third-party cookies;
+* `2` - block third-party cookies in Incognito mode only.
+
+include::partial$proxy-meta-tags.adoc[]
+
+== xref:ROOT:glossary.adoc#_expression[Expressions]
+
+NOTE: The expression parameters marked with *bold* are mandatory.
+
+=== `decodeDataUrl`
+
+Parses https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URLs[Data URL-s] and decodes their data if https://developer.mozilla.org/en-US/docs/Glossary/Base64[Base64] encoding is set. The result of the expression depends on the https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/MIME_types[MIME type] of Data URL. The result will be a binary data in case of the binary MIME type and it will be a string for the text MIME type.
+
+WARNING: If expression is applied to invalid Data URL the error will be thrown.
+
+[source, subs="+quotes"]
+----
+#{decodeDataUrl(*$dataUrl*)}
+----
+
+* *`$dataUrl`* - The Data URL to decode.
+
+.Decoding inlined image
+[source,gherkin]
+----
+When I save `src` attribute value of element located `By.id(image)` to scenario variable `image`
+When I compare against baseline with name `inlined-image` from image `#{decodeDataUrl(${image})}`
+----
+
+.Examples of the expressions decoding Data URL
+[cols="2,1", options="header"]
+|===
+|Expression |Result
+|`#{decodeDataUrl(data:,value)}`                                  |`value`
+|`#{decodeDataUrl(data:text/plain,value)}`                        |`value`
+|`#{decodeDataUrl(data:;base64,SGVsbG8sIFdvcmxkIQ==)}`            |`Hello, World!`
+|`#{decodeDataUrl(data:text/plain;base64,SGVsbG8sIFdvcmxkIQ==)}`  |`Hello, World!`
+|`#{decodeDataUrl(data:text/plain;base64,SGVsbG8sIFdvcmxkIQ==)}`  |`Hello, World!`
+|`#{decodeDataUrl(data:image/png;base64,iVBORw....)}`             |Image binary data.
+|===
+
+
+== xref:commons:variables.adoc[Dynamic variables]
+
+=== Current page URL
+
+The variable provides the URL of the page currently loaded in the browser.
+
+[source,gherkin]
+----
+${current-page-url}
+----
+
+.Validate redirect in the browser
+[source,gherkin]
+----
+Given I am on page with URL `https://docs.vividus.dev/`
+Then `${current-page-url}` is equal to `https://docs.vividus.dev/vividus/latest/index.html`
+----
+
+=== Browser window dimension
+
+The set of dynamic variables provides ability to access height and width of the browser window.
+
+[cols="1,3", options="header"]
+|===
+
+|Variable name
+|Description
+
+|`browser-window-height`
+|the height of the browser window
+
+|`browser-window-width`
+|the width of the browser window
+
+|===
+
+.Check the dimension of the browser window
+[source,gherkin]
+----
+When I change window size to `800x600`
+Then `${browser-window-width}` is = `800`
+Then `${browser-window-height}` is = `600`
+----
+
+include::partial$dynamic-variables-ui.adoc[]
+
+include::plugins:partial$plugin-web-app-profiles.adoc[]
+
+== Steps
+
+include::plugins:partial$plugin-web-app-steps.adoc[]
+
+=== Close browser
+
+Closes the browser.
+
+[source,gherkin]
+----
+When I close browser
+----
+
+=== Wait for tab and switch
+
+Waits for the tab with desired title and switches to it.
+
+[source,gherkin]
+----
+When I wait `$duration` until tab with title that $comparisonRule `$title` appears and switch to it
+----
+
+_Deprecated syntax (will be removed in VIVIDUS 0.7.0)_:
+[source,gherkin]
+----
+When I wait `$duration` until window with title that $comparisonRule `$windowTitile` appears and switch to it
+----
+
+* `$duration` - The timeout duration to wait for a tab in {durations-format-link} format.
+* `$comparisonRule` - The tab title xref:parameters:string-comparison-rule.adoc[comparison rule].
+* `$title` - The expected tab title.
+
+.Wait for tab and switch to it
+[source,gherkin]
+----
+Given I am on page with URL `https://vividus-test-site-a92k.onrender.com/windows.html`
+When I click on element located by `id(timeout)`
+When I wait `PT3S` until tab with title that is equal to `Vividus test site` appears and switch to it
+----
+
+=== Stop page loading
+
+Stops page loading
+
+[source,gherkin]
+----
+When I stop page loading
+----
+
+[TIP]
+Could be useful in combination with Selenium's https://www.selenium.dev/documentation/en/webdriver/page_loading_strategy/[page load strategy]
+
+.Stop page loading.story
+[source,gherkin]
+----
+When I open URL `https://delayed.vividus.dev` in new tab
+When I stop page loading
+----
+
+=== Configure page load timeout
+
+Sets a custom page load timeout for a part of the story
+
+[source,gherkin]
+----
+When I set page load timeout to `$duration`
+----
+
+* `$duration` - total duration to wait for page load completion in {durations-format-link} format.
+
+.Before loading a heavy page set an increased timeout
+[source,gherkin]
+----
+Given I am on page with URL `https://example.com/`
+When I set page load timeout to `PT20S`
+When I open URL `https://example.com/super-heavy-page` in new tab
+When I set page load timeout to `PT10S`
+----
+
+=== Performance metrics
+
+Checks web performance metrics.
+
+[source,gherkin]
+----
+Then metric $webPerformanceMetric is $comparisonRule `$duration`
+----
+
+:navigation-timing: https://www.w3.org/TR/navigation-timing/#dom-performancetiming-
+
+* `$webPerformanceMetric` - The web performance metric. Where:
+** [subs=+quotes]`*TIME_TO_FIRST_BYTE*` -  The time between {navigation-timing}navigationstart[the navigation start] and {navigation-timing}responsestart[the response start].
+** [subs=+quotes]`*DNS_LOOKUP_TIME*` -  The time between {navigation-timing}domainlookupstart[the domain lookup start] and {navigation-timing}domainlookupend[the domain lookup end].
+** [subs=+quotes]`*DOM_CONTENT_LOAD_TIME*` -  The time between {navigation-timing}domloading[the DOM loading] and the {navigation-timing}domcomplete[the DOM complete].
+** [subs=+quotes]`*PAGE_LOAD_TIME*` -  The time between {navigation-timing}navigationstart[the navigation start] and {navigation-timing}loadeventend[the load event end].
+* `$comparisonRule` - xref:parameters:comparison-rule.adoc[The duration comparison rule].
+* `$duration` - The duration to compare against in {durations-format-link} format.
+
+.Check page load
+[source,gherkin]
+----
+Given I am on page with URL `https://example.com`
+Then metric PAGE_LOAD_TIME is less than `PT5S`
+----
+
+include::partial$generic-ui-steps.adoc[]
+
+=== Scan barcode from context
+
+Scan a barcode from the specified context and save its value to the variable with the specified name.
+If context not set - takes a screenshot of the entire page. Only the first found barcode will be scanned.
+
+Supported Code Formats
+
+include::partial$code-formats.adoc[]
+
+Actions performed at this step:
+
+* Takes a screenshot of the specified context. If it's not set - takes a screenshot of the entire page
+* Scans a barcode from the screenshot and save its value to the variable
+
+[source,gherkin]
+----
+When I scan barcode from context and save result to $scopes variable `$variableName`
+----
+
+* `$scopes` - xref:commons:variables.adoc#_scopes[The comma-separated set of the variables scopes].
+* `$variableName` - The name of the variable to save the value of the barcode.
+
+.Scan the barcode
+[source,gherkin]
+----
+When I change context to element located by `xpath(//div[@id='qrCode'])`
+When I scan barcode from context and save result to scenario variable `qrCodeLink`
+Then `${qrCodeLink}` is equal to `https://www.example.com`
+----
+
+=== https://en.wikipedia.org/wiki/Focus_(computing)[Focus] Steps
+
+Focus indicates the act of selecting an element of a graphical user interface. Text entered at the keyboard or pasted
+from a clipboard is sent to the component which has the focus.
+
+==== Set focus on the context element
+
+Sets the focus on the context element, if it can be focused. The focused element is the element that will receive
+keyboard and similar events by default.
+
+[source,gherkin]
+----
+When I set focus on context element
+----
+
+.Set focus on the element with ID "input-username"
+[source,gherkin]
+----
+When I change context to element located by `id(input-username)`
+When I set focus on context element
+----
+
+==== Set focus on the element
+
+Sets the focus on the element found by the specified locator, if it can be focused. The focused element is the element
+that will receive keyboard and similar events by default.
+
+[source,gherkin]
+----
+When I set focus on element located by `$locator`
+----
+* `$locator` - The <<_locator,locator>> to find an element.
+
+.Set focus on the element with ID "input-username"
+[source,gherkin]
+----
+When I set focus on element located by `id(input-username)`
+----
+
+==== Check the context element focus state
+
+Checks if the context element is in the provided focus state by comparing the context element and the active element.
+
+[source,gherkin]
+----
+Then context element is $focusState
+----
+* `$focusState` - The state to verify: `in focus` or `not in focus`.
+
+.Check the context element is in focus and do keyboard input
+[source,gherkin]
+----
+Then context element is in focus
+When I press ENTER on keyboard
+----
+
+==== Check the element focus state
+
+Checks if the element found by the specified locator is in the provided focus state by comparing the found element and
+the active element
+
+[source,gherkin]
+----
+Then element located by `$locator` is $focusState
+----
+* `$locator` - The <<_locator,locator>> to find an element.
+* `$focusState` - The state to verify: `in focus` or `not in focus`.
+
+.Check the element with ID "input-username" is in focus and do keyboard input
+[source,gherkin]
+----
+Then element located by `id(input-username)` is in focus
+When I change context to element located by `id(input-username)`
+When I press ENTER on keyboard
+----
+
+=== Field Steps
+
+Fields are elements where users can enter data. The most typical fields are:
+
+* https://www.w3schools.com/tags/tag_input.asp[`input`],
+* https://www.w3schools.com/tags/tag_textarea.asp[`textarea`],
+* CKE editor (it usually should be located via `body` tag, that is contained in a frame as a separate HTML document).
+
+==== Enter text in field
+
+Enters the text in a field found by the specified locator.
+
+The atomic actions performed are:
+
+* find the field by the locator;
+* clear the field if it is found, otherwise the whole step is failed and its execution stops;
+* type the text in the field;
+* the first three actions are retried once if the field becomes stale during actions execution in other
+words if https://www.selenium.dev/exceptions/#stale_element_reference[StaleElementReferenceException]
+is thrown at any atomic action.
+
+[source,gherkin]
+----
+When I enter `$text` in field located by `$locator`
+----
+* `$text` - The text to enter in the field.
+* `$locator` - The <<_locator,locator>> to find a field.
+
+.Add text 'pa$$w0rd' in password field
+[source,gherkin]
+----
+When I enter `pa$$w0rd` in field located by `id(password)`
+----
+
+==== Add text to field
+
+Enters the text in the field found by the specified locator without clearing of
+the previous content.
+
+[source,gherkin]
+----
+When I add `$text` to field located by `$locator`
+----
+* `$text` - The text to add to the field.
+* `$locator` - The <<_locator,locator>> used to find field.
+
+.Add text 'name' to username field
+[source,gherkin]
+----
+When I add `name` to field located by `id(username)`
+----
+
+==== Clear field
+
+Clears the field found by the specified locator. The step does not trigger any
+keyboard or mouse events on the field.
+
+[source,gherkin]
+----
+When I clear field located by `$locator`
+----
+* `$locator` - The <<_locator,locator>> used to find a field.
+
+.Clear username field
+[source,gherkin]
+----
+When I clear field located by `id(username)`
+----
+
+==== Clear field using keyboard
+
+Clears the field found by the specified locator using keyboard. The step
+simulates user action by pressing buttons kbd:[Ctrl+A] and then kbd:[Backspace]
+that allows to trigger keyboard events on the field.
+
+[source,gherkin]
+----
+When I clear field located by `$locator` using keyboard
+----
+* `$locator` - The <<_locator,locator>> used to find a field.
+
+.Clear password field using keyboard
+[source,gherkin]
+----
+When I clear field located by `id(password)` using keyboard
+----
+
+=== Dropdown Steps
+==== Validate available options
+
+Validates whether the dropdown located by locator exists and contains the list
+of the expected options.
+
+[source,gherkin]
+----
+Then dropdown located `$locator` contains options: $option
+----
+* `$locator` - The <<_locator,locator>> used to find a dropdown.
+* `$options` - examples table describing expected options
+
+.Validate dropdown contains a set of colors
+[source,gherkin]
+----
+Then a drop down with the name 'colors' contains the items:
+|state|item |
+|false|Red  |
+|false|Green|
+|true |Blue |
+----
+
+IMPORTANT: The item is an option. The state (`true` or `false`) specifies whether the item is selected.
+
+
+==== Validate the first selected option
+
+Verifies if dropdown located by locator exists and first selected option.
+
+[source,gherkin]
+----
+Then dropdown located `$locator` exists and selected option is `$option`
+----
+* `$locator` - The <<_locator,locator>> used to find a dropdown.
+* `$option` - first selected option
+
+.Dropdown.story
+[source,gherkin]
+----
+Then dropdown located `id(colors)` exists and selected option is `Blue`
+----
+
+
+==== Add an option to the mutli-select dropdown
+
+Selects option in multi-select dropdown
+
+[IMPORTANT]
+Step will fail if target dropdown is not multi-select
+
+[source,gherkin]
+----
+When I add `$option` to selection in dropdown located `$locator`
+----
+* `$option` - option to select
+* `$locator` - The <<_locator,locator>> used to find a dropdown.
+
+.Dropdown.story
+[source,gherkin]
+----
+When I add `Two` to selection in dropdown located `id(numbers)`
+----
+
+
+==== Select the option
+
+Selects option in dropdown
+
+[IMPORTANT]
+Does not support multi-selection
+
+[source,gherkin]
+----
+When I select `$option` in dropdown located `$locator``
+----
+* `$option` - option to select
+* `$locator` - The <<_locator,locator>> used to find a dropdown.
+
+.Dropdown.story
+[source,gherkin]
+----
+When I select `Red` in dropdown located `id(colors)`
+----
+
+
+=== Cookie Steps
+
+==== Validate cookie presence
+
+Validates whether the certain cookie is set.
+
+[source,gherkin]
+----
+Then cookie with name `$cookieName` is set
+----
+* `$cookieName` - The name of the cookie to check presence.
+
+.Check the session cookie is present
+[source,gherkin]
+----
+Then cookie with name `JSESSIONID` is set
+----
+
+==== Validate cookie absence
+
+Validates whether the certain cookie is not set.
+
+[source,gherkin]
+----
+Then cookie with name `$cookieName` is not set
+----
+* `$cookieName` - The name of the cookie to check absence.
+
+.Check the session cookie is not present
+[source,gherkin]
+----
+Then cookie with name `JSESSIONID` is not set
+----
+
+==== Set cookies
+
+Adds the cookies provided in the input xref:ROOT:glossary.adoc#_examplestable[ExamplesTable]. It's allowed to add the
+cookies for the current domain only: make sure the web browser is opened at the
+expected domain. The actions performed by the step:
+
+* add the cookies;
+* refresh the current page (this action is required to apply the changes in cookies).
+
+[source,gherkin]
+----
+When I set all cookies for current domain:$parameters
+----
+* `$parameters` - The parameters of the cookies to set as xref:ROOT:glossary.adoc#_examplestable[ExamplesTable]:
++
+[cols="1,2", options="header"]
+|===
+
+|Column Name
+|Description
+
+|`cookieName`
+|the name of the cookie to set
+
+|`cookieValue`
+|the value of the cookie to set
+
+|`path`
+|the path of the cookie to set
+
+|===
+
+.Set the cookie for the current domain
+[source,gherkin]
+----
+When I set all cookies for current domain:
+|cookieName   |cookieValue |path |
+|cookieAgreed |2           |/    |
+----
+
+==== Get cookie value
+
+Finds the cookie by the name and saves its value to a variable.
+
+[source,gherkin]
+----
+When I save value of cookie with name `$cookieName` to $scopes variable `$variableName`
+----
+* `$cookieName` - The name of the cookie to save the value.
+* `$scopes` - xref:commons:variables.adoc#_scopes[The comma-separated set of the variables scopes].
+* `$variableName` - The variable name to save the cookie value.
+
+.Get the value of the session cookie
+[source,gherkin]
+----
+When I save value of cookie with name `JSESSIONID` to scenario variable `session-id`
+----
+
+==== Get cookie
+
+Finds the cookie by the name and saves all its parameters as JSON to a variable.
+
+[source,gherkin]
+----
+When I save cookie with name `$cookieName` as JSON to $scopes variable `$variableName`
+----
+* `$cookieName` - The name of the cookie to save.
+* `$scopes` - xref:commons:variables.adoc#_scopes[The comma-separated set of the variables scopes].
+* `$variableName` - The variable name to save the cookie.
+
+.Get the session cookie
+[source,gherkin]
+----
+When I save cookie with name `JSESSIONID` as JSON to scenario variable `session-id`
+----
+
+==== Remove cookie
+
+Removes the certain cookie from the current domain. The actions performed by the step:
+
+* remove the certain cookie the from current domain;
+* refresh the current page (this action is required to apply the changes in cookies).
+
+[source,gherkin]
+----
+When I remove cookie with name `$cookieName` from current domain
+----
+* `$cookieName` - The name of the cookie to remove.
+
+.Remove the session cookie
+[source,gherkin]
+----
+When I remove cookie with name `JSESSIONID` from current domain
+----
+
+==== Remove cookie without apply
+
+Removes the certain cookie from the current domain, but does not apply the
+changes in cookies. The current page must be refreshed or the navigation must
+be performed to apply the cookie changes.
+
+[source,gherkin]
+----
+When I remove cookie with name `$cookieName` from current domain without applying changes
+----
+* `$cookieName` - The name of the cookie to remove.
+
+.Remove the session cookie
+[source,gherkin]
+----
+When I remove cookie with name `JSESSIONID` from current domain without applying changes
+When I refresh page
+----
+
+==== Remove all cookies
+
+Removes all cookies from the current domain. The actions performed by the step:
+
+* remove all cookies from the current domain;
+* refresh the current page (this action is required to apply the changes in cookies).
+
+[source,gherkin]
+----
+When I remove all cookies from current domain
+----
+
+==== Remove all cookies without apply
+
+Removes all cookies from the current domain, but does not apply the changes in
+cookies. The current page must be refreshed or the navigation must be performed
+to apply the cookie changes.
+
+[source,gherkin]
+----
+When I remove all cookies from current domain without applying changes
+----
+
+
+=== https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API[Web Storage] steps
+==== Get web storage item
+
+Finds the web storage item by the key and saves its value to the variable.
+
+[source,gherkin]
+----
+When I save $storageType storage item with key `$key` to $scopes variable `$variableName`
+----
+* `$storageType` - One of the web storage mechanisms: either `local` or `session`.
+* `$key` - The name of the key to retrieve the value of.
+* `$scopes` - xref:commons:variables.adoc#_scopes[The comma-separated set of the variables scopes].
+* `$variableName` - The name of the variable to store the value of the web storage item.
+
+.Get the value of the local storage item
+[source,gherkin]
+----
+When I save local storage item with key `token` to scenario variable `application-token`
+----
+
+==== Set web storage item
+
+Adds the item with the specified key-value pair to the web storage, or updates
+that key's value if it already exists.
+
+[source,gherkin]
+----
+When I set $storageType storage item with key `$key` and value `$value`
+----
+* `$storageType` - One of the web storage mechanisms: either `local` or `session`.
+* `$key` - The name of the key to create/update.
+* `$value` - The value to give the key that is creating/updating.
+
+.Set the session storage item
+[source,gherkin]
+----
+When I set session storage item with key `token` and value `session-token`
+----
+
+==== Validate web storage item presence
+
+Validates the web storage item with the specified key exists.
+
+[source,gherkin]
+----
+Then $storageType storage item with key `$key` exists
+----
+* `$storageType` - One of the web storage mechanisms: either `local` or `session`.
+* `$key` - The name of the key to check presence.
+
+.Check the session storage item is present
+[source,gherkin]
+----
+Then session storage item with key `token` exists
+----
+
+==== Validate web storage item absence
+
+Validates the web storage item with the specified key does not exist.
+
+[source,gherkin]
+----
+Then $storageType storage item with key `$key` does not exist
+----
+* `$storageType` - One of the web storage mechanisms: either `local` or `session`.
+* `$key` - The key of the local storage item to check absence.
+
+.Check the local storage item is not present
+[source,gherkin]
+----
+Then local storage item with key `token` does not exist
+----
+
+
+include::partial$proxy-steps.adoc[]
+
+=== Window Steps
+==== Resize the current browser window
+
+Changes the current browser window size to the specified one.
+
+IMPORTANT: The specified browser window size should be smaller than the current screen resolution.
+
+[source,gherkin]
+----
+When I change window size to `$targetSize`
+----
+
+* `$targetSize` - The desired browser window size in pixels, e.g. `800x600`,
+where the first measure is window width, the last one is window height.
+
+.Resize the browser window
+[source,gherkin]
+----
+Given I am on page with URL `https://example.com/`
+When I change window size to `640x320`
+----
+
+=== Video steps
+
+Steps allow to interact with https://www.w3schools.com/html/html5_video.asp[video] elements.
+
+==== Play Video
+
+Starts video playback.
+
+[source,gherkin]
+----
+When I play video in video player located `$locator`
+----
+* `$locator` - The <<_locator,locator>> used to find a video player.
+
+==== Pause Video
+
+Pauses video playback.
+
+[source,gherkin]
+----
+When I pause video in video player located `$locator`
+----
+* `$locator` - The <<_locator,locator>> used to find a video player.
+
+==== Rewind Video
+
+Rewinds video to the desired mark in seconds.
+
+[source,gherkin]
+----
+When I rewind time to `$number` seconds in video player located `$locator`
+----
+* `$number` - time mark in seconds
+* `$locator` - The <<_locator,locator>> used to find a video player.
+
+==== Get info
+Saves video player info: *duration*, *currentTime*, *src*, *networkState*.
+For more information about the properties see https://www.w3schools.com/tags/ref_av_dom.asp[HTML Audio/Video Properties]
+
+[source,gherkin]
+----
+When I save info from video player located `$locator` to $scopes variable `$variableName`
+----
+
+* `$locator` - The <<_locator,locator>> used to find video player.
+* `$scopes` - xref:commons:variables.adoc#_scopes[The comma-separated set of the variables scopes].
+* `$variableName` - The variable name to save the info. If the variable name is *info*, the following variables will be created:
+** `${info.src}`- The current source of the audio/video element
+** `${info.duration}` - The length of the current audio/video (in seconds)
+** `${info.currentTime}` - The current playback position in the audio/video(in seconds)
+** `${info.networkState}` - The current network state of the audio/video. For more information see: https://www.w3schools.com/tags/av_prop_networkstate.asp[Network State]
+
+.Video player verifications
+[source,gherkin]
+----
+Given I am on page with URL `https://www.youtube.com/watch?v=pYqyVpCV-3c`
+When I pause video in video player located `cssSelector(video)`
+When I rewind time to `777` seconds in video player located `cssSelector(video)`
+When I play video in video player located `cssSelector(video)`
+When I save info from video player located `cssSelector(video)` to SCENARIO variable `info`
+Then `${info.currentTime}` is > `0`
+Then `${info.duration}` is > `1000`
+Then `${info.networkState}` is = `2`
+Then `${info.src}` matches `.+youtube.+`
+----
+
+=== Browser Configuration Steps
+==== Set the browser command line arguments
+
+Allows to set command line arguments for browsers.
+This step works similar to the property
+```properties
+web.driver.<browser-name>.command-line-arguments
+```
+In case both property and step are used - arguments from property will be ignored.
+Step will take effect for all new browser sessions created in the current story. It will not affect the current sessions.
+
+List of supported command line arguments for popular browsers:
+. https://peter.sh/experiments/chromium-command-line-switches/[Chrome]
+. https://www-archive.mozilla.org/docs/command-line-args[Firefox]
+. https://docs.microsoft.com/en-us/previous-versions/windows/internet-explorer/ie-developer/general-info/hh826025(v=vs.85)[Internet Explorer]
+
+Not supported browsers:
+. Safari
+. Edge
+
+[source,gherkin]
+----
+When I set browser command line arguments to `$argsString`
+----
+
+* `$argsString` - Sequence of command line arguments, separated by space.
+
+.Set the browser to use the mocked camera stream
+[source,gherkin]
+----
+When I set browser command line arguments to `--use-fake-ui-for-media-stream --use-file-for-fake-video-capture=${videoStorage}/${video1}.y4m --use-fake-device-for-media-stream`
+Given I am on main application page
+----
+
+=== Code steps
+
+==== Execute async JavaScript and save result.
+
+https://www.selenium.dev/selenium/docs/api/java/org/openqa/selenium/JavascriptExecutor.html[Executes async JavaScript] code and saves result into variable.
+
+[source,gherkin]
+----
+When I execute async javascript `$jsCode` and save result to $scopes variable `$variableName`
+----
+* `$jsCode` - Any JavaScript code. In order to save a result https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/return[return] statement should be used.
+* `$scopes` - xref:commons:variables.adoc#_scopes[The comma-separated set of the variables scopes].
+* `$variableName` - The variable name to save the cookie value.
+
+.Validate response
+[source,gherkin]
+----
+When I execute async javascript `
+var callback = arguments[arguments.length - 1];
+var xhr = new XMLHttpRequest();
+xhr.open('GET', '/resource/data.json', true);
+xhr.onreadystatechange = function() {
+  if (xhr.readyState == 4) {
+    callback(xhr.responseText);
+  }
+};
+xhr.send();` and save result to scenario variable `response`
+Then `${response}` matcher `.+`
+----
+
+=== Element wait steps
+
+:disappearance-check-note: If the element doesn't exist on the page/context, the step will immediately complete successfully. Checking the element on the page (if needed) should be done in a separate step (e.g. <<_wait_for_element_appearance>> or xref:plugin-html.adoc#_validate_elements[Validate elements]).
+
+==== Wait for disappearance of an element with a tag
+
+[WARNING]
+====
+The step is deprecated and will be removed in VIVIDUS 0.6.0.
+The replacement is a <<_wait_for_element_disappearance,generic step waiting for element disappearance>>.
+====
+
+Waits for an element with the specified tag, attribute type and value disappearance.
+
+Actions performed by step:
+
+* Searches for an element with the specified attribute and tag within search context
+* If there are no elements by specified attribute and tag, step provides passed assertion and don't check disappearance of an element
+* If there are elements by specified attribute and tag, waits until this element becomes not visible
+
+NOTE: {disappearance-check-note}
+
+[source,gherkin]
+----
+When I wait until an element with the tag '$elementTag' and attribute '$attributeType'='$attributeValue' disappears
+----
+
+* `$elementTag` - Type of the https://www.w3schools.com/TAgs/default.asp[html tag] (e.g. `div` or `iframe`).
+* `$attributeType` - Type of the https://www.w3schools.com/html/html_attributes.asp[tag attribute] (e.g. `name` or `id`).
+* `$attributeValue` - Value of the attribute.
+
+.Click on the button and waiting for disappearance of the `div` element with a certain attribute and value
+[source,gherkin]
+----
+When I click on a button with the name 'Toggle element visibility with delay'
+When I wait until an element with the tag 'div' and attribute 'id'='delayed' disappears
+----
+
+==== Wait for element disappearance with timeout
+
+Waits for element disappearance with desired timeout.
+
+NOTE: {disappearance-check-note}
+
+[source,gherkin]
+----
+Then element located by `$locator` disappears in `$timeout`
+----
+
+_Deprecated syntax (will be removed in VIVIDUS 0.6.0)_:
+[source,gherkin]
+----
+Then element located '$locator' disappears in '$timeout'
+----
+
+* `$locator` - The <<_locator,locator>> used to element.
+* `$timeout` - The maximum time to wait for the element disappearance in {durations-format-link} format.
+
+.Click on the button and waiting for disappearance of the element for 3 seconds
+[source,gherkin]
+----
+When I click on a button with the name 'Toggle element visibility with delay'
+Then element located 'By.xpath(//div[@id='delayed'])' disappears in 'PT3S'
+----
+
+=== Set Variable Steps
+
+==== Save HTML table to the variable
+
+This step allows you to save an HTML table from a specified context into a variable.
+
+For more information, see how xref:commons:variables.adoc#_working_with_tables[to work with table variables]
+
+[IMPORTANT]
+The HTML table must have a header row with <th> tags.
+
+[source,gherkin]
+----
+When I save table to $scopes variable `$variableName`
+----
+
+* `$scopes` - xref:commons:variables.adoc#_scopes[The comma-separated set of the variables scopes].
+* `$variableName` - The variable name to refer to the variable value.
+
+[NOTE]
+Before using this step, ensure the context is set to the required table. See the example below.
+
+.Save the first table on the page into a variable named 'table'
+[source,gherkin]
+----
+When I change context to element located `xpath(//table[1])`
+When I save table to SCENARIO variable `table`
+----
+
+==== Save the number of opened tabs
+
+Saves the number of currently opened tabs in the browser to the variable.
+
+[source,gherkin]
+----
+When I save number of open tabs to $scopes variable `$variableName`
+----
+
+* `$scopes` - xref:commons:variables.adoc#_scopes[The comma-separated set of the variables scopes].
+* `$variableName` - The variable name to refer to the variable value.
+
+.Save the number of currently opened browser tabs into a variable named 'count'
+[source,gherkin]
+----
+When I save number of open tabs to SCENARIO variable `count`
+----
+
+=== Alert Steps
+
+:alert: https://www.w3schools.com/js/js_popup.asp[popup alert]
+
+==== Perform action in the alert box
+
+Accepts the action in {alert} with matching text by clicking on the "OK" button or dismiss it by clicking "Cancel" button.
+
+Actions performed at this step:
+
+* Finds the appropriate alert with matching message
+* Performs the corresponding action
+
+[source,gherkin]
+----
+When I $alertAction alert with message which $comparisonRule `$message`
+----
+
+* `$alertAction` - Action to perform. Possible values: `ACCEPT`, `DISMISS`.
+* `$comparisonRule` - xref:parameters:string-comparison-rule.adoc[String comparison rule].
+* `$message` - The text message of the alert.
+
+.Accept popup alert with any text message
+[source,gherkin]
+----
+When I accept alert with message which matches `.*`
+----
+
+==== Type text in the alert input field
+
+This step allows you to type text into {alert} input field and then accept the alert.
+
+[NOTE]
+This step is applicable only for alerts with a single input field. For authorization alerts, basic URL authorization should be used.
+For example, https://user:pass@domain.com
+
+[source,gherkin]
+----
+When I type text `$text` in alert and accept it
+----
+
+* `$text` - The text to be typed into the alert input field.
+
+.Type text 'VIVIDUS' into alert and close it by clicking OK button
+[source,gherkin]
+----
+When I type text `VIVIDUS` in alert and accept it
+----
+
+==== Verify that an alert is present
+
+Checks that there is {alert} on the page.
+
+[source,gherkin]
+----
+Then an alert is present
+----
+
+.Check that an alert appears after clicking on the button
+[source,gherkin]
+----
+When I click on element located by `buttonName(Survey)`
+Then an alert is present
+----
+
+==== Verify that an alert isn't present
+
+Checks that there is no any {popup-alert}[popup alerts] on the page.
+
+[source,gherkin]
+----
+Then an alert is not present
+----
+
+.Check that an alert doesn't appear on the page
+[source,gherkin]
+----
+Given I am on page with URL `http://example.com`
+Then an alert is not present
+----
+
+== Tips & Tricks
+
+=== Validate URL host of the opened page
+
+To validate host component of the current page URL the following statement can be used:
+
+.Validate host component of "https://example.com/relative/url/example.html"
+[source,gherkin]
+----
+Given I am on page with URL `https://example.com/relative/url/example.html`
+Then `#{extractHostFromUrl(${current-page-url})}` is equal to `example.com`
+----
+
+* `$\{current-page-url}` is the <<Current page URL,current page URL>> dynamic variable.
+
+=== Validate URL path of the opened page
+
+To validate path component of the current page URL the following statement can be used:
+
+.Validate path component of "https://example.com/relative/url/example.html"
+[source,gherkin]
+----
+Given I am on page with URL `https://example.com/relative/url/example.html`
+Then `#{extractPathFromUrl(${current-page-url})}` is equal to `/relative/url/example.html`
+----
+
+* `$\{current-page-url}` is the <<Current page URL,current page URL>> dynamic variable.
+
+=== Validate URL of the opened page partially
+
+To validate whether current page URL contains some part the following statement can be used:
+
+.Validate part of "https://example.com/relative/url/example.html"
+[source,gherkin]
+----
+Given I am on page with URL `https://example.com/relative/url/example.html`
+Then `${current-page-url}` matches `.+\/relative\/url.+`
+----
+
+* `$\{current-page-url}` is the <<Current page URL,current page URL>> dynamic variable.
+* `.+\/relative\/url.+` is a regular expression to match the expected part of the page URL.

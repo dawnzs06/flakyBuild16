@@ -1,0 +1,22 @@
+{transformer=FROM_LANDSCAPE}
+|textElementXpath           |//XCUIElementTypeStaticText                                     |
+|menuButtonXpath            |//XCUIElementTypeButton[@name="Button"]                         |
+|menuInputXpath             |//XCUIElementTypeButton[@name="Input"]                          |
+|nameDisplayXpath           |//XCUIElementTypeTextField[@value='${text}']                    |
+|menuQrCodeXpath            |//XCUIElementTypeButton[@name="QR Code"]                        |
+|menuWaitXpath              |//XCUIElementTypeButton[@name="Wait"]                           |
+|menuScrollViewXpath        |//XCUIElementTypeButton[@name="Scroll View"]                    |
+|menuSliderXpath            |//XCUIElementTypeButton[@name="Slider"]                         |
+|menuWebViewXpath           |//XCUIElementTypeButton[@name="Web View"]                       |
+|nameInputXpath             |//XCUIElementTypeTextField[@value='Enter your name...']         |
+|action                     |COMPARE_AGAINST                                                 |
+|scrollViewXpath            |//XCUIElementTypeScrollView                                     |
+|carouselViewXpath          |//XCUIElementTypeButton[@name='Carousel']                       |
+|swipeableAreaXpath         |(//XCUIElementTypeScrollView)[2]                                |
+|textFieldValueAttribute    |value                                                           |
+|keyboardLocator            |xpath(//XCUIElementTypeKeyboard)                                |
+|scrollableMenuXpath        |//XCUIElementTypeScrollView                                     |
+|qrCodeContainerXpath       |//XCUIElementTypeOther[@name='RNE__Image__children__container'] |
+|firstItemAccessibilityId   |Item 1                                                          |
+|secondItemAccessibilityId  |Item 2                                                          |
+|welcomeMessageXpath        |//XCUIElementTypeOther[@name="Hello world"]                     |

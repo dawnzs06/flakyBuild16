@@ -1,0 +1,2 @@
+:dependency-short-name: plugin-{plugin-short-name}
+include::ROOT:partial$dependency-installation.adoc[]

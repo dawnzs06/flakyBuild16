@@ -1,0 +1,181 @@
+= Getting Started
+
+Everyone has to start somewhere and if you’re new to VIVIDUS, this is where to begin.
+
+== Before you start
+In order to use VIVIDUS effectively, you need to know what it is and understand
+some of its fundamental concepts. So before you start using VIVIDUS in earnest,
+we highly recommend you read xref:ROOT:tests-configuration.adoc["How to cook VIVIDUS?"].
+
+== Prerequisites
+
+=== Install and configure Git
+. Download and install http://git-scm.com/downloads[Git client]
+. https://git-scm.com/book/en/v2/Getting-Started-First-Time-Git-Setup#_your_identity[Configure] your identity
+
+=== Install Java
+. Download and install https://adoptium.net/temurin/releases/?version=17[Java 17].
+. https://www.baeldung.com/java-home-on-windows-7-8-10-mac-os-x-linux[Configure `JAVA_HOME` environment variable] to point your directory with installed JDK.
+. Add new entry to `PATH` environment variable:
+    * for Windows: `%JAVA_HOME%/bin`
+    * for macOS / Linux: `$JAVA_HOME/bin`
+
+== Setup test project
+. Login to http://github.com/[GitHub] (create a new account at first if you don't have any).
+
+. Create test project repository:
++
+.generate your own empty project based on the starter project ...
+[%collapsible]
+====
+- Open https://github.com/vividus-framework/vividus-starter/generate[generator].
+- Provide repository name for your test project.
+- Choose option to set visibility of your repository: `Public` or `Private` (`Private` is recommended from start, it can be changed in future).
+- Click btn:[Create repository from template] button.
+====
++
+.or get an existing test project from GitHub.
+[%collapsible]
+====
+- Navigate to the target VIVIDUS tests repository page (e.g. https://github.com/vividus-framework/vividus-sample-tests[vividus-sample-tests])
+- Create a fork of the target tests repository to be able to execute and modify scripts at your convenience:
+    * click btn:[Fork] icon at the top-right corner of the screen,
+    * the pre-populated values cover the average user needs, so just click btn:[Create fork] button,
+    * as the result you now have a copy of the target tests repository at your personal GitHub account.
+====
+
+. Clone your newly generated repository:
++
+[source,shell]
+----
+git clone --recursive your_generated_project_url.git
+----
+
+. Go to the local directory with your cloned repository:
++
+[source,shell]
+----
+cd your_repository_name
+----
+
+. Build the project:
++
+- macOS / Linux:
++
+[source,shell]
+----
+./gradlew build
+----
+
+- Windows:
++
+[source,cmd]
+----
+gradlew build
+----
+
+== Use IDE for the tests development
+
+Please choose any of the listed below IDEs.
+
+=== Eclipse
+
+==== Prerequisites
+. Install https://www.eclipse.org/downloads/packages/release/2023-06/r/eclipse-ide-java-developers[Eclipse IDE 2023-06]
+. Add https://jbehave.org/eclipse-integration.html[JBehave plugin]
+
+==== Import the project
+. Generate Eclipse configuration files:
++
+- macOS / Linux:
++
+[source,shell]
+----
+./gradlew eclipse
+----
+
+- Windows:
++
+[source,cmd]
+----
+gradlew eclipse
+----
+
+. https://help.eclipse.org/2023-06/index.jsp?topic=%2Forg.eclipse.platform.doc.user%2Ftasks%2Ftasks-importproject.htm[Import the project to Eclipse]
+. Start creating your tests
+
+=== Visual Studio Code
+
+==== Prerequisites
+
+. Install https://code.visualstudio.com[Visual Studio Code].
+. Install https://marketplace.visualstudio.com/items?itemName=vividus.vividus-studio[VIVIDUS Studio Extension].
+
+==== Open the project in Visual Studio Code
+
+. Open Visual Studio Code.
+. Click menu:File[Open...].
+. Open a folder with a VIVIDUS project.
+. Wait until the message `Project with the name '...' is loaded` appears.
+. Start creating your tests.
+
+==== Execute tests
+
+. Open https://code.visualstudio.com/docs/getstarted/userinterface#_command-palette[Command Palette] by clicking menu:View[Command Palette...].
+. Type `VIVIDUS: Run Stories` in the search bar and select matched command.
+. Find the tests execution progress logged in the `Output` console (if it's closed open it by clicking menu:View[Output]).
+
+## Execute the tests via CLI
+. Execute your tests via Gradle:
++
+- macOS / Linux:
++
+[source,shell]
+----
+./gradlew runStories
+----
+
+- Windows:
++
+[source,cmd]
+----
+gradlew runStories
+----
+
+## View the test execution report
+
+At the end of any test run, VIVIDUS will give you a link to where the corresponding test report was published. It should look like this:
+
+[source,log]
+----
+2022-05-23 13:38:15,523 [main] INFO  org.vividus.report.allure.AllureReportGenerator - Allure report is successfully generated at /dir/to/where/the/results-are-published/.out/vividus-demo/reports/allure/index.html
+----
+
+Modern browsers don't allow to open the report hosted on the local filesystem
+https://stackoverflow.com/a/24002146/2067574[due to security restrictions].
+The following options could be considered.
+
+### Option 1 (Safe, but a bit complicated)
+
+. Go into the directory:
++
+[source,shell]
+----
+cd /dir/to/where/the/results-are-published/.out/vividus-demo/reports/allure
+----
+
+. Start a webserver of your choice, in the example below we are using a https://www.npmjs.com/package/http-server[node webserver] through port `3456`:
++
+[source,shell]
+----
+    ✔ ~/dir/to/where/the/results-are-published/.out/vividus-demo/reports/allure
+    $ http-server -p 3456
+----
+
+. Launch a browser, type `localhost:3456` into the URL. If you followed the instructions properly, you should see your report.
+
+### Option 2 (Relax browser security)
+. Tune https://testingfreak.com/how-to-fix-cross-origin-request-security-cors-error-in-firefox-chrome-and-ie/[CORS option in the browser of your choice].
++
+WARNING: Make sure this browser will be used to view test reports only, it's not safe to surf the Internet with relaxed security rules.
+. Go to the test report directory and open `index.html` in the configured browser.

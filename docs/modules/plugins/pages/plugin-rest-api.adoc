@@ -1,0 +1,1073 @@
+= REST API Plugin
+
+The plugin provides the following abilities:
+
+* build and send HTTP requests
+* validate HTTP responses (headers, status code, body)
+* validate JSON content of HTTP response bodies
+
+:plugin-short-name: rest-api
+include::partial$plugin-installation.adoc[]
+
+== Properties
+
+[cols="3,1,1,3", options="header"]
+|===
+|Property Name
+|Acceptable values
+|Default
+|Description
+
+4+^.^|_Configuration of REST API client_
+
+|`rest-api.http.endpoint`
+|`URL`
+|`<empty>`
+|The base request endpoint
+
+|`rest-api.http.header.`
+|`key-value mapping`
+|`<empty>`
+|The property family to set HTTP headers for all outgoing requests, e.g. rest-api.http.header.my-sample-header=my-sample-value
+
+|===
+
+See xref:ROOT:tests-configuration.adoc#_http_configuration[HTTP configuration] for more fine-grained control over the HTTP interactions.
+
+== Expressions
+
+NOTE: The expression parameters marked with *bold* are mandatory.
+
+=== `removeWrappingDoubleQuotes`
+
+When REST API providing the data in JSON format is used it may be required to extract some values from JSON messages.
+String values are usually wrapped into double quotes, but sometimes only the value without quotes is needed.
+This expression allows to remove wrapping double quotes and use the value as is.
+
+[source, subs="+quotes"]
+----
+#{removeWrappingDoubleQuotes(*$input*)}
+----
+
+* *`$input`* - any string to remove wrapping double quotes
+
+.Extracting ID from JSON data and using it in HTTP GET
+[source,gherkin]
+----
+When I save a JSON element from '${response}' by JSON path '$.id' to story variable 'id'
+When I execute HTTP GET request for resource with relative URL `rest/#{removeWrappingDoubleQuotes(${id})}`
+----
+
+.Examples of the expressions removing wrapping double quotes
+|===
+|Expression |Result
+
+|`#{removeWrappingDoubleQuotes("value")}`  |`value`
+|`#{removeWrappingDoubleQuotes(value)}`    |`value`
+|`#{removeWrappingDoubleQuotes()}`         |`<empty>`
+|`#{removeWrappingDoubleQuotes("")}`       |`<empty>`
+|`#{removeWrappingDoubleQuotes(""")}`      |`"`
+|`#{removeWrappingDoubleQuotes("value)}`   |`"value`
+|`#{removeWrappingDoubleQuotes(v"alu"e)}`  |`v"alu"e`
+|`#{removeWrappingDoubleQuotes("va"lu"e")}`|`va"lu"e`
+|`#{removeWrappingDoubleQuotes("va"lu"e)}` |`"va"lu"e`
+|`#{removeWrappingDoubleQuotes("va"lue)}`  |`"va"lue`
+|`#{removeWrappingDoubleQuotes(va"lue")}`  |`va"lue"`
+|===
+
+=== `encodeUriXyz`
+
+`#{encodeUriXyz(..)}` is a family of expressions that encode specific URI components (e.g. path, query)
+by percent encoding illegal characters, which includes non-US-ASCII characters, and also characters that
+are otherwise illegal within the given URI component type, as defined in
+https://tools.ietf.org/html/rfc3986[RFC 3986].
+
+[cols="3,4", options="header", subs="+quotes"]
+|===
+|Syntax
+|Description
+
+|`#{encodeUri(*$anyValue*)}`
+|Encodes all characters that are either illegal, or have any reserved meaning, anywhere within a URI, as defined in
+https://tools.ietf.org/html/rfc3986[RFC 3986]. This is useful to ensure that the given value will be preserved as-is
+and will not have any impact on the structure or meaning of the URI.
+
+|`#{encodeUriUserInfo(*$userInfo*)}`
+|Encodes the given URI user info.
+
+|`#{encodeUriHost(*$host*)}`
+|Encodes the given URI host.
+
+|`#{encodeUriPath(*$path*)}`
+|Encodes the given URI path.
+
+|`#{encodeUriPathSegment(*$segment*)}`
+|Encodes the given URI path segment.
+
+|`#{encodeUriQuery(*$query*)}`
+|Encodes the given URI query.
+
+|`#{encodeUriQueryParameter(*$queryParameter*)}`
+|Encodes the given URI query parameter.
+
+|`#{encodeUriFragment(*$fragment*)}`
+|Encode the given URI fragment.
+|===
+
+.Examples of the expressions encoding URI parts
+|===
+|Expression |Result
+
+|`#{encodeUriUserInfo(
+https://user@vividus.dev:vividus.dev/path/segment?a&b=c#fragment)}`
+|https%3A%2F%2Fuser%40vividus.dev%3Avividus.dev
+%2Fpath%2Fsegment%3Fa%26b%3Dc%23fragment
+
+|`#{encodeUriUserInfo(user@vividus.dev:pass)}`
+|user%40vividus.dev:pass
+
+|`#{encodeUriHost(vividus.бел)}`
+|vividus.%D0%B1%D0%B5%D0%BB
+
+|`#{encodeUriPath(/path/with spaces/)}`
+|/path/with%20spaces/
+
+|`#{encodeUriPathSegment(path/segment)}`
+|path%2Fsegment
+
+|`#{encodeUriQuery(a&b=c d)}`
+|a&b=c%20d
+
+|`#{encodeUriQueryParameter(a&b)}`
+|a%26b
+
+|`#{encodeUriFragment(frag ment)}`
+|frag%20ment
+
+|===
+
+== xref:commons:variables.adoc[Dynamic variables]
+
+=== HTTP response as text
+The variable provides the HTTP response body of the latest executed HTTP call as
+string.
+
+[source,gherkin]
+----
+${response}
+----
+
+.Validate the HTTP response matches the regular expression
+[source,gherkin]
+----
+When I execute HTTP GET request for resource with relative URL `/get?name=Content`
+Then `${response}` matches `.+Home.+`
+----
+
+=== HTTP response as binary data
+The variable provides the HTTP response body of the latest executed HTTP call as
+binary data.
+
+[source,gherkin]
+----
+${response-as-bytes}
+----
+
+.Save the received Excel document into the temporary folder
+[source,gherkin]
+----
+When I execute HTTP GET request for resource with URL `https://github.com/vividus-framework/vividus/blob/master/vividus-plugin-excel/src/test/resources/TestTemplate.xlsx?raw=true`
+When I create temporary file with name `excel` and content `${response-as-bytes}` and put path to scenario variable `excelPath`
+----
+
+=== HTTP response code
+
+:http-status-code: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status[HTTP response status code]
+
+The variable provides the {http-status-code} of the latest executed HTTP call.
+
+[source,gherkin]
+----
+${response-code}
+----
+
+.Validate the HTTP response code
+[source,gherkin]
+----
+When I execute HTTP GET request for resource with relative URL `/get?name=Content`
+Then `${response-code}` is equal to `200`
+----
+
+== xref:ROOT:glossary.adoc#_table_transformer[Table Transformers]
+
+=== FROM_JSON
+
+:json-paths: https://github.com/json-path/JsonPath#path-examples[JSON Paths]
+
+`FROM_JSON` transformer constructs a table by mapping table columns to values found by {json-paths} in the source JSON.
+
+[cols="1,3", options="header"]
+|===
+|Parameter
+|Description
+
+|`variable`
+a| WARNING: This parameter is deprecated and will be removed in VIVIDUS 0.6.0. `variableName` parameter must be used instead.
+
+The name of the variable containing source JSON, only variables of scopes `global` and `next_batches` are allowed.
+
+|`url`
+a| WARNING: This parameter is deprecated and will be removed in VIVIDUS 0.6.0. `variableName` parameter must be used instead.
+
+The URL of the JSON resource that can be retrieved using the https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/GET[HTTP GET] call.
+
+|columns
+a|The semicolon-separated list of mappings between column names and {json-paths} used to get column values.
+
+.Columns parameter format
+[source]
+----
+columns=column_name_1=json_path_1;column_name_2=json_path_2;column_name_N=json_path_N
+----
+
+* `column_name` - The user-defined column name in the resulting table.
+* `json_path` - The json path used to retrieve a value from the source JSON for a particular column name.
+
+IMPORTANT: The number of elements found by the {json-paths} for each column must be the same.
+
+|===
+
+[IMPORTANT]
+`variable` and `url` are competing parameters and only one can be specified at the same time.
+
+.Source JSON
+[source,json]
+----
+[
+    {
+        "firstName": "Cheryl",
+        "lastName": "Wilkerson",
+        "age": 36,
+        "address": {
+            "streetAddress": "690 Selah Way",
+            "city": "Waitsfield",
+            "postalCode": "05673"
+        }
+    },
+    {
+        "firstName": "Zachary",
+        "lastName": "Harrington",
+        "age": 63,
+        "address": {
+            "streetAddress": "4803 Duncan Avenue",
+            "city": "New York",
+            "postalCode": "10014"
+        }
+    }
+]
+----
+
+.Usage of FROM_JSON transformer
+[source,gherkin]
+----
+Given request body: {
+  "fullName": "<fname> <lname>"
+}
+When I execute HTTP POST request for resource with URL `https://service-under-test.com/register`
+Examples:
+{transformer=FROM_JSON, url=https://data-provider/users, columns=fname=$..firstName;lname=$..lastName}
+----
+
+== HTTP Steps
+
+=== Set HTTP request configuration
+
+Set up custom request configuration.
+
+[source,gherkin]
+----
+When I set HTTP request configuration:$configItems
+----
+
+* `$configItems` - Table representing list of configuration items with columns "name" and "value" specifying their names and values respectively.
++
+.Available configs
+[cols="2,2,1,3", options="header"]
+|===
+|Configuration item |Acceptable values |Default value |Description
+
+|`expectContinueEnabled`
+a|`true` +
+`false`
+|`false`
+|Whether the 'https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/100[Expect: 100-Continue]' handshake is enabled
+
+|`redirectsEnabled`
+a|`true` +
+`false`
+|`true`
+|Whether redirects should be handled automatically
+
+|`circularRedirectsAllowed`
+a|`true` +
+`false`
+|`false`
+|Whether "circular redirects" (redirects to the same location) should be allowed
+
+|`authenticationEnabled`
+a|`true` +
+`false`
+|`true`
+|Whether authentication should be handled automatically
+
+|`contentCompressionEnabled`
+a|`true` +
+`false`
+|`true`
+|Whether the target server is requested to compress content
+
+|`maxRedirects`
+|Integer
+|`50`
+|The maximum number of redirects to be followed
+
+|`connectionRequestTimeout`
+|Integer (milliseconds)
+|`180000`
+|The timeout used when requesting a connection from the connection manager
+
+|`connectTimeout`
+|Integer (milliseconds)
+|`180000`
+|The timeout until a new connection is fully established
+
+|`responseTimeout`
+|Integer (milliseconds)
+|`0`
+|The timeout until arrival of a response from the opposite endpoint. A timeout value of zero is interpreted as an infinite timeout.
+
+|`cookieSpec`
+a|
+* `relaxed` - The https://datatracker.ietf.org/doc/rfc6265/[RFC 6265] compliant policy (interoperability profile).
+* `strict` - The https://datatracker.ietf.org/doc/rfc6265/[RFC 6265] compliant policy (strict profile).
+* `ignore` - The policy that ignores cookies.
+|`<not set>`
+|The name of the cookie specification to be used for HTTP state management
+
+|===
+
+.Load a page with slow connection and with the property `http.socket-timeout` set to `15000`
+[source,gherkin]
+----
+When I set HTTP request configuration:
+|socketTimeout |
+|25000         |
+When I execute HTTP GET request for resource with URL `https://vividus-test-site-a92k.onrender.com/?pageTimeout=20000`
+Then '${responseStatusCode}' is = '200'
+----
+
+=== Set HTTP request body
+
+Sets HTTP request body that will be used while executing the request. In the case of textual content the default HTTP
+request header with name `Content-Type` and value `text/plain; charset=UTF-8` is set.
+
+WARNING: No HTTP request header is set in the case of binary content.
+
+[source,gherkin]
+----
+Given request body: $content
+----
+
+* `$content` - HTTP request body.
+
+.Set textual HTTP request body
+[source,gherkin]
+----
+Given request body: Hello!
+----
+
+.Set binary HTTP request body
+[source,gherkin]
+----
+Given request body: #{loadBinaryResource(/data/image.png)}
+When I set request headers:
+|name        |value    |
+|Content-Type|image/png|
+When I execute HTTP POST request for resource with relative URL `/upload/png`
+----
+
+=== Prepare multipart HTTP request
+
+Sets https://tools.ietf.org/html/rfc7578[multipart] request entity that will be used while executing HTTP requests.
+
+[source,gherkin]
+----
+Given multipart request:$requestParts
+----
+
+where `requestParts` is xref:ROOT:glossary.adoc#_examplestable[ExamplesTable] representing the list of the request parts with the following columns:
+
+* `type` - One of request part types: `STRING`, `FILE`, `BINARY`.
+* `name` - The request part name.
+* `value` -
+** For `FILE` part type - the xref:ROOT:glossary.adoc#_resource[resource name] or the file path.
+** For `STRING` or `BINARY` part type - the actual content.
+* `contentType` - The https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type[content type].
+* `fileName` - The name of the file contained in this request part. The
+parameter is not allowed for `STRING` part type, but it's required for `BINARY` one and optional for `FILE` part type.
+
+.Init HTTP request consisting of 4 different parts
+[source,gherkin]
+----
+Given I initialize scenario variable `temp-file-content` with value `Your first and last stop for No-Code Test Automation!`
+When I create temporary file with name `abc.txt` and content `${temp-file-content}` and put path to scenario variable `temp-file-path`
+Given multipart request:
+|type  |name      |value            |contentType|fileName       |
+|file  |file-key  |/data/file.txt   |           |anotherName.txt|
+|file  |file-key2 |${temp-file-path}|text/plain |               |
+|string|string-key|string1          |text/plain |               |
+|binary|binary-key|raw              |text/plain |raw.txt        |
+----
+
+=== Set form data HTTP request
+
+Sets https://www.w3.org/TR/html401/interact/forms.html#h-17.13.4.1[URL-encoded form data] request entity that will be used while executing HTTP requests.
+Default HTTP request header with name `Content-Type` and value `application/x-www-form-urlencoded; charset=UTF-8` is set.
+In case if `Content-Type` is `text/plain` <<Set HTTP request body>> should be used
+
+[source,gherkin]
+----
+Given form data request:$parameters
+----
+
+* `$parameters` -  The xref:ROOT:glossary.adoc#_examplestable[ExamplesTable] representing list of parameters with columns `name` and `value` specifying form data request.
+
+.Set form data HTTP request body
+[source,gherkin]
+----
+Given form data request:
+|name     |value  |
+|firstName|Ivan   |
+|lastName |Ivanov |
+|password |!@3qwer|
+----
+
+
+=== Add HTTP headers to the request
+
+Adds https://en.wikipedia.org/wiki/List_of_HTTP_header_fields#Request_fields[HTTP headers] to the existing HTTP headers of the building HTTP request.
+
+NOTE: The added HTTP headers are scoped to the first performed HTTP request and not available afterwards.
+
+[source,gherkin]
+----
+When I add request headers:$headers
+----
+
+* `headers` - The xref:ROOT:glossary.adoc#_examplestable[ExamplesTable] representing the list of the headers with columns `name` and `value` specifying HTTP header.
+
+.Add request header with name `Accept-Language` and value `en-us`
+[source,gherkin]
+----
+When I add request headers:
+|name           |value |
+|Accept-Language|en-us |
+When I execute HTTP GET request for resource with relative URL `/get?name=Content`
+When I save JSON element value from `${response}` by JSON path `$.headers.Accept-Language` to scenario variable `language`
+Then `${language}` is equal to `"en-us"`
+----
+
+=== Set HTTP headers to the request
+
+Sets https://en.wikipedia.org/wiki/List_of_HTTP_header_fields#Request_fields[HTTP headers] to the building HTTP request. Previously set HTTP headers are discarded.
+
+NOTE: The added HTTP headers are scoped to the first performed HTTP request and not available afterwards.
+
+[source,gherkin]
+----
+When I set request headers:$headers
+----
+
+* `headers` - The xref:ROOT:glossary.adoc#_examplestable[ExamplesTable] representing the list of the headers with columns `name` and `value` specifying HTTP header.
+
+.Set request header with name `Content-Type` and value `application/json`
+[source,gherkin]
+----
+When I set request headers:
+|name        |value           |
+|Content-Type|application/json|
+Given request body: {
+  "type": "article"
+}
+When I execute HTTP POST request for resource with URL `https://api.example.com/entries`
+----
+
+=== Execute HTTP request with absolute URL
+
+Executes the HTTP request for a resource identified by the absolute URL. The step uses previously set HTTP headers
+and request body. The HTTP response headers, status code and body can be accessed by the corresponding steps and
+dynamic variables.
+
+[source,gherkin]
+----
+When I execute HTTP $httpMethod request for resource with URL `$url`
+----
+
+* `$httpMethod` - The https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods[HTTP method].
+* `$url` - The URL of the resource on the server.
+
+.Execute HTTP GET request
+[source,gherkin]
+----
+When I execute HTTP GET request for resource with URL `https://example.com`
+----
+
+=== Execute HTTP request with relative URL
+
+Executes the HTTP request for a resource identified by the URL relative to the base URL specified by the `rest-api.http.endpoint`
+property. The step uses previously set HTTP headers and request body. The HTTP response headers, status code and body can be
+accessed via the corresponding steps and dynamic variables.
+
+[source,gherkin]
+----
+When I execute HTTP $httpMethod request for resource with relative URL `$relativeURL`
+----
+
+* `$httpMethod` - The https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods[HTTP method].
+* `$relativeURL` - The relative URL of the resource on the server.
+
+.Configuration
+[source,properties]
+----
+rest-api.http.endpoint=https://httpbin.org
+----
+
+.Execute HTTP GET request
+[source,gherkin]
+----
+When I execute HTTP GET request for resource with relative URL `/image/jpeg`
+----
+
+=== Compare HTTP response body against resource
+
+Compares the HTTP response body against the xref:ROOT:glossary.adoc#_resource[resource] data according to the provided rule.
+
+[source,gherkin]
+----
+Then response body $validationRule resource at `$resourcePath`
+----
+
+* `$validationRule` - The validation rule, either `is equal to` or `is not equal to`.
+* `$resourcePath` - The xref:ROOT:glossary.adoc#_resource[resource] path.
+
+.Compare images
+[source,gherkin]
+----
+When I execute HTTP GET request for resource with URL `https://httpbin.org/image/png`
+Then response body is equal to resource at `/images/pig.png`
+----
+
+=== Validate HTTP response code
+
+Compares the {http-status-code} against the expected number.
+
+[source,gherkin]
+----
+Then response code is $comparisonRule `$responseCode`
+----
+
+* `$comparisonRule` - xref:parameters:comparison-rule.adoc[The comparison rule].
+* `$responseCode` - The expected {http-status-code}.
+
+.Validate the resource is not found
+[source,gherkin]
+----
+When I execute HTTP GET request for resource with URL `https://httpbin.org/cfa2fdbc`
+Then response code is equal to `404`
+----
+
+=== Validate HTTP response time
+
+Compares the HTTP response time against the expected number in milliseconds.
+
+[source,gherkin]
+----
+Then response time is $comparisonRule `$responseTime` milliseconds
+----
+
+* `$comparisonRule` - xref:parameters:comparison-rule.adoc[The comparison rule].
+* `$responseTime` - The expected response time in milliseconds.
+
+.Check HTTP response time
+[source,gherkin]
+----
+When I execute HTTP GET request for resource with URL `https://example.com`
+Then response time is less than `1000` milliseconds
+----
+
+=== Valdate number of HTTP response headers
+
+:http-response-header: https://en.wikipedia.org/wiki/List_of_HTTP_header_fields#Response_fields[HTTP response header]
+
+Validates the number of HTTP response headers filtered by the specified name.
+
+[source,gherkin]
+----
+Then number of response headers with name `$headerName` is $comparisonRule $number
+----
+
+* `$headerName` - The {http-response-header} name.
+* `$comparisonRule` - xref:parameters:comparison-rule.adoc[The comparison rule].
+* `$number` - The expected number of headers.
+
+.Check the browser is forced to use a secure web connection
+[source,gherkin]
+----
+Then number of response headers with name `Strict-Transport-Security` is equal to 1
+----
+
+=== Validate HTTP response header value
+
+Compares the header value against the expected value according to the comparison rule.
+
+[source,gherkin]
+----
+Then value of response header `$headerName` $comparisonRule `$value`
+----
+
+* `$headerName` - The {http-response-header} name.
+* `$comparisonRule` - xref:parameters:string-comparison-rule.adoc[The string comparison rule].
+* `$number` - The expected HTTP header value.
+
+.Check HTTP response content type
+[source,gherkin]
+----
+When I execute HTTP GET request for resource with URL `https://httpbin.org/robots.txt`
+Then value of response header `Content-Type` is equal to `text/plain`
+----
+
+=== Validate HTTP response header elements
+
+Validates that the response header with the specified name contains elements. Might be useful to verify such HTTP
+headers as `Set-Cookie` that have values that can be decomposed into multiple elements.
+
+.HTTP header with elements format
+[source]
+----
+header = [ element ] *( "," [ element ] )
+----
+
+[source,gherkin]
+----
+Then response header `$headerName` contains elements:$elements
+----
+
+* `$headerName` - The {http-response-header} name.
+* `$attributes` - The xref:ROOT:glossary.adoc#_examplestable[ExamplesTable] with expected elements.
+
+.Check attributes of Set-Cookie header
+[source,gherkin]
+----
+When I execute HTTP GET request for resource with URL `https://httpbin.org/authenticate`
+Then response header `Set-Cookie` contains elements:
+|element |
+|JSESSION|
+|clientId|
+----
+
+=== Save HTTP response header value
+
+Saves the HTTP response header value into a variable.
+
+[source,gherkin]
+----
+When I save response header `$headerName` value to $scopes variable `$variableName`
+----
+
+* `$headerName` - The {http-response-header} name.
+* `$scopes` - xref:commons:variables.adoc#_scopes[The comma-separated set of the variables scopes].
+* `$variableName` - The variable name to store the header value.
+
+.Save Content-Length header value
+[source,gherkin]
+----
+When I execute HTTP GET request for resource with URL `https://httpbin.org/brotli`
+When I save response header `Content-Length` value to scenario variable `length`
+----
+
+=== Validate connection security
+
+Validates that the HTTP connection is secured with the defined security protocol.
+
+[source,gherkin]
+----
+Then connection is secured using $securityProtocol protocol
+----
+
+* `$securityProtocol` - The expected security protocol, e.g. `TLSv1.2`, `TLSv1.3`
+
+.Check that the httpbin is secured
+[source,gherkin]
+----
+When I execute HTTP GET request for resource with URL `https://httpbin.org/`
+Then connection is secured using TLSv1.2 protocol
+----
+
+=== Wait for JSON element in the HTTP response
+
+Waits for a specified amount of time until HTTP response body contains an element by the specified JSON path. The actions of the step:
+
+. Execute sub-steps.
+. Check if the HTTP response is present and the response body contains an element by JSON path.
+. If the required JSON element exists or the maximum number of retries is reached, then the execution stops, otherwise the step actions are repeated.
+. Stop step execution if HTTP response is not present or JSON element is found, otherwise sleep for the calculated part of specified duration and repeat actions from the start.
+
+[source,gherkin]
+----
+When I wait for presence of element by `$jsonPath` for `$duration` duration retrying $retryTimes times$stepsToExecute
+----
+
+* `$jsonPath` - The JSON path of the element to find.
+* `$duration` - The time duration to wait in {durations-format-link} format.
+* `$retryTimes` -  The maximum of attempts. `duration/retryTimes = timeout` is a polling timeout between requests.
+* `$stepsToExecute` - The sub-steps to execute at each iteration.
+
+.Wait for presence of element 10 times with polling timeout between requests 5 seconds
+[source,gherkin]
+----
+When I wait for presence of element by `$.unstableElement` for `PT50S` duration retrying 10 times
+|step                                                                                    |
+|When I execute HTTP GET request for resource with URL `http://example.com/testing-page` |
+----
+
+=== Wait for JSON element in the HTTP response with polling interval
+
+Executes the provided sub-steps until the HTTP response body contains an element by the specified JSON path or the maximum number of retries is reached. The maximum duration of the step execution is not limited. The actions of the step:
+
+. execute sub-steps
+. wait the polling interval
+. if the required JSON element exists or the maximum number of retries is reached, then the execution stops, otherwise the step actions are repeated
+
+[source,gherkin]
+----
+When I wait for presence of element by `$jsonPath` with `$pollingInterval` polling interval retrying $retryTimes times$stepsToExecute
+----
+
+* `jsonPath` - the JSON path of the element to find
+* `pollingInterval` - the duration to wait between retries
+* `retryTimes` - the maximum number of the retries
+* `stepsToExecute` - the sub-steps to execute at each iteration
+
+.Wait for presence of element by JSON path $.data.testData
+[source,gherkin]
+----
+When I wait for presence of element by `$.data.testData` with `PT5S` polling interval retrying 10 times
+|step                                  |
+|When I set request headers:           |
+|{headerSeparator=!,valueSeparator=!}  |
+|!name          !value                !|
+|!Authorization !${accessToken}       !|
+|When I execute HTTP GET request for resource with URL `${requestUrl}`|
+----
+
+=== Validate secure protocols supported by server
+
+Checks that a server defined by the `hostname` supports secure protocols listed in the `protocols` parameter.
+
+[source,gherkin]
+----
+Then server `$hostname` supports secure protocols that $rule `$protocols`
+----
+
+* `$hostname` - the server hostname
+* `$rule` - xref:parameters:collection-comparison-rule.adoc[the collection comparison rule]
+* `$protocols` - the secure protocols that are expected to match specified `$rule`
+
+.Validate the server supports TLSv1.2 and TLSv1.3 protocols
+[source,gherkin]
+----
+Then server `vividus-test-site-a92k.onrender.com` supports secure protocols that contain `TLSv1.2,TLSv1.3`
+----
+
+=== Wait for expected HTTP status code in response
+
+Waits for the specified number of times until HTTP response code is equal to the expected one. In case if the expected code is not returned after all retries, the assertion error will be recorded.
+
+[source,gherkin]
+----
+When I wait for response code $responseCode for $duration duration retrying $retryTimes times$stepsToExecute
+----
+
+* `$responseCode` - The expected HTTP status code.
+* `$duration` - The time duration to wait in {durations-format-link} format.
+* `$retryTimes` - The number of times the request will be retried: `duration/retryTimes = timeout` is a polling timeout between requests.
+* `$stepsToExecute` - The steps to execute at each wait iteration.
+
+.Wait until HTTP GET request returns status code 200
+[source,gherkin]
+----
+When I wait for response code `200` for `PT10S` duration retrying 3 times
+|step                                                                               |
+|When I execute HTTP GET request for resource with relative URL `/delayed-resource` |
+----
+
+=== Validate content type of response body
+
+:content-type: https://www.iana.org/assignments/media-types/media-types.xhtml[content type]
+
+Checks content type of HTTP response body matches to the specified expected {content-type} according to the provided string validation rule.
+
+[source,gherkin]
+----
+Then content type of response body $comparisonRule `$contentType`
+----
+
+* `$comparisonRule` - xref:parameters:string-comparison-rule.adoc[String validation rule].
+* `$contentType` – Expected {content-type}, e.g. `text/html`, `application/xml`, `application/json`.
+
+.Submit a GET request and check that response body type is `application/json`
+[source,gherkin]
+----
+When I execute HTTP GET request for resource with URL `https://httpbin.org/json`
+Then content type of response body is equal to `application/json`
+----
+
+=== Validate absence of response body
+
+Validates that the HTTP response does not contain a body.
+
+[source,gherkin]
+----
+Then response does not contain body
+----
+
+.Submit a POST request and check that response body is absent
+[source,gherkin]
+----
+When I execute HTTP POST request for resource with URL `https://httpbin.org/json`
+Then response does not contain body
+----
+
+=== Validate size of response body
+
+Compare size of decompressed HTTP response body with the specified expected size in bytes.
+
+[source,gherkin]
+----
+Then size of decompressed response body is $comparisonRule `$sizeInBytes`
+----
+
+* `$comparisonRule` - xref:parameters:comparison-rule.adoc[The comparison rule].
+* `$sizeInBytes` - The expected size of the response body in bytes.
+
+.Submit a GET request and check that response body size is greater or equal to `1200` bytes
+[source,gherkin]
+----
+When I execute HTTP GET request for resource with URL `https://example.com`
+Then size of decompressed response body is greater than or equal to `1200`
+----
+
+=== Save ZIP archive entries
+
+[WARNING]
+====
+The step xref:commons:vividus-steps.adoc#_save_zip_archive_entries[is moved] to core package
+i.e. it's not required to install any plugin to use this step - it's available out of the box.
+====
+
+=== Validate ZIP archive
+
+[WARNING]
+====
+The step xref:commons:vividus-steps.adoc#_validate_zip_archive[is moved] to core package
+i.e. it's not required to install any plugin to use this step - it's available out of the box.
+====
+
+=== Validate HTTP resources
+
+Validates the defined HTTP resources
+
+Actions performed by step:
+
+* executes https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/HEAD[HTTP HEAD] request against the passed URL
+* if the status code is `200` then the check is considered as `passed`
+* if the status code falls under any of `404`, `405`, `501`, `503` then the https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/GET[HTTP GET] request will be sent
+* if the GET status code is `200` then check is considered as `passed`, otherwise `failed`
+* if the target URL has already been checked then the check is considered as `skipped`
+
+[source,gherkin]
+----
+Then HTTP resources are valid:$resources
+----
+
+* `resources` - The URLs of HTTP resources to validate
+
+.Verify HTTP resources
+[source,gherkin]
+----
+Then HTTP resources are valid:
+| url                                                         |
+| https://saucelabs.com                                       |
+| https://vividus-test-site-a92k.onrender.com/img/vividus.png |
+----
+
+
+== HTTP cookie steps
+
+=== Save value of HTTP cookie
+
+Saves cookie to scope variable. If present several cookies with the same name will be saved cookie with the root path value (path is '/').
+
+[source,gherkin]
+----
+When I save value of HTTP cookie with name `$cookieName` to $scopes variable `$variableName`
+----
+
+* `$cookieName` - The name of cookie.
+* `$scopes` - xref:commons:variables.adoc#_scopes[The comma-separated set of the variables scopes].
+* `$variableName` - The name of variable.
+
+.Get cookie with name `cookieName` and save its value to scenario variable `value`
+[source,gherkin]
+----
+When I execute HTTP GET request for resource with URL `https://httpbin.org/cookies/set/cookieName/cookieValue`
+When I save value of HTTP cookie with name `cookieName` to scenario variable `value`
+Then '${value}' is equal to 'cookieValue'
+----
+
+=== Change value of all HTTP cookies
+
+Change cookie value. If several cookies with the same name exist in cookie store, the value will be changed for all of them.
+
+[source,gherkin]
+----
+When I change value of all HTTP cookies with name `$cookieName` to `$newCookieValue`
+----
+
+* `$cookieName` - The name of cookie.
+* `$newCookieValue` - The new value for `$cookieName`.
+
+.Get cookie with name `cookieName` and set new value for it `newCookieValue`
+[source,gherkin]
+----
+When I execute HTTP GET request for resource with URL `https://httpbin.org/cookies/set/cookieName/cookieValue`
+When I change value of all HTTP cookies with name `cookieName` to `newCookieValue`
+When I save value of HTTP cookie with name `cookieName` to scenario variable `value`
+Then '${value}' is equal to 'newCookieValue'
+----
+
+== JSON Steps
+
+:json-path: https://github.com/json-path/JsonPath#path-examples[JSON Path]
+:json-unit-options: https://github.com/lukas-krecan/JsonUnit/blob/master/README.md#options[options]
+
+
+=== Verify JSON contains data
+
+[WARNING]
+====
+The step xref:plugins:plugin-json.adoc#_validate_json_element[is moved] to `vividus-plugin-json`.
+The step is still available via `vividus-plugin-rest-api`, but it'll be required
+to install `vividus-plugin-json` explicitly starting from VIVIDUS 0.6.0.
+====
+
+=== Verify number of elements in JSON
+
+[WARNING]
+====
+The step xref:plugins:plugin-json.adoc#_validate_number_of_json_elements[is moved]
+to `vividus-plugin-json`. The step is still available via `vividus-plugin-rest-api`,
+but it'll be required to install `vividus-plugin-json` explicitly starting from VIVIDUS 0.6.0.
+====
+
+=== Save element from JSON
+
+[WARNING]
+====
+The step xref:plugins:plugin-json.adoc#_save_json_element[is moved] to `vividus-plugin-json`.
+The step is still available via `vividus-plugin-rest-api`, but it'll be required
+to install `vividus-plugin-json` explicitly starting from VIVIDUS 0.6.0.
+====
+
+=== Save number of elements from JSON
+
+[WARNING]
+====
+The step xref:plugins:plugin-json.adoc#_save_number_of_json_elements[is moved] to `vividus-plugin-json`.
+The step is still available via `vividus-plugin-rest-api`, but it'll be required
+to install `vividus-plugin-json` explicitly starting from VIVIDUS 0.6.0.
+====
+
+
+== https://jwt.io/[JWT] steps
+
+=== Generate JWT
+
+Generates JSON Web Token (JWT) with header and payload signed with secret key using HmacSHA256 algorithm and saves the result to scope variable with the specified name.
+
+[source,gherkin]
+----
+When I generate JWT with header `$header` and payload `$payload` signed with key `$key` using HS256 algorithm and save result to $scopes variable `$variableName`
+----
+
+* `$header` - The header of JWT.
+* `$payload` - The payload of JWT.
+* `$key` - Secret key used by HS256 algorithm to sign the token.
+* `$scopes` - xref:commons:variables.adoc#_scopes[The comma-separated set of the variables scopes].
+* `$variableName` - The name of variable to save the result.
+
+.Generate JWT with specified payload and header signed with key `secretKey` using HS256 algorithm and save result to scenario variable `JWT`
+[source,gherkin]
+----
+Given I initialize scenario variable `header` with value `{"typ":"JWT","alg":"HS256"}`
+Given I initialize scenario variable `payload` with value `{"sub":"1234567890","name":"John Doe","admin":true,"jti":"c6859320-9fb3-4784-8c2f-1ab37044acfc","iat":#{toEpochSecond(#{generateDate(P, yyyy-MM-dd'T'HH:mm:ss)})},"exp":#{toEpochSecond(#{generateDate(P1D, yyyy-MM-dd'T'HH:mm:ss)})}}`
+When I generate JWT with header `${header}` and payload `${payload}` signed with key `secretKey` using HS256 algorithm and save result to scenario variable `JWT`
+----
+
+
+== Tips & Tricks
+
+=== Validate HTTP response body
+
+In order to validate the body of the latest HTTP response use the <<_http_response_as_text,response>> dynamic variable to access the body
+data in conjunction with any step responsible for data validation like data comparison, JSON, XML and other steps.
+
+.Validate response body
+[source,gherkin]
+----
+When I execute HTTP GET request for resource with URL `https://httpbin.org/json`
+Then JSON element from `${response}` by JSON path `$.slideshow` is equal to `
+{
+  "author": "Yours Truly",
+  "date": "date of publication",
+  "slides": [
+    {
+      "title": "Wake up to WonderWidgets!",
+      "type": "all"
+    },
+    {
+      "items": [
+        "Why <em>WonderWidgets</em> are great",
+        "Who <em>buys</em> WonderWidgets"
+      ],
+      "title": "Overview",
+      "type": "all"
+    }
+  ],
+  "title": "Sample Slide Show"
+}
+`
+----
+
+=== Save HTTP response body into variable
+
+The HTTP response body can be saved into static variable by using the xref:commons:vividus-steps.adoc#_initialize_variable[init variable step]
+in conjunction with the <<_http_response_as_text,response>> dynamic variable, it might be useful if you want to preserve the data for further computations since each
+subsequent HTTP call rewrites previously received response data.
+
+.Save response body into variable
+[source,gherkin]
+----
+When I execute HTTP GET request for resource with URL `https://httpbin.org/json`
+Given I initialize scenario variable `json` with value `${response}`
+----

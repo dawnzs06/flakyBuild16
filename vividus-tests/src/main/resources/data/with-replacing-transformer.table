@@ -1,0 +1,3 @@
+{transformer=REPLACING, replacing=generate, replacement=invalid}
+|name                          |
+|#{generate(Name.firstName)}|

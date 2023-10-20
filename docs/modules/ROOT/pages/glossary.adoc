@@ -1,0 +1,331 @@
+= Glossary
+
+This glossary contains the descriptions for terms and abbreviations that are used in the documentation.
+
+== ExamplesTable
+*Synonyms*: examples table, data table.
+
+`ExamplesTable` represents a tabular structure that holds rows of example data for
+parameters named via the column headers:
+
+[source,gherkin]
+----
+|header 1|header 2| .... |header n|
+|value 11|value 12| .... |value 1n|
+...
+|value m1|value m2| .... |value mn|
+----
+
+Rows starting with an ignorable separator (defaults to `|--`) are allowed and ignored:
+
+[source,gherkin]
+----
+|header 1|header 2| .... |header n|
+|-- A commented row --|
+|value 11|value 12| .... |value 1n|
+...
+|-- Another commented row --|
+|value m1|value m2| .... |value mn|
+----
+
+The separators are also configurable via inlined properties:
+
+[source,gherkin]
+----
+{ignorableSeparator=!--,headerSeparator=!,valueSeparator=!}
+!header 1!header 2! .... !header n!
+!-- A commented row --!
+!value 11!value 12! .... !value 1n!
+...
+!-- Another commented row --!
+!value m1!value m2! .... !value mn!
+----
+
+Comments in column values are supported via the `commentSeparator` inlined
+property:
+
+[source,gherkin]
+----
+{commentSeparator=#}
+| header 1#comment | header 2 | .... | header n |
+| value 11#comment | value 12 | .... | value 1n |
+----
+
+Comments including the separator are stripped.
+
+=== Preserving whitespace
+
+By default all column values are trimmed. To avoid trimming the values, use
+the `trim` inlined property:
+
+[source,gherkin]
+----
+{trim=false}
+| header 1 | header 2 | .... | header n |
+| value 11 | value 12 | .... | value 1n |
+----
+
+=== Mapping values to `null`-s
+
+By default, all empty values in `ExamplesTable` are treated as empty strings. However,
+it might be required to map certain values to `null`-s. This can be done at the step
+implementation level or by applying the generic approach at the table level:
+
+[source,gherkin]
+----
+{nullPlaceholder=NULL}
+|header |
+|value 1|
+|NULL   |
+|value 3|
+----
+
+=== Using values with line breaks
+
+Line break is a default separator for rows in `ExamplesTable`, that's why they
+can't be added as is to the data. In order to put value with line breaks to
+`ExamplesTable` escape sequences (a character preceded by a backslash `\` is
+an escape sequence) must be used.
+
+[cols="1,5", options="header"]
+|===
+|Escape Sequence
+|Description
+
+|\n
+|Insert a newline in the value at this point.
+
+|\r
+|Insert a carriage return in the text at this point.
+
+|\\
+|Insert a backslash character in the text at this point.
+
+|===
+
+The inlined property `processEscapeSequences` defines whether escape sequences
+should be replaced in the data. It’s `false` by default (no property is declared
+explicitly). The allowed values are `true` and `false`, any other values are
+considered invalid and will lead to parsing error.
+
+[source,gherkin]
+----
+{processEscapeSequences=true, commentSeparator=#}
+|header          |
+|line 1\nline 2  |# The value with a newline
+|line 1\r\nline 2|# The value with a carriage return and a newline
+|line 1\\nline 2 |# The value with an escaped escape sequence, the result will be "line 1\nline 2"
+----
+
+== Expression
+*Synonyms*: VIVIDUS expression.
+
+An expression is a special placeholder which is detected, evaluated and resolved
+during test execution. Expressions are used for the data generation and
+transformation. General expression syntax is:
+
+```gherkin
+#{expression}
+```
+
+During resolution process the expression placeholder is replaced with the result
+of the expression evaluation. If expression is unknown for VIVIDUS,
+the placeholder will be kept as is. If expression evaluation results in error,
+it will be propagated to the top level and the test will be marked as broken.
+
+Expression accepts 1 or more arguments as input parameters. It's allowed to
+construct nested expressions: in this case the evaluation starts with the
+deepest expression.
+
+Expressions may include any number of variables placeholders.
+
+=== Single argument expressions
+
+Expressions accepting exactly 1 argument process it as is:
+
+* all leading and trailing spaces are preserved
+* no symbols are changed or removed
+
+|===
+|Expression |Resulting argument
+
+|`#{expression(x)}`
+|`x`
+
+|`#{expression( x )}`
+|+++<code style="white-space: pre"> x </code>+++
+
+|`#{expression( x, y, z )}`
+|+++<code style="white-space: pre"> x, y, z </code>+++
+
+|`#{expression( x\, y\, z )}`
+|+++<code style="white-space: pre"> x\, y\, z </code>+++
+
+|`#{expression(""" x, y, z """)}`
+|`""" x, y, z """`
+
+|===
+
+=== Multi argument expressions
+
+The rules used for processing of expressions accepting more than 1 argument are
+following:
+
+* comma `,` is a delimiter for arguments
++
+|===
+|Expression |Resulting arguments
+
+|`#{expression(x,y)}`
+a|argument 1: `x`
+
+argument 2: `y`
+
+|`#{expression(x:a,y;b,z)}`
+a|argument 1: `x:a`
+
+argument 2: `y;b`
+
+argument 3: `z`
+
+|`#{expression(x,)}`
+a|argument 1: `x`
+
+argument 2: <empty string>
+
+|===
+
+* all leading and trailing argument spaces are trimmed
++
+|===
+|Expression |Resulting arguments
+
+|`#{expression(x, y)}`
+a|argument 1: `x`
+
+argument 2: `y`
+
+|`#{expression( x , y , z )}`
+a|argument 1: `x`
+
+argument 2: `y`
+
+argument 3: `z`
+
+|`#{expression( x , )}`
+a|argument 1: `x`
+
+argument 2: <empty string>
+
+|===
+
+* meaningful commas (not used as delimiters) can be added to arguments in 2 ways:
+** escape comma using backslash `\`
++
+|===
+|Expression |Resulting arguments
+
+|`#{expression(x\,a, y\, b)}`
+a|argument 1: `x,a`
+
+argument 2: `y, b`
+
+|`#{expression( x \, a , y\,b ,  )}`
+a|argument 1: `x , a`
+
+argument 2: `y,b`
+
+argument 3: <empty string>
+
+|===
+
+** wrap argument into triple quotes (it might be convenient when arguments are
+get dynamically (e.g. from HTTP response) and escaping of such values could be a
+bit complicated)
++
+NOTE: The leading and trailing spaces outside triple quotes are trimmed, but the leading and trailing spaces inside triple quotes are preserved.
++
+|===
+|Expression |Resulting arguments
+
+|`#{expression( """x,a""" , y\, b)}`
+a|argument 1: `x,a`
+
+argument 2: `y, b`
+
+|`#{expression( x , """ y\,b """)}`
+a|NOTE: Escaping of commas in triple quotes is not allowed, all data is used as argument value.
+
+argument 1: `x`
+
+argument 2: +++<code style="white-space: pre"> y\,b </code>+++
+
+|`#{expression( x , """""")}`
+a|argument 1: `x`
+
+argument 2: <empty string>
+
+|===
+
+== Resource
+*Synonyms*: project resource, test resource.
+
+A resource is data (text, images, audio, and so on) that tests need to access
+in a way that is independent of the location of the test source code (either
+it's a local tests execution from IDE, or via Gradle, or from test artifact
+in CI/CD).
+
+All resources are located in `src/main/resources` folder of the test project by
+default. A resource name is a path relative to this folder, e.g. the resource
+located at:
+
+----
+└─ src
+    └─ main
+        └─ resources
+            └─ data
+                └─ request.json
+----
+
+can be referenced in the tests as `/data/request.json`.
+
+The name of a resource is independent of the used operating system;
+in particular, the path separator is always a slash `/`.
+
+== Table Transformer
+*Synonyms*: transformer, ExamplesTable transformer.
+
+<<ExamplesTable>> enables the transformation of its string representation via the
+"transformer" inlined property. It's allowed to define a chain of transformers,
+in this case the transformers are applied sequentially from top to bottom:
+
+[source,gherkin]
+----
+{transformer=MY_TRANSFORMER}
+{transformer=ONE_MORE_MY_TRANSFORMER}
+|header 1|header 2| .... |header n|
+|value 11|value 12| .... |value 1n|
+...
+|value m1|value m2| .... |value mn|
+----
+
+The special characters `,` `{` `}` must be escaped in the transformer properties
+using character `\`.
+
+.Escaping special characters in transformer properties
+[source,gherkin]
+----
+{transformer=MY_TRANSFORMER, countries=\{Australia\,Canada\}}
+----
+In the example above the transformer will have a single property with name
+`countries` and value `{Australia,Canada}`.
+
+VIVIDUS variables of scopes `global` and `next batches` can be used in
+transformer properties (pay attention to escapes of the variables placeholders
+in the example below).
+
+.Usage of global variable `$\{locale}` in transformer property
+[source,gherkin]
+----
+{transformer=ONE_MORE_MY_TRANSFORMER, tables=/$\{locale\}/table1.table;/$\{locale\}/table2.table}
+----

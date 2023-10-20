@@ -1,0 +1,371 @@
+:azure-service-name: storage-account
+
+= Azure Storage Account Plugin
+
+The plugin provides functionality to interact with https://docs.microsoft.com/en-us/azure/storage/[Azure Storage Account].
+
+:plugin-short-name: azure-storage-account
+include::partial$plugin-installation.adoc[]
+
+== Blob storage
+
+=== Configuration
+
+include::partial$azure-authentication.adoc[leveloffset=+1]
+
+==== Endpoints
+
+The blob storages endpoints are configured with the following property format:
+
+[source,properties]
+----
+azure.storage-account.<key>.blob-service=<endpoint>
+----
+
+where:
+
+. `key` - The logical key used to refer the storage account in the steps.
+. `endpoint` - The blob service URL, e.g. `https://mystorageaccount.blob.core.windows.net/`.
+It's allowed to use blob service https://docs.microsoft.com/en-us/azure/storage/common/storage-sas-overview[SAS] URL here,
+in this case the authentication configuration is not required.
+
+=== Steps
+
+==== Retrieve the blob service properties
+
+Retrieves the properties of a storage account’s Blob service and saves them as
+JSON to a variable. For more information, see the
+https://docs.microsoft.com/rest/api/storageservices/get-blob-service-properties[Azure Docs].
+
+[source,gherkin]
+----
+When I retrieve blob service properties of storage account `$storageAccountKey` and save them to $scopes variable `$variableName`
+----
+
+* `$storageAccountKey` - The key of storage account from the configuration.
+* `$scopes` - xref:commons:variables.adoc#_scopes[The comma-separated set of the variables scopes].
+* `$variableName` - The variable name to store the blob service properties.
+
+.Retrieve the blob service properties
+[source,gherkin]
+----
+When I retrieve blob service properties of storage account `testaccount` and save them to scenario variable `blob-service-properties`
+----
+
+==== Download the blob
+
+Downloads the entire blob from the container and saves its content as a text to a variable.
+
+[source,gherkin]
+----
+When I download blob with name `$blobName` from container `$containerName` of storage account `$storageAccountKey` and save its content to $scopes variable `$variableName`
+----
+
+* `$blobName` - The full path to the blob in the container.
+* `$containerName` - The name of the container to point to.
+* `$storageAccountKey` - The key of storage account from the configuration.
+* `$scopes` - xref:commons:variables.adoc#_scopes[The comma-separated set of the variables scopes].
+* `$variableName` - The variable name to store the blob content.
+
+.Download the blob
+[source,gherkin]
+----
+When I download blob with name `raw/test.json` from container `vividus-container` of storage account `testaccount` and save its content to scenario variable `blob`
+----
+
+==== Download the blob to a temporary file
+
+Downloads the entire blob from the container into a temporary file with the specified name and saves the full path to the specified variable.
+
+[source,gherkin]
+----
+When I download blob with name `$blobName` from container `$containerName` of storage account `$storageAccountKey` to temporary file with name `$baseFileName` and save path to $scopes variable `$variableName`
+----
+
+* `$blobName` - The full path to the blob in the container.
+* `$containerName` - The name of the container to point to.
+* `$storageAccountKey` - The key of storage account from the configuration.
+* `$baseFileName` - The base file name used to generate the prefix and the suffix for the creating temporary file.
+* `$scopes` - xref:commons:variables.adoc#_scopes[The comma-separated set of the variables scopes].
+* `$variableName` - The variable name to store the path to the temporary file with the blob content.
+
+.Download the blob to a temporary file
+[source,gherkin]
+----
+When I download blob with name `raw/test.json` from container `vividus-container` of storage account `testaccount` to temporary file with name `test.json` and save path to scenario variable `pathToBlob`
+----
+
+==== Retrieve the blob properties
+
+Retrieves the blob properties (all user-defined metadata, standard HTTP
+properties, and system properties for the blob) and saves them as JSON to a
+variable.
+
+[source,gherkin]
+----
+When I retrieve properties of blob with name `$blobName` from container `$containerName` of storage account `$storageAccountKey` and save them to $scopes variable `$variableName`
+----
+
+* `$blobName` - The full path to the blob in the container.
+* `$containerName` - The name of the container to point to.
+* `$storageAccountKey` - The key of storage account from the configuration.
+* `$scopes` - xref:commons:variables.adoc#_scopes[The comma-separated set of the variables scopes].
+* `$variableName` - The variable name to store the blob properties.
+
+.Retrieve the blob properties
+[source,gherkin]
+----
+When I retrieve properties of blob with name `raw/test.json` from container `vividus-container` of storage account `testaccount` and save them to scenario variable `blob-properties`
+----
+
+==== Upload the blob
+
+Uploads the blob to the container.
+
+[source,gherkin]
+----
+When I upload blob with name `$blobName` and data `$data` to container `$containerName` of storage account `$storageAccountKey`
+----
+
+* `$blobName` - The full path to the blob in the container.
+* `$data` - The data to store as blob.
+* `$containerName` - The name of the container to point to.
+* `$storageAccountKey` - The key of storage account from the configuration.
+
+.Upload the text blob
+[source,gherkin]
+----
+When I upload blob with name `raw/test.json` and data `{"test":"data"}` to container `vividus` of storage account `testaccount`
+----
+
+.Upload the binary blob
+[source,gherkin]
+----
+When I upload blob with name `folder/image.jpg` and data `#{loadBinaryResource(/data/image.jpg)}` to container `vividus` of storage account `testaccount`
+----
+
+==== Upsert the blob
+
+Uploads the blob to the container. If blob already exists it will be replaced.
+
+[source,gherkin]
+----
+When I upsert blob with name `$blobName` and data `$data` to container `$containerName` of storage account `$storageAccountKey`
+----
+
+* `$blobName` - The full path to the blob in the container.
+* `$data` - The data to store as blob.
+* `$containerName` - The name of the container to point to.
+* `$storageAccountKey` - The key of storage account from the configuration.
+
+.Upsert the blob
+[source,gherkin]
+----
+When I upsert blob with name `raw/test.json` and data `{"test":"data"}` to container `vividus` of storage account `testaccount`
+----
+
+==== Delete the blob
+
+Deletes the specified blob from the container.
+
+[source,gherkin]
+----
+When I delete blob with name `$blobName` from container `$containerName` of storage account `$storageAccountKey`
+----
+
+* `$blobName` - The full path to the blob in the container.
+* `$containerName` - The name of the container to point to.
+* `$storageAccountKey` - The key of storage account from the configuration.
+
+.Delete the blob
+[source,gherkin]
+----
+When I delete blob with name `raw/test.json` from container `vividus-container` of storage account `testaccount`
+----
+
+==== Find blobs
+
+Finds the blobs with names matching the specified comparison rule.
+
+[source,gherkin]
+----
+When I find all blobs with name which $comparisonRule `$blobNameToMatch` in container `$containerName` of storage account `$storageAccountKey` and save result to $scopes variable `$variableName`
+----
+
+* `$comparisonRule` - xref:parameters:string-comparison-rule.adoc[The blob name comparison rule].
+* `$blobNameToMatch` - The full or partial blob name to be matched.
+* `$containerName` - The name of the container to point to.
+* `$storageAccountKey` - The key of storage account from the configuration.
+* `$scopes` - xref:commons:variables.adoc#_scopes[The comma-separated set of the variables scopes].
+* `$variableName` - The variable name to store the list of found blob names.
+
+.Find blobs
+[source,gherkin]
+----
+When I find all blobs with name which contains `json` in container `vividus` of storage account `testaccount` and save result to scenario variable `blobsCollection`
+----
+
+==== Find blobs by filter
+
+Finds blobs with names filtered by the specified rules in the container.
+
+NOTE: At least one rule is required.
+
+[source,gherkin]
+----
+When I filter blobs by:$filter in container `$containerName` of storage account `$storageAccountKey` and save result to $scopes variable `$variableName`
+----
+
+* `$filter` - The xref:ROOT:glossary.adoc#_examplestable[ExamplesTable] with filter rules to apply on blob names.
++
+.The supported filter rules
+[cols="1,2,1", options="header"]
+|===
+|Filter
+|Description
+|Example value
+
+|`blobNamePrefix`
+|The prefix which blob names should start with.
+|`path/to/data/` (equal to `/path/to/data`)
+
+|`resultsLimit`
+|The maximum number of blob names to return.
+|`10`
+
+|`blobNameFilterRule`
+|xref:parameters:string-comparison-rule.adoc[The blob name comparison rule].
+It should be specified along with `blobNameFilterValue`.
+|`MATCHES`
+
+|`blobNameFilterValue`
+|The value to use by `blobNameFilterRule`. The filter is applied to the full blob name (including prefix specified in `blobNamePrefix`),
+e.g. regular expression applied with `matches` rule must match the full blob name.
+|`.*`
+|===
+
+* `$containerName` - The name of the container to point to.
+* `$storageAccountKey` - The key of storage account from the configuration.
+* `$scopes` - xref:commons:variables.adoc#_scopes[The comma-separated set of the variables scopes].
+* `$variableName` - The variable name to store the list of found blob names.
+
+.Find blobs by filter
+[source,gherkin]
+----
+When I filter blobs by:
+|blobNameFilterRule|blobNameFilterValue|blobNamePrefix                       |resultsLimit |
+|matches           |.*_test            |images_for_testing_05.10.2021/images/|10           |
+in container `vividus` of storage account `testaccount` and save result to story variable `imagePathList`
+----
+
+
+== File share
+
+=== Configuration
+
+==== Endpoints
+
+The file share endpoints are configured with the following property format:
+
+[source,properties]
+----
+azure.storage-account.<key>.file-service=<endpoint>
+----
+
+where:
+
+. `key` - The logical key used to refer the storage account in the steps.
+. `endpoint` - The file service URL, e.g. `https://mystorageaccount.file.core.windows.net/`.
+It's recommended to use file service https://docs.microsoft.com/en-us/azure/storage/common/storage-sas-overview[SAS] URL here,
+because the authentication via https://docs.microsoft.com/en-us/azure/active-directory/develop/app-objects-and-service-principals[Service Principals]
+is not available for file shares.
+
+=== Steps
+
+==== Download the file
+
+Downloads the file from the file share and saves its content as a text to a variable.
+
+[source,gherkin]
+----
+When I download file with path `$filePath` from file share `$shareName` of storage account `$storageAccountKey` and save its content to $scopes variable `$variableName`
+----
+
+* `$filePath` - The full path to the file in the file share.
+* `$shareName` - The name of the file share to point to.
+* `$storageAccountKey` - The key of the storage account file service endpoint from the configuration.
+* `$scopes` - xref:commons:variables.adoc#_scopes[The comma-separated set of the variables scopes].
+* `$variableName` - The variable name to store the file content.
+
+.Download the file
+[source,gherkin]
+----
+When I download file with path `data/file.json` from file share `vividus-file-share` of storage account `testaccount` and save its content to scenario variable `json-file`
+----
+
+==== Download the file to a temporary file
+
+Downloads the file from the file share into a temporary file with the specified name and saves the full path to the specified variable.
+
+[source,gherkin]
+----
+When I download file with path `$filePath` from file share `$shareName` of storage account `$storageAccountKey` to temporary file with name `$baseFileName` and save path to $scopes variable `$variableName`
+----
+
+* `$filePath` - The full path to the file in the file share.
+* `$shareName` - The name of the file share to point to.
+* `$storageAccountKey` - The key of the storage account file service endpoint from the configuration.
+* `$baseFileName` - The base file name used to generate the prefix and the suffix for the creating temporary file.
+* `$scopes` - xref:commons:variables.adoc#_scopes[The comma-separated set of the variables scopes].
+* `$variableName` - The variable name to store the path to the temporary file with the file content.
+
+.Download the file to a temporary file
+[source,gherkin]
+----
+When I download file with path `data/file.json` from file share `vividus-file-share` of storage account `testaccount` to temporary file with name `test.json` and save path to scenario variable `path-to-file`
+----
+
+==== Upload the file
+
+Uploads the file to the file share.
+
+[source,gherkin]
+----
+When I upload file with path `$filePath` and data `$data` to file share `$shareName` of storage account `$storageAccountKey`
+----
+
+* `$filePath` - The full path to the creating file in the file share.
+* `$data` - The data to store as a file.
+* `$shareName` - The name of the file share to point to.
+* `$storageAccountKey` - The key of the storage account file service endpoint from the configuration.
+
+.Upload the text file
+[source,gherkin]
+----
+When I upload file with path `data/file.json` and data `{"test":"data"}` to file share `vividus-file-share` of storage account `testaccount`
+----
+
+.Upload the binary file
+[source,gherkin]
+----
+When I upload file with path `images/file.jpg` and data `#{loadBinaryResource(/data/image.jpg)}` to file share `vividus-file-share` of storage account `testaccount`
+----
+
+==== Delete the file
+
+Deletes the specified file from the file share.
+
+[source,gherkin]
+----
+When I delete file with path `$filePath` from file share `$shareName` of storage account `$storageAccountKey`
+----
+
+* `$filePath` - The full path to the file in the file share.
+* `$shareName` - The name of the file share to point to.
+* `$storageAccountKey` - The key of the storage account file service endpoint from the configuration.
+
+.Delete the file
+[source,gherkin]
+----
+When I delete file with path `data/file.json` from file share `vividus-file-share` of storage account `testaccount`
+----

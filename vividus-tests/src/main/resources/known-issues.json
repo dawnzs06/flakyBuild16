@@ -1,0 +1,94 @@
+{
+  "VVD-1": {
+    "type": "Internal",
+    "assertionPattern": ".*Doctor Who.*",
+    "scenarioPattern": "Verify step Then I verify assertions matching '.+'",
+    "storyPattern": "AssertStepsTests"
+  },
+  "VVD-2": {
+    "type": "Internal",
+    "assertionPattern": ".*\\[Expected: a value equal to <5> Actual: <4> was less than <5>\\]",
+    "storyPattern": "Known issues",
+    "variablePatterns": { "var":  "value-.*" }
+  },
+  "VVD-3": {
+    "type": "Internal",
+    "assertionPattern": ".*Different value found (when comparing expected array element|in node).*",
+    "scenarioPattern": "Known issues should be detected and matched for separate JSON assertions",
+    "storyPattern": "Known issues"
+  },
+  "VVD-4": {
+    "type": "Internal",
+    "assertionPattern": ".*Different keys found in node.*",
+    "scenarioPattern": "Known issues should be detected and matched for separate JSON assertions",
+    "storyPattern": "Known issues"
+  },
+  "VVD-5": {
+    "type": "Internal",
+    "assertionPattern": "HTTP response body is not present",
+    "scenarioPattern": "Verify failure in step .*",
+    "storyPattern": "JSON - Wait for data in HTTP response"
+  },
+  "VVD-6": {
+    "type": "Internal",
+    "assertionPattern": ".*",
+    "scenarioPattern": "Known issue should be detected and matched by step pattern with composite step",
+    "storyPattern": "Known issues",
+    "stepPattern": "When I use composite step in known-issues"
+  },
+  "VVD-7": {
+    "type": "Internal",
+    "assertionPattern": ".*",
+    "scenarioPattern": "Known issue should should stop scenario if it's marked as fail test case fast",
+    "storyPattern": "Known issues",
+    "stepPattern": "Then `vividus` matches.*",
+    "failScenarioFast": true
+  },
+  "VVD-8": {
+    "type": "Internal",
+    "assertionPattern": ".*",
+    "scenarioPattern": "Known issue should should stop scenario and the rest of the story if it's marked as fail test case and test suite fast",
+    "storyPattern": "Known issues",
+    "stepPattern": "Then `vividus` matches.*",
+    "failScenarioFast": true,
+    "failStoryFast": true
+  },
+  "VVD-9": {
+    "type": "Internal",
+    "assertionPattern": ".*",
+    "scenarioPattern": "Known issue should be detected in sub-steps",
+    "storyPattern": "Known issues",
+    "stepPattern": "When I use composite step in known-issues",
+    "failScenarioFast": true
+  },
+  "VVD-10": {
+    "description": "Hide debug step failure",
+    "type": "Internal",
+    "assertionPattern": ".*",
+    "scenarioPattern": "Verify wait for debug step",
+    "storyPattern": "DebugSteps",
+    "stepPattern": "When I wait .* for debug"
+  },
+  "VVD-11": {
+    "description": "The WCAG2AAA standard violation",
+    "type": "Internal",
+    "assertionPattern": ".*accessibility violations of level Notice and above at .*2L.*",
+    "scenarioPattern": "Validate against WCAG2AAA",
+    "storyPattern": "Accessibility",
+    "stepPattern": "When I perform accessibility scan.*"
+  },
+  "VVD-12": {
+    "type": "Internal",
+    "assertionPattern": ".*accessibility violations of level Warning and above at .*1L.*",
+    "scenarioPattern": "Validate against Section 508",
+    "storyPattern": "Accessibility",
+    "stepPattern": "(When I perform accessibility scan|Then I test accessibility).*"
+  },
+  "VVD-13": {
+    "type": "Internal",
+    "assertionPattern": ".*",
+    "scenarioPattern": "Known issue should should not stop the rest of the story if it's not marked as fail test suite fast",
+    "storyPattern": "Next known issues",
+    "stepPattern": "Then `vividus` matches.*"
+  }
+}

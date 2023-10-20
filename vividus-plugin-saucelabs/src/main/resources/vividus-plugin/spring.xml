@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xsi:schemaLocation="
+       http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/util https://www.springframework.org/schema/util/spring-util.xsd"
+       profile="saucelabs" default-lazy-init="true">
+
+    <bean class="org.vividus.saucelabs.DataCenterFactory" factory-method="createDataCenter">
+        <constructor-arg value="${saucelabs.data-center}" />
+    </bean>
+
+    <bean id="sauceConnectManager" class="org.vividus.selenium.sauce.SauceConnectManager">
+        <constructor-arg index="0" value="${selenium.grid.username}" />
+        <constructor-arg index="1" value="${selenium.grid.password}" />
+        <constructor-arg>
+            <bean class="com.saucelabs.ci.sauceconnect.SauceConnectFourManager">
+                <constructor-arg value="false"/>
+                <property name="useLatestSauceConnect" value="${saucelabs.sauce-connect.use-latest-version}"/>
+            </bean>
+        </constructor-arg>
+    </bean>
+
+    <bean id="sauceLabsLinkPublisher" class="org.vividus.saucelabs.SauceLabsTestLinkPublisher" />
+
+    <bean class="org.vividus.saucelabs.SauceLabsTestStatusManager" lazy-init="false"/>
+
+    <bean class="org.vividus.selenium.sauce.SauceLabsCapabilitiesConfigurer">
+        <constructor-arg index="0" value="${saucelabs.sauce-connect.use-latest-version}" />
+        <property name="tunnellingEnabled" value="${saucelabs.sauce-connect.enabled}"/>
+        <property name="sauceConnectArguments" value="${saucelabs.sauce-connect.command-line-arguments}" />
+        <property name="skipHostGlobPatterns" value="${saucelabs.sauce-connect.skip-host-glob-patterns}" />
+    </bean>
+
+    <util:list id="stepBeanNames-SauceLabs" value-type="java.lang.String">
+        <idref bean="sauceLabsLinkPublisher" />
+    </util:list>
+
+</beans>

@@ -1,0 +1,6 @@
+= {test-cloud-name} Plugin
+
+The plugin provides integration with continuous testing cloud {test-cloud-link}[{test-cloud-name}].
+
+:plugin-short-name: {test-cloud-key}
+include::partial$plugin-installation.adoc[]

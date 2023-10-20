@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:util="http://www.springframework.org/schema/util"
+    xsi:schemaLocation="
+        http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/util https://www.springframework.org/schema/util/spring-util.xsd"
+    default-lazy-init="true">
+
+    <bean id="json-context" class="org.vividus.json.variable.JsonContextVariable" />
+
+    <bean id="anyOf" class="org.vividus.json.steps.JsonArrayContainsAnyOf">
+        <constructor-arg ref="jsonUtils-LowerCamelCase" />
+    </bean>
+
+    <bean id="jsonSteps" class="org.vividus.json.steps.JsonSteps">
+        <constructor-arg>
+            <bean class="org.vividus.json.softassert.JsonSoftAssert" parent="softAssert" />
+        </constructor-arg>
+    </bean>
+
+    <bean id="jsonPatchSteps" class="org.vividus.json.steps.JsonPatchSteps" />
+
+    <bean id="jsonSchemaValidationSteps" class="org.vividus.json.steps.JsonSchemaValidationSteps"/>
+
+    <util:list id="stepBeanNames-Json">
+        <idref bean="jsonSteps" />
+        <idref bean="jsonPatchSteps" />
+        <idref bean="jsonSchemaValidationSteps" />
+    </util:list>
+</beans>

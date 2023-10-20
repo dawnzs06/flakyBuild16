@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:util="http://www.springframework.org/schema/util"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/util
+        https://www.springframework.org/schema/util/spring-util.xsd" default-lazy-init="true" profile="web">
+
+    <bean class="org.vividus.visual.eyes.converter.ExamplesTableToApplitoolsVisualChecksConverter" >
+        <constructor-arg ref="screenshotParametersFactory" />
+        <property name="executeApiKey" value="${applitools.execute-api-key}" />
+        <property name="readApiKey" value="${ui.visual.applitools.read-api-key}" />
+        <property name="hostApp" value="${ui.visual.applitools.host-app}" />
+        <property name="hostOS" value="${ui.visual.applitools.host-os}" />
+        <property name="viewportSize" value="${ui.visual.applitools.viewport-size}" />
+        <property name="matchLevel" value="${ui.visual.applitools.match-level}" />
+        <property name="serverUri" value="${applitools.server-uri}" />
+        <property name="appName" value="${applitools.app-name}" />
+        <property name="baselineEnvName" value="${ui.visual.applitools.baseline-env-name}" />
+    </bean>
+    <bean class="org.vividus.visual.eyes.converter.ExamplesTableToRenderingBrowserInfoConverter" />
+    <bean class="org.vividus.visual.eyes.converter.StringToAccessibilitySettingsConverter" />
+
+    <bean id="visualTestingSteps" class="org.vividus.visual.eyes.VisualTestingSteps" >
+        <constructor-arg index="2" ref="screenshotParametersFactory" />
+    </bean>
+
+    <bean id="ufgSteps" class="org.vividus.visual.eyes.UfgSteps" />
+
+    <bean id="eyesLogHandler" class="org.vividus.visual.eyes.logger.EyesLogHandler">
+        <constructor-arg value="org.vividus.visual.eyes.service.ImageVisualTestingService" />
+        <constructor-arg ref="jsonUtils-LowerCamelCase" />
+    </bean>
+
+    <bean class="org.vividus.http.client.HttpClient" id="eyesHttpClient"
+        factory-bean="httpClientFactory"
+        factory-method="buildHttpClient">
+        <constructor-arg>
+            <bean parent="httpClientConfig">
+                <property name="firstRequestInterceptor">
+                    <bean class="org.vividus.http.client.LoggingHttpRequestInterceptor">
+                        <constructor-arg value="org.vividus.visual.eyes.ApplitoolsHttpClient" />
+                    </bean>
+                </property>
+            </bean>
+        </constructor-arg>
+    </bean>
+
+    <bean class="org.vividus.visual.eyes.service.ImageVisualTestingService">
+        <constructor-arg index="0">
+            <bean class="org.vividus.visual.eyes.factory.ImageEyesFactory" />
+        </constructor-arg>
+        <constructor-arg index="1" ref="screenshotTaker" />
+        <constructor-arg index="2" ref="eyesHttpClient" />
+    </bean>
+
+    <bean class="org.vividus.visual.eyes.service.UfgVisualTestingService">
+        <constructor-arg index="0">
+            <bean class="org.vividus.visual.eyes.factory.UfgEyesFactory" />
+        </constructor-arg>
+    </bean>
+
+    <util:list id="stepBeanNames-Eyes-Visual">
+        <idref bean="visualTestingSteps" />
+        <idref bean="ufgSteps" />
+    </util:list>
+
+    <beans profile="applitools">
+        <bean name="webDriverUrlProvider" class="org.vividus.applitools.executioncloud.ExecutionCloudUrlProvider" />
+
+        <bean class="org.vividus.applitools.executioncloud.ExecutionCloudTestStatusManager" lazy-init="false" />
+
+        <bean class="org.vividus.applitools.executioncloud.ExecutionCloudCapabilitiesConfigurer" >
+            <constructor-arg index="0" value="${applitools.execute-api-key}" />
+            <constructor-arg index="1" value="${applitools.server-uri}" />
+            <constructor-arg index="2" value="${applitools.app-name}" />
+            <constructor-arg index="3" value="${applitools.execution-cloud.batch-name}" />
+        </bean>
+    </beans>
+</beans>

@@ -1,0 +1,147 @@
+= Zephyr Exporter
+
+Zephyr Exporter is a tool used for exporting test execution results into Jira Zephyr Plugin.
+
+Zephyr `Scale` Features:
+
+* Create test executions
+* Set test execution statuses
+* Update statuses for existent execution
+
+Zephyr `Squad` Features:
+
+* Create test executions
+* Set test execution statuses
+
+include::partial$jira-configuration.adoc[]
+
+== Zephyr Export Properties
+
+[cols="1,2,3", options="header"]
+|===
+
+|Property
+|Required
+|Description
+
+|`zephyr.exporter.api-type`
+|false
+|The type of Jira API (`SCALE`, `SQUAD`). The `SCALE` type is selected by default.
+
+Zephyr Squad (formerly "Zephyr for Jira") provides base functionality for test case management easy to start, easy to use. https://smartbear.com/test-management/zephyr-squad/[More info]
+
+Zephyr Scale (formerly "Test Management for Jira") provides advanced test case management capabilities, such as cross-project test management solution with
+advanced test planning, reporting, and reusability features. https://smartbear.com/test-management/zephyr-scale/[More info]
+
+|`zephyr.exporter.jira-instance-key`
+|false
+|The key of the configured JIRA instance, in case of missing value it will be evaluated automatically based on issue keys being exported
+
+|`zephyr.exporter.source-directory`
+|true
+|Path to directory with test execution JSON results.
+
+|`zephyr.project-key`
+|true
+|Key of a Jira project where new test executions should be created
+
+|`zephyr.version-name`
+|true
+|Version/release name where new test executions should be created
+
+|`zephyr.cycle-name`
+|true
+|Cycle/sprint name where new test executions should be created
+
+|`zephyr.folder-name`
+|false
+|Folder name where new test executions should be created
+
+3+^.^|_The following properties are applicable only for Squad_
+
+|`zephyr.exporter.statuses-of-test-cases-to-add-to-execution`
+|false
+|List of test case statuses for adding to execution.
+
+|`zephyr.exporter.update-execution-statuses-only`
+|false
+|Property for update existing executions statuses only.
+
+|===
+
+== Zephyr Execution Status Mapping
+
+The Zephyr plugin for Jira has own configurable execution statuses. testExecutionStatus endpoint is used to get the detailed information about the statuses, like: https://jira.example.com/rest/zapi/latest/util/testExecutionStatus. The following properties are used to setup a mapping between Vividus and Zephyr execution statuses.
+
+This approach is similar for both API types (Scale and Squad), the major differences are Zephyr Scale has fewer test case statuses by default and the status representation during import (for Scale status transmitted in text format, like: Failed (Fail), but for Squad it transmitted in number format (status code), like: 7).
+
+[cols="1,2,3", options="header"]
+|===
+
+|Vividus execution status property name
+|Zephyr Squad execution status value (by default)
+|Zephyr Scale execution status value
+
+|`zephyr.statuses.FAILED`
+|FAILED
+|Fail
+
+|`zephyr.statuses.BROKEN`
+|TEST NEEDS REWORK
+|Fail
+
+|`zephyr.statuses.PENDING`
+|TEST NEEDS REWORK
+|In Progress
+
+|`zephyr.statuses.UNKNOWN`
+|PASSED WITH REMARKS
+|Pass
+
+|`zephyr.statuses.SKIPPED`
+|SCHEDULED
+|Not Executed
+
+|`zephyr.statuses.PASSED`
+|PASSED
+|Pass
+
+|===
+
+include::partial$authentication.adoc[]
+
+== Scenario Meta Attributes
+
+[cols="2,2,3", options="header"]
+|===
+
+|Name
+|Example
+|Description
+
+|`testCaseId`
+|`@testCaseId TEST-1`
+|Add test execution to Jira test case
+
+|===
+
+== Example of scenario for export
+
+.Test.story
+[source,gherkin]
+----
+Scenario: Buy an item
+Meta:
+    @layout desktop chrome_phone
+    @testCaseId TEST-1; TEST-2; TEST-3
+
+Given I am on page with URL `${vividus-test-site-url}/delayedScroll.html`
+When I click on element located by `id(anchor)`
+When I wait until scroll is finished
+Then page is scrolled to element located by `id(toClick)`
+----
+
+:service-key: zephyr
+:gh-packages-url: https://github.com/vividus-framework/vividus/packages/875007
+
+include::partial$export.adoc[]
