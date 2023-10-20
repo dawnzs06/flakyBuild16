@@ -1,8 +1,23 @@
-<!-- Uncomment and fill this section if your PR is not trivial
-[ ] An issue should be filed for the change unless this is a trivial change (fixing a typo or similar). One issue should ideally be fixed by not more than one commit and the other way round, each commit should fix just one issue, without pulling in other changes.
-[ ] Each commit in the pull request should have a meaningful and properly spelled subject line and body. Copying the title of the associated issue is typically enough. Please include the issue number in the commit message prefixed by #.
-[ ] The pull request description should explain what the pull request does, how, and why. If the info is available in the associated issue or some other external document, a link is enough.
-[ ] Phrases like Fix #<issueNumber> or Fixes #<issueNumber> will auto-close the named issue upon merging the pull request. Using them is typically a good idea.
-[ ] Please run mvn process-resources -Pformat (and amend the changes if necessary) before sending the pull request.
-[ ] Contributor guide is your good friend: https://camel.apache.org/camel-quarkus/latest/contributor-guide.html
+<!-- You can remove this first section if you have contributed before -->
+### First time contributor checklist
+<!-- replace the empty checkboxes [ ] below with checked ones [x] accordingly -->
+- [ ] I have read [how to contribute](https://github.com/signalapp/Signal-Android/blob/master/CONTRIBUTING.md) to this project
+- [ ] I have signed the [Contributor License Agreement](https://whispersystems.org/cla/)
+
+### Contributor checklist
+<!-- replace the empty checkboxes [ ] below with checked ones [x] accordingly -->
+- [ ] I am following the [Code Style Guidelines](https://github.com/signalapp/Signal-Android/wiki/Code-Style-Guidelines)
+- [ ] I have tested my contribution on these devices:
+ * Device A, Android X.Y.Z
+ * Device B, Android Z.Y
+ * Virtual device W, Android Y.Y.Z
+- [ ] My contribution is fully baked and ready to be merged as is
+- [ ] I ensure that all the open issues my contribution fixes are mentioned in the commit message of my first commit using the `Fixes #1234` [syntax](https://help.github.com/articles/closing-issues-via-commit-messages/)
+
+----------
+
+### Description
+<!--
+Describe briefly what your pull request proposes to fix. Especially if you have more than one commit, it is helpful to give a summary of what your contribution as a whole is trying to solve.
+Also, please describe shortly how you tested that your fix actually works.
 -->
