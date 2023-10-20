@@ -82,6 +82,5 @@ public class SubscribeMqtt5PublishCallback implements Consumer<Mqtt5Publish> {
             }
             System.out.println(message);
         }
-        mqtt5Publish.acknowledge();
     }
 }

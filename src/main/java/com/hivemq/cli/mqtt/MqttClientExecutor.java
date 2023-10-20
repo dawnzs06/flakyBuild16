@@ -113,7 +113,7 @@ public class MqttClientExecutor extends AbstractMqttClientExecutor {
         Logger.debug("{} sending SUBSCRIBE\n    {}", clientLogPrefix, subscribeMessage);
 
         client.toAsync()
-                .subscribe(subscribeMessage, new SubscribeMqtt5PublishCallback(subscribeOptions, client), true)
+                .subscribe(subscribeMessage, new SubscribeMqtt5PublishCallback(subscribeOptions, client))
                 .whenComplete((subAck, throwable) -> {
                     if (throwable != null) {
                         if (throwable instanceof Mqtt5SubAckException) {
@@ -147,7 +147,7 @@ public class MqttClientExecutor extends AbstractMqttClientExecutor {
         Logger.debug("{} sending SUBSCRIBE\n    {}", clientLogPrefix, subscribeMessage);
 
         client.toAsync()
-                .subscribe(subscribeMessage, new SubscribeMqtt3PublishCallback(subscribeOptions, client), true)
+                .subscribe(subscribeMessage, new SubscribeMqtt3PublishCallback(subscribeOptions, client))
                 .whenComplete((subAck, throwable) -> {
                     if (throwable != null) {
                         if (throwable instanceof Mqtt3SubAckException) {

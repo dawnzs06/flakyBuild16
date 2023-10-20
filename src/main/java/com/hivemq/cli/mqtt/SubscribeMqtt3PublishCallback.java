@@ -82,6 +82,5 @@ public class SubscribeMqtt3PublishCallback implements Consumer<Mqtt3Publish> {
             }
             System.out.println(message);
         }
-        mqtt3Publish.acknowledge();
     }
 }
