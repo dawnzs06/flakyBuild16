@@ -520,8 +520,7 @@ public class AzureEngine extends BaseRemoteEngine<AzureClient, AzureTestPlanStat
     }
     if (!testRun.isEnded()) {
       String prettyTimeout = prettyDuration(testTimeout);
-      LOG.warn("Test execution timed out after {} with status {}. Stopping test run ...",
-          prettyTimeout, testRun.getStatus());
+      LOG.warn("Test execution timed out after {}. Stopping test run ...", prettyTimeout);
       apiClient.stopTestRun(testRun.getId());
       LOG.info("Test run stopped.");
       throw new TimeoutException("Test execution timed out after " + prettyTimeout);
