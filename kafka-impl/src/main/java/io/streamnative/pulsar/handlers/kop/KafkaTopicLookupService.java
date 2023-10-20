@@ -15,7 +15,6 @@ package io.streamnative.pulsar.handlers.kop;
 
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.pulsar.broker.service.BrokerService;
@@ -97,9 +96,8 @@ public class KafkaTopicLookupService {
                                          final CompletableFuture<Optional<PersistentTopic>> topicCompletableFuture,
                                          @NonNull final Throwable ex,
                                          @NonNull final Object requestor) {
-        final Throwable realThrowable = (ex instanceof CompletionException) ? ex.getCause() : ex;
         // The ServiceUnitNotReadyException is retryable, so we should print a warning log instead of error log
-        if (realThrowable instanceof BrokerServiceException.ServiceUnitNotReadyException) {
+        if (ex instanceof BrokerServiceException.ServiceUnitNotReadyException) {
             log.warn("[{}] Failed to getTopic {}: {}",
                     requestor, topicName, ex.getMessage());
             topicCompletableFuture.complete(Optional.empty());
