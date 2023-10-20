@@ -1,46 +1,31 @@
-<!--
-  Copyright (c) 2000, 2023, Oracle and/or its affiliates.
+# Security Policy
 
-  Licensed under the Universal Permissive License v 1.0 as shown at
-  https://oss.oracle.com/licenses/upl.
--->
+## Supported Versions
 
------
-# Reporting security vulnerabilities
+Note that the Apache 2.0 licensed junixsocket project comes with absolutely no warranties or
+conditions of any kind.  That said, we try our best to remedy any security issues as soon as
+possible.
 
-Oracle values the independent security research community and believes that
-responsible disclosure of security vulnerabilities helps us ensure the security
-and privacy of all our users.
+Should a security issue arise, a fix would usually be included in a PATCH or MINOR version update,
+i.e., 2.6.1 -> 2.6.2 or 2.7.0.
 
-Please do NOT raise a GitHub Issue to report a security vulnerability. If you
-believe you have found a security vulnerability, please submit a report to
-[secalert_us@oracle.com][1] preferably with a proof of concept. Please review
-some additional information on [how to report security vulnerabilities to Oracle][2].
-We encourage people who contact Oracle Security to use email encryption using
-[our encryption key][3].
+If you depend on an outdated version of junixsocket or need other commercial support, please reach
+out to directly to Christian Kohlschütter (email is in `pom.xml`).
 
-We ask that you do not use other channels or contact the project maintainers
-directly.
+| Version | Supported          |
+| ------- | ------------------ |
+| 2.6.x   | :white_check_mark: |
+| < 2.6.x | Commercial support available |
+| < 2.0   | :x:                |
 
-Non-vulnerability related security issues including ideas for new or improved
-security features are welcome on GitHub Issues.
+## Reporting a Vulnerability
 
-## Security updates, alerts and bulletins
+Please DO NOT report security vulnerabilities through GitHub issues!
 
-Security updates will be released on a regular cadence. Many of our projects
-will typically release security fixes in conjunction with the
-[Oracle Critical Patch Update][3] program. Additional
-information, including past advisories, is available on our [security alerts][4]
-page.
+Instead, please reach out directly to Christian Kohlschütter (email is in `pom.xml`); be sure to
+include the phrase `SECURITY ISSUE` in the email subject.
 
-## Security-related information
+You should usually receive a response within 3 business days.
 
-We will provide security related information such as a threat model, considerations
-for secure use, or any known security issues in our documentation. Please note
-that labs and sample code are intended to demonstrate a concept and may not be
-sufficiently hardened for production use.
+This project follows a 90 day disclosure timeline.
 
-[1]: mailto:secalert_us@oracle.com
-[2]: https://www.oracle.com/corporate/security-practices/assurance/vulnerability/reporting.html
-[3]: https://www.oracle.com/security-alerts/encryptionkey.html
-[4]: https://www.oracle.com/security-alerts/

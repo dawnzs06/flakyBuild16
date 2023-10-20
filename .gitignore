@@ -1,33 +1,23 @@
-# used by intellij
-# ignore these types of java files
-*.class
-*.jar
-*.war
-*.rar
-*.gar
-
-# ignore these IntelliJ files
-.idea
-*.iml
-*.ipr
-*.iws
-
-# ignore these hidden and build specific files
-.*
-~*
-
-# ignore these folders
+.project
+.settings
+.classpath
 target
-dist
-_package
-build/
-
-#ignore these specific files
+target-eclipse
+.DS_Store
 dependency-reduced-pom.xml
-
-# however allow these files
-!.ignore
-!.github
-!.gitignore
-!prj/.mvn
-!prj/.mvn/**
+*~
+*~~
+pom.xml.releaseBackup
+/release.properties
+/coding-style
+.pmd
+.pmdruleset.xml
+interpolated-pom.xml
+.eclipse-pmd
+.*.swp
+.checkstyle
+hs_err_pid*.log
+.idea
+/*.dll
+/*.so
+/jux.bat
