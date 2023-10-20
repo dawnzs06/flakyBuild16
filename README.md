@@ -1,61 +1,115 @@
-# Signal Android 
+[![Maven Central](https://img.shields.io/maven-central/v/io.smallrye.reactive/smallrye-reactive-messaging)](https://search.maven.org/search?q=a:smallrye-reactive-messaging)
+[![Continuous Integration Build](https://github.com/smallrye/smallrye-reactive-messaging/workflows/Continuous%20Integration%20Build/badge.svg)](https://github.com/smallrye/smallrye-reactive-messaging/actions)
+[![License](https://img.shields.io/github/license/smallrye/smallrye-reactive-messaging.svg)](http://www.apache.org/licenses/LICENSE-2.0)
 
-Signal is a simple, powerful, and secure messenger.
+# Implementation of the MicroProfile Reactive Messaging specification
 
-Signal uses your phone's data connection (WiFi/3G/4G/5G) to communicate securely. Millions of people use Signal every day for free and instantaneous communication anywhere in the world. Send and receive high-fidelity messages, participate in HD voice/video calls, and explore a growing set of new features that help you stay connected. Signal’s advanced privacy-preserving technology is always enabled, so you can focus on sharing the moments that matter with the people who matter to you.
+This project is an implementation of the (next to be) [Eclipse MicroProfile Reactive Messaging](https://github.com/eclipse/microprofile-reactive-messaging) specification - a CDI
+extension to build event-driven microservices and data streaming applications. It provides support for:
 
-Currently available on the Play Store and [signal.org](https://signal.org/android/apk/).
+* [Apache Kafka](https://kafka.apache.org/)
+* [MQTT](http://mqtt.org/)
+* [AMQP](https://www.amqp.org/) 1.0
+* [Apache Camel](https://camel.apache.org/)
+* And more!
 
-<a href='https://play.google.com/store/apps/details?id=org.thoughtcrime.securesms&pcampaignid=MKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'><img alt='Get it on Google Play' src='https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png' height='80px'/></a>
+It also provides a way to inject _streams_ into CDI beans, and so link your [Reactive Messaging streams](https://github.com/eclipse/microprofile-reactive-streams-operators)
+into [CDI](http://www.cdi-spec.org/) beans,or [JAX-RS](https://github.com/eclipse-ee4j/jaxrs-api) resources.
 
-## Contributing Bug reports
-We use GitHub for bug tracking. Please search the existing issues for your bug and create a new one if the issue is not yet tracked!
 
-https://github.com/signalapp/Signal-Android/issues
+## Branches
 
-## Joining the Beta
-Want to live life on the bleeding edge and help out with testing?
+* main - 4.x development stream. Uses Vert.x 4.x, Microprofile 5.x, Mutiny 2.x and Jakarta 9
+* 3.x - Previous development stream. Uses Vert.x 4.x and Microprofile 4.x
+* 2.x - Not under development anymore. Uses Vert.x 3.x and Microprofile 3.x
 
-You can subscribe to Signal Android Beta releases here:
-https://play.google.com/apps/testing/org.thoughtcrime.securesms
+## Getting started
 
-If you're interested in a life of peace and tranquility, stick with the standard releases.
+### Prerequisites
 
-## Contributing Code
+See [PREREQUISITES.md](PREREQUISITES.md) for details.
 
-If you're new to the Signal codebase, we recommend going through our issues and picking out a simple bug to fix (check the "easy" label in our issues) in order to get yourself familiar. Also please have a look at the [CONTRIBUTING.md](https://github.com/signalapp/Signal-Android/blob/main/CONTRIBUTING.md), that might answer some of your questions.
+The build process requires Apache Maven and Java 11+ and can be performed using:
 
-For larger changes and feature ideas, we ask that you propose it on the [unofficial Community Forum](https://community.signalusers.org) for a high-level discussion with the wider community before implementation.
+```bash
+mvn clean install
+```
 
-## Contributing Ideas
-Have something you want to say about Signal projects or want to be part of the conversation? Get involved in the [community forum](https://community.signalusers.org).
+### How to start
 
-Help
-====
-## Support
-For troubleshooting and questions, please visit our support center!
+The best way to start is to look at the `examples/quickstart` project. It's a Maven project listing the minimal set of
+dependencies and containing a single class:
 
-https://support.signal.org/
+```java
+package io.smallrye.reactive.messaging.quickstart;
 
-## Documentation
-Looking for documentation? Check out the wiki!
+import org.eclipse.microprofile.reactive.messaging.Incoming;
+import org.eclipse.microprofile.reactive.messaging.Outgoing;
+import org.eclipse.microprofile.reactive.streams.operators.PublisherBuilder;
+import org.eclipse.microprofile.reactive.streams.operators.ReactiveStreams;
 
-https://github.com/signalapp/Signal-Android/wiki
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.se.SeContainerInitializer;
 
-# Legal things
-## Cryptography Notice
+@ApplicationScoped
+public class QuickStart {
 
-This distribution includes cryptographic software. The country in which you currently reside may have restrictions on the import, possession, use, and/or re-export to another country, of encryption software.
-BEFORE using any encryption software, please check your country's laws, regulations and policies concerning the import, possession, or use, and re-export of encryption software, to see if this is permitted.
-See <http://www.wassenaar.org/> for more information.
+  public static void main(String[] args) {
+    SeContainerInitializer.newInstance().initialize();
+  }
 
-The U.S. Government Department of Commerce, Bureau of Industry and Security (BIS), has classified this software as Export Commodity Control Number (ECCN) 5D002.C.1, which includes information security software using or performing cryptographic functions with asymmetric algorithms.
-The form and manner of this distribution makes it eligible for export under the License Exception ENC Technology Software Unrestricted (TSU) exception (see the BIS Export Administration Regulations, Section 740.13) for both object code and source code.
+
+  @Outgoing("source")
+  public PublisherBuilder<String> source() {
+    return ReactiveStreams.of("hello", "with", "SmallRye", "reactive", "message");
+  }
+
+  @Incoming("source")
+  @Outgoing("processed-a")
+  public String toUpperCase(String payload) {
+    return payload.toUpperCase();
+  }
+
+  @Incoming("processed-a")
+  @Outgoing("processed-b")
+  public PublisherBuilder<String> filter(PublisherBuilder<String> input) {
+    return input.filter(item -> item.length() > 4);
+  }
+
+  @Incoming("processed-b")
+  public void sink(String word) {
+    System.out.println(">> " + word);
+  }
+
+}
+```
+
+Run the project with: `mvn compile exec:java -Dexec.mainClass=io.smallrye.reactive.messaging.quickstart.QuickStart`:
+
+```bash
+>> HELLO
+>> SMALLRYE
+>> REACTIVE
+>> MESSAGE
+```
+
+## Built With
+
+* [Eclipse Vert.x](https://vertx.io/)
+* [SmallRye Mutiny](https://github.com/smallrye/smallrye-mutiny)
+* [SmallRye Reactive Stream Operators](https://github.com/smallrye/smallrye-reactive-streams-operators) (any implementation would work)
+* [Weld](https://weld.cdi-spec.org/) (any implementation would work)
+
+## Contributing
+
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details, and the process for submitting pull requests.
+
+## Sponsors
+
+The project is sponsored by [Red Hat](https://www.redhat.com).
 
 ## License
 
-Copyright 2013-2023 Signal
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
 
-Licensed under the GNU AGPLv3: https://www.gnu.org/licenses/agpl-3.0.html
 
-Google Play and the Google Play logo are trademarks of Google LLC.

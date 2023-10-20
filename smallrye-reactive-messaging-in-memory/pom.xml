@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>io.smallrye.reactive</groupId>
+    <artifactId>smallrye-reactive-messaging</artifactId>
+    <version>4.11.0-SNAPSHOT</version>
+  </parent>
+
+  <artifactId>smallrye-reactive-messaging-in-memory</artifactId>
+
+  <name>SmallRye Reactive Messaging : Connector :: In-memory</name>
+
+  <properties>
+    <revapi.skip>false</revapi.skip>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>${project.groupId}</groupId>
+      <artifactId>smallrye-reactive-messaging-provider</artifactId>
+      <version>${project.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.smallrye.config</groupId>
+      <artifactId>smallrye-config</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.smallrye.reactive</groupId>
+      <artifactId>test-common</artifactId>
+      <version>${project.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>io.smallrye.reactive</groupId>
+      <artifactId>smallrye-connector-attribute-processor</artifactId>
+      <version>${project.version}</version>
+      <scope>provided</scope>
+    </dependency>
+  </dependencies>
+
+    <build>
+      <plugins>
+        <plugin>
+          <groupId>io.smallrye</groupId>
+          <artifactId>jandex-maven-plugin</artifactId>
+          <executions>
+            <execution>
+              <id>make-index</id>
+              <goals>
+                <goal>jandex</goal>
+              </goals>
+            </execution>
+          </executions>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <configuration>
+            <generatedSourcesDirectory>${project.build.directory}/generated-sources/</generatedSourcesDirectory>
+            <annotationProcessors>
+              <annotationProcessor>
+                io.smallrye.reactive.messaging.connector.ConnectorAttributeProcessor
+              </annotationProcessor>
+              <annotationProcessor>
+                org.jboss.logging.processor.apt.LoggingToolsProcessor
+              </annotationProcessor>
+            </annotationProcessors>
+          </configuration>
+        </plugin>
+      </plugins>
+    </build>
+
+  <profiles>
+    <profile>
+      <id>coverage</id>
+      <properties>
+        <argLine>@{jacocoArgLine}</argLine>
+      </properties>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+</project>
