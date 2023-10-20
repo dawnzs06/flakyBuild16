@@ -1,1 +1,0 @@
-alter table fileresource drop column if exists storagestatus;
