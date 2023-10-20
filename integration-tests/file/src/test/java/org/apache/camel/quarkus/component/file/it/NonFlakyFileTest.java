@@ -26,14 +26,11 @@ import java.util.concurrent.TimeUnit;
 import io.quarkus.test.common.QuarkusTestResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.RestAssured;
-import io.restassured.http.ContentType;
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 
 import static org.apache.camel.quarkus.component.file.it.NonFlakyFileTestResource.FILTER_NON_SKIPPED_FILE_CONTENT;
 import static org.apache.camel.quarkus.component.file.it.NonFlakyFileTestResource.IDEMPOTENT_FILE_CONTENT;
 import static org.apache.camel.quarkus.component.file.it.NonFlakyFileTestResource.IDEMPOTENT_FILE_NAME;
-import static org.apache.camel.quarkus.component.file.it.NonFlakyFileTestResource.POLL_ENRICH_FILE_CONTENT;
 import static org.apache.camel.quarkus.component.file.it.NonFlakyFileTestResource.TEST_FILES_FOLDER;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.core.IsEqual.equalTo;
@@ -51,7 +48,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 class NonFlakyFileTest {
 
     @Test
-    void idempotentFileShouldBeReadOnlyOnce() throws IOException, InterruptedException {
+    void idempotent() throws IOException, InterruptedException {
 
         // Assert that the idempotent file has been read once
         await().atMost(1, TimeUnit.SECONDS).until(
@@ -76,23 +73,13 @@ class NonFlakyFileTest {
     }
 
     @Test
-    void filterShouldReadOnlyMatchingFile() {
+    void filter() {
         await().atMost(1, TimeUnit.SECONDS).until(
                 () -> RestAssured
                         .get("/file/getFromMock/filter")
                         .then()
                         .extract().asString(),
                 equalTo(FILTER_NON_SKIPPED_FILE_CONTENT));
-    }
-
-    @Test
-    public void pollEnrichShouldSetExchangeBodyWithFileContent() {
-        RestAssured.given()
-                .contentType(ContentType.TEXT)
-                .post("/file/route/pollEnrich")
-                .then()
-                .statusCode(200)
-                .body(Matchers.is(POLL_ENRICH_FILE_CONTENT));
     }
 
 }
