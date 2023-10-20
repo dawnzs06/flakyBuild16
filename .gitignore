@@ -1,56 +1,84 @@
-.metadata
-dependency-reduced-pom.xml
-logs
-/data
-pulsar-kop-*-bin.tar.gz
-pulsar-protocol-handler-kafka-readme.md
-*.log
+##############################
+## Java
+##############################
+.mtj.tmp/
+*.class
+*.jar
+*.war
+*.ear
 *.nar
+hs_err_pid*
 
-*.versionsBackup
-*/bin
+##############################
+## Maven
+##############################
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+pom.xml.bak
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
 
-# Eclipse
-.classpath
-.project
-.settings/
-.recommenders/
-.factorypath
+##############################
+## Gradle
+##############################
+bin/
+build/
+.gradle
+.gradletasknamecache
+gradle-app.setting
+!gradle-wrapper.jar
 
-# Intellij
+##############################
+## IntelliJ
+##############################
+out/
 .idea/
+.idea_modules/
 *.iml
+*.ipr
 *.iws
 
-# Mac
-**/.DS_Store
+##############################
+## Eclipse
+##############################
+.settings/
+bin/
+tmp/
+.metadata
+.classpath
+.project
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.loadpath
+.factorypath
 
-# VisualStudioCode artifacts
+##############################
+## NetBeans
+##############################
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+nbactions.xml
+nb-configuration.xml
+
+##############################
+## Visual Studio Code
+##############################
 .vscode/
+.code-workspace
 
-# Maven
-log/
-target/
-
-# Python
-*.pyc
-
-# Perf tools
-*.hgrm
-
-# tmp files
-*.pid
-
-# CI generated files
-.repository
-docker.debug-info
-
-# Yarn
-
-**/yarn.lock
-
-# docusaurus
-
-**/website/i18n/*
-**/website/translated_docs*
-
+##############################
+## OS X
+##############################
+.DS_Store

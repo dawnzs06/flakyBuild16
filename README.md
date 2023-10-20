@@ -1,57 +1,83 @@
-# Kafka-on-Pulsar (KoP)
+# ScalarDB
 
-KoP (Kafka on Pulsar) brings the native Apache Kafka protocol support to Apache Pulsar by introducing a Kafka protocol handler on Pulsar brokers. By adding the KoP protocol handler to your existing Pulsar cluster, you can migrate your existing Kafka applications and services to Pulsar without modifying the code. This enables Kafka applications to leverage Pulsar’s powerful features, such as:
+[![CI](https://github.com/scalar-labs/scalardb/actions/workflows/ci.yaml/badge.svg?branch=master)](https://github.com/scalar-labs/scalardb/actions/workflows/ci.yaml)
 
-- Streamlined operations with enterprise-grade multi-tenancy
-- Simplified operations with a rebalance-free architecture
-- Infinite event stream retention with Apache BookKeeper and tiered storage
-- Serverless event processing with Pulsar Functions
+ScalarDB is a universal transaction manager that achieves:
+- database/storage-agnostic ACID transactions in a scalable manner even if an underlying database or storage is not ACID-compliant.
+- multi-storage/database/service ACID transactions that can span multiple (possibly different) databases, storages, and services.
 
-KoP, implemented as a Pulsar [protocol handler](https://github.com/apache/pulsar/blob/master/pulsar-broker/src/main/java/org/apache/pulsar/broker/protocol/ProtocolHandler.java) plugin with the protocol name "kafka", is loaded when Pulsar broker starts. It helps reduce the barriers for people adopting Pulsar to achieve their business success by providing a native Kafka protocol support on Apache Pulsar. By integrating the two popular event streaming ecosystems, KoP unlocks new use cases. You can leverage advantages from each ecosystem and build a truly unified event streaming platform with Apache Pulsar to accelerate the development of real-time applications and services.
+## Install
+The library is available on [maven central repository](https://mvnrepository.com/artifact/com.scalar-labs/scalardb).
+You can install it in your application using your build tool such as Gradle and Maven.
 
-KoP implements the Kafka wire protocol on Pulsar by leveraging the existing components (such as topic discovery, the distributed log library - ManagedLedger, cursors and so on) that Pulsar already has.
-
-The following figure illustrates how the Kafka-on-Pulsar protocol handler is implemented within Pulsar.
-
-![](docs/kop-architecture.png)
-
-## Version compatibility
-
-The version of KoP `x.y.z.m` conforms to Pulsar `x.y.z`, while `m` is the patch version number. KoP might also be compatible with older patched versions, but it's not guaranteed. See [upgrade.md](./docs/upgrade.md) for details.
-
-KoP is compatible with Kafka clients 0.9 or higher. For Kafka clients 3.2.0 or higher, you have to add the following configurations in KoP because of [KIP-679](https://cwiki.apache.org/confluence/display/KAFKA/KIP-679%3A+Producer+will+enable+the+strongest+delivery+guarantee+by+default).
-
-```properties
-kafkaTransactionCoordinatorEnabled=true
-brokerDeduplicationEnabled=true
+To add a dependency on ScalarDB using Gradle, use the following:
+```gradle
+dependencies {
+    implementation 'com.scalar-labs:scalardb:3.10.1'
+}
 ```
 
-## How to use KoP
-You can configure and manage KoP based on your requirements. Check the following guides for more details.
--   [Quick Start](docs/kop.md)
--   [Configure KoP](docs/configuration.md)
--   [Monitor KoP](docs/reference-metrics.md)
--   [Upgrade](docs/upgrade.md)
--   [Secure KoP](docs/security.md)
--   [Schema Registry](docs/schema.md)
--   [Implementation: How to converse Pulsar and Kafka](docs/implementation.md)
+To add a dependency using Maven:
+```xml
+<dependency>
+  <groupId>com.scalar-labs</groupId>
+  <artifactId>scalardb</artifactId>
+  <version>3.10.1</version>
+</dependency>
+```
 
-## Project Maintainers
+## Docs
+* [Getting started](docs/getting-started-with-scalardb.md)
+* [Java API Guide](docs/api-guide.md)
+* [ScalarDB Samples](https://github.com/scalar-labs/scalardb-samples)
+* [ScalarDB Server](docs/scalardb-server.md)
+* [Multi-storage Transactions](docs/multi-storage-transactions.md)
+* [Two-phase Commit Transactions](docs/two-phase-commit-transactions.md)
+* [Design document](docs/design.md)
+* [Schema Loader](docs/schema-loader.md)
+* [Requirements and Recommendations for the Underlying Databases of ScalarDB](docs/requirements.md)
+* [How to Back up and Restore](docs/backup-restore.md)
+* [ScalarDB supported databases](docs/scalardb-supported-databases.md)
+* [Configurations](docs/configurations.md)
+* [Storage abstraction](docs/storage-abstraction.md)
+* Slides
+    * [Making Cassandra more capable, faster, and more reliable](https://speakerdeck.com/scalar/making-cassandra-more-capable-faster-and-more-reliable-at-apachecon-at-home-2020) at ApacheCon@Home 2020
+    * [Scalar DB: A library that makes non-ACID databases ACID-compliant](https://speakerdeck.com/scalar/scalar-db-a-library-that-makes-non-acid-databases-acid-compliant) at Database Lounge Tokyo #6 2020
+    * [Transaction Management on Cassandra](https://speakerdeck.com/scalar/transaction-management-on-cassandra) at Next Generation Cassandra Conference / ApacheCon NA 2019
+* Javadoc
+    * [scalardb](https://javadoc.io/doc/com.scalar-labs/scalardb/latest/index.html) - ScalarDB: A universal transaction manager that achieves database-agnostic transactions and distributed transactions that span multiple databases
+    * [scalardb-rpc](https://javadoc.io/doc/com.scalar-labs/scalardb-rpc/latest/index.html) - ScalarDB RPC libraries
+    * [scalardb-server](https://javadoc.io/doc/com.scalar-labs/scalardb-server/latest/index.html) - ScalarDB Server: A gRPC interface of ScalarDB
+    * [scalardb-schema-loader](https://javadoc.io/doc/com.scalar-labs/scalardb-schema-loader/latest/index.html) - ScalarDB Schema Loader: A tool for schema creation and schema deletion in ScalarDB
+* [Jepsen tests](https://github.com/scalar-labs/scalar-jepsen)
+* [TLA+](tla+/consensus-commit/README.md)
 
--   [@aloyszhang](https://github.com/aloyszhang)
--   [@BewareMyPower](https://github.com/BewareMyPower)
--   [@Demogorgon314](https://github.com/Demogorgon314)
--   [@dockerzhang](https://github.com/dockerzhang)
--   [@hangc0276](https://github.com/hangc0276)
--   [@jiazhai](https://github.com/jiazhai)
--   [@PierreZ](https://github.com/PierreZ)
--   [@wenbingshen](https://github.com/wenbingshen)
--   [@wuzhanpeng](https://github.com/wuzhanpeng)
+## Contributing
+This library is mainly maintained by the Scalar Engineering Team, but of course we appreciate any help.
+
+* For asking questions, finding answers and helping other users, please go to [stackoverflow](https://stackoverflow.com/) and use [scalardb](https://stackoverflow.com/questions/tagged/scalardb) tag.
+* For filing bugs, suggesting improvements, or requesting new features, help us out by opening an issue.
+
+Here are the contributors we are especially thankful for:
+- [Toshihiro Suzuki](https://github.com/brfrn169) - created [Phoenix adapter](https://github.com/scalar-labs/scalardb-phoenix) for ScalarDB
+- [Yonezawa-T2](https://github.com/Yonezawa-T2) - reported bugs around Serializable and proposed a new Serializable strategy (now named Extra-Read)
+
+## Development
+
+### Pre-commit hook
+
+This project uses [pre-commit](https://pre-commit.com/) to automate code format and so on as much as possible. If you're interested in the development of ScalarDB, please [install pre-commit](https://pre-commit.com/#installation) and the git hook script as follows.
+
+```
+$ ls -a .pre-commit-config.yaml
+.pre-commit-config.yaml
+$ pre-commit install
+```
+
+The code formatter is automatically executed when commiting files. A commit will fail and be formatted by the formatter when any invalid code format is detected. Try to commit the change again.
 
 ## License
-
-This library is licensed under the terms of the [Apache License 2.0](LICENSE) and may include packages written by third parties which carry their own copyright notices and license terms.
-
-## About StreamNative
-
-Founded in 2019 by the original creators of Apache Pulsar, [StreamNative](https://streamnative.io/) is one of the leading contributors to the open-source Apache Pulsar project. We have helped engineering teams worldwide make the move to Pulsar with [StreamNative Cloud](https://streamnative.io/product), a fully managed service to help teams accelerate time-to-production.
+ScalarDB is dual-licensed under both the Apache 2.0 License (found in the LICENSE file in the root directory) and a commercial license.
+You may select, at your option, one of the above-listed licenses.
+The commercial license includes several enterprise-grade features such as ScalarDB Server, management tools, and declarative query interfaces like GraphQL and SQL interfaces.
+Regarding the commercial license, please [contact us](https://scalar-labs.com/contact_us/) for more information.
