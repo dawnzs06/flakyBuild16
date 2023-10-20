@@ -1,42 +1,48 @@
-#Maven
-target/
-pom.xml.tag
-pom.xml.releaseBackup
-pom.xml.versionsBackup
-release.properties
-
-# Eclipse
-.project
-.classpath
-.settings/
-bin/
-
-# IntelliJ
-.idea
 *.ipr
 *.iml
 *.iws
-
-# NetBeans
-nb-configuration.xml
-
-# Visual Studio Code
-.vscode
-.factorypath
-
-# OSX
+*.pyc
+*.pyo
+.idea/
+.idea_modules/
+.settings
+.cache
 .DS_Store
-
-# Vim
+.project
+.classpath
+.scala_dependencies
+docs/api/
+lib_managed/
+logs/
+src_managed/
+target/
+reports/
+metastore_db/
+derby.log
+dependency-reduced-pom.xml
+rss-*.tgz
+hadoop-*.tar.gz
+deploy/kubernetes/docker/hadoopconfig/*
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+local
+vendor
+VERSION
+testbin/*
+*.test
+*.out
+!vendor/**/zz_generated.*
 *.swp
 *.swo
-
-# patch
-*.orig
-*.rej
-
-# Local environment
-.env
-
-#JReleaser
-out/
+*~
+deploy/kubernetes/operator/bin
+common/build/
+integration-test/common/build/
+storage/build/
+build/
+deploy/kubernetes/integration-test/e2e/rss.yaml
+deploy/kubernetes/integration-test/e2e/rss-controller.yaml
+deploy/kubernetes/integration-test/e2e/rss-webhook.yaml

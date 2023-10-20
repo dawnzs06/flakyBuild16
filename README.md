@@ -1,210 +1,328 @@
-# 🧸 kcctl – Your Cuddly CLI for Apache Kafka Connect
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one or more
+  ~ contributor license agreements.  See the NOTICE file distributed with
+  ~ this work for additional information regarding copyright ownership.
+  ~ The ASF licenses this file to You under the Apache License, Version 2.0
+  ~ (the "License"); you may not use this file except in compliance with
+  ~ the License.  You may obtain a copy of the License at
+  ~
+  ~    http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
 
-_It's Casey. Casey Cuddle._
+# Apache Uniffle (Incubating)
 
-This project is a command-line client for [Kafka Connect](https://kafka.apache.org/documentation/#connect).
-Relying on the idioms and semantics of _kubectl_,
-it allows you to register and examine connectors, delete them, restart them, etc.
-You can see what _kcctl_ is about in this short video:
+Uniffle is a high performance, general purpose remote shuffle service for distributed computing engines.
+It provides the ability to push shuffle data into centralized storage service,
+changing the shuffle style from "local file pull-like style" to "remote block push-like style".
+It brings in several advantages like supporting disaggregated storage deployment,
+super large shuffle jobs, and high elasticity.
+Currently it supports [Apache Spark][1], [Apache Hadoop MapReduce][2] and [Apache Tez][3].
 
-[![kcctl Intro](https://img.youtube.com/vi/F9bUsM1ZwKk/0.jpg)](https://www.youtube.com/watch?v=F9bUsM1ZwKk)
+[1]: https://spark.apache.org
+[2]: https://hadoop.apache.org
+[3]: https://tez.apache.org
 
-## Installation
+[![Build](https://github.com/apache/incubator-uniffle/actions/workflows/build.yml/badge.svg?branch=master&event=push)](https://github.com/apache/incubator-uniffle/actions/workflows/build.yml)
+[![Codecov](https://codecov.io/gh/apache/incubator-uniffle/branch/master/graph/badge.svg)](https://codecov.io/gh/apache/incubator-uniffle)
+[![License](https://img.shields.io/github/license/apache/incubator-uniffle)](https://github.com/apache/incubator-uniffle/blob/master/LICENSE)
+[![Release](https://img.shields.io/github/v/release/apache/incubator-uniffle)](https://github.com/apache/incubator-uniffle/releases)
 
-The latest stable release of _kcctl_ (x86) for Linux, macOS, and Windows can be retrieved via [SDKMan](https://sdkman.io/sdks#kcctl):
+## Architecture
+![Rss Architecture](docs/asset/rss_architecture.png)
+Uniffle cluster consists of three components, a coordinator cluster, a shuffle server cluster and an optional remote storage (e.g., HDFS).
 
-```shell script
-sdk install kcctl
-```
+Coordinator will collect the status of shuffle servers and assign jobs based on some strategy.
 
-You may also use [Homebrew](https://brew.sh/) to install _kcctl_ on Linux and macOs, by configuring our tap
+Shuffle server will receive the shuffle data, merge them and write to storage.
 
-```shell script
-brew install kcctl/tap/kcctl
-```
+Depending on different situations, Uniffle supports Memory & Local, Memory & Remote Storage(e.g., HDFS), Memory & Local & Remote Storage(recommendation for production environment).
 
-It is recommended to install the bash/zsh completion script _kcctl_completion_:
+## Shuffle Process with Uniffle
 
-```shell script
-wget https://raw.githubusercontent.com/kcctl/kcctl/main/kcctl_completion
-. kcctl_completion
-```
+* Spark driver ask coordinator to get shuffle server for shuffle process
+* Spark task write shuffle data to shuffle server with following step:
+![Rss Shuffle_Write](docs/asset/rss_shuffle_write.png)
+   1. Send KV data to buffer
+   2. Flush buffer to queue when buffer is full or buffer manager is full
+   3. Thread pool get data from queue
+   4. Request memory from shuffle server first and send the shuffle data
+   5. Shuffle server cache data in memory first and flush to queue when buffer manager is full
+   6. Thread pool get data from queue
+   7. Write data to storage with index file and data file
+   8. After write data, task report all blockId to shuffle server, this step is used for data validation later
+   9. Store taskAttemptId in MapStatus to support Spark speculation
 
-Alternatively, you can obtain early access binaries from [here](https://github.com/kcctl/kcctl/releases).
-This is a rolling release, new binaries are published upon each commit pushed to the kcctl repository.
+* Depending on different storage types, the spark task will read shuffle data from shuffle server or remote storage or both of them.
 
-Note: on macOS, you need to remove the quarantine flag after downloading, as the distribution currently is not signed:
+## Shuffle file format
+The shuffle data is stored with index file and data file. Data file has all blocks for a specific partition and the index file has metadata for every block.
 
-```shell script
-xattr -r -d com.apple.quarantine path /to/kcctl-1.0.0-SNAPSHOT-osx-x86_64/
-```
+![Rss Shuffle_Write](docs/asset/rss_data_format.png)
 
-## Usage
+## Supported Spark Version
+Currently supports Spark 2.3.x, Spark 2.4.x, Spark 3.0.x, Spark 3.1.x, Spark 3.2.x, Spark 3.3.x
 
-### Quickstart
+Note: To support dynamic allocation, the patch(which is included in patch/spark folder) should be applied to Spark
 
-Before you can start using _kcctl_ you need to create a configuration context.
-A configuration context is a set of configuration parameters, grouped
-by a name, describing one particular Kafka Connect environment.
-All subsequent commands will be executed using the currently active context.
+## Supported MapReduce Version
+Currently supports the MapReduce framework of Hadoop 2.8.5, Hadoop 3.2.1
 
-To create a configuration context named `local`, with the Kafka Connect cluster URL set to
-`http://localhost:8083`, issue the following command
+## Building Uniffle
+> note: currently Uniffle requires JDK 1.8 to build, adding later JDK support is on our roadmap.
 
-```shell script
-kcctl config set-context local --cluster http://localhost:8083
-```
+Uniffle is built using [Apache Maven](https://maven.apache.org/).
+To build it, run:
 
-:exclamation: Note that certain commands will require additional parameters, like `bootstrap-servers` and
-`offset-topic`.
+    mvn -DskipTests clean package
 
-Type `kcctl info` to display some information about the Kafka Connect cluster.
-The command will use the currently active context, `local` in this case, to
-resolve the cluster URL.
+To fix code style issues, run:
 
-### Available Commands
+    mvn spotless:apply -Pspark3 -Pspark2 -Ptez -Pmr -Phadoop2.8
 
-Display the help to learn about using _kcctl_:
+Build against profile Spark 2 (2.4.6)
 
-```shell script
-kcctl help
-Usage: kcctl [-hV] [COMMAND]
-A command-line interface for Kafka Connect
-  -h, --help      Show this help message and exit.
-  -V, --version   Print version information and exit.
-Commands:
-  info      Displays information about the Kafka Connect cluster
-  config    Sets or retrieves the configuration of this client
-  get       Displays information about connector plug-ins, connector offsets,
-              created connectors, and loggers
-  describe  Displays detailed information about the specified resources
-  apply     Applies the given files or the stdin content for registering or
-              updating connectors
-  patch     Modifies the configuration of some connectors or a logger
-  restart   Restarts some connectors or a task
-  pause     Pauses connectors
-  resume    Resumes connectors
-  stop      Stops (but does not delete) connectors
-  delete    Deletes connectors
-  help      Display help information about the specified command.
-```
+    mvn -DskipTests clean package -Pspark2
 
-### Authentication
+Build against profile Spark 3 (3.1.2)
 
-If your cluster enforces authentication, you may configure your username and password with the `username` and `password` parameters:
+    mvn -DskipTests clean package -Pspark3
 
-```shell script
-kcctl config set-context local --cluster http://localhost:8083 --username myusername --password mypassword
-```
+Build against Spark 3.2.x, Except 3.2.0
 
-:exclamation: Note that setting user name and password via CLI may store those credentials in your terminal history. To work around this, you may set the username and password directly in your `.kcctl` file:
+    mvn -DskipTests clean package -Pspark3.2
 
-```json
-  "currentContext" : "local",
-  "local" : {
-    "cluster" : "http://localhost:8083",
-    "username" : "myusername",
-    "password" : "mypassword"
-  }
-```
+Build against Spark 3.2.0
 
-Currently, only basic authentication is supported.
+    mvn -DskipTests clean package -Pspark3.2.0
+
+Build against Hadoop MapReduce 2.8.5
+
+    mvn -DskipTests clean package -Pmr,hadoop2.8
+
+Build against Hadoop MapReduce 3.2.1
+
+    mvn -DskipTests clean package -Pmr,hadoop3.2
+
+Build against Tez 0.9.1
+
+    mvn -DskipTests clean package -Ptez
+
+Build against Tez 0.9.1 and Hadoop 3.2.1
+
+    mvn -DskipTests clean package -Ptez,hadoop3.2
+
+To package the Uniffle, run:
+
+    ./build_distribution.sh
+
+Package against Spark 3.2.x, Except 3.2.0, run:
+
+    ./build_distribution.sh --spark3-profile 'spark3.2'
+
+Package against Spark 3.2.0, run:
+
+    ./build_distribution.sh --spark3-profile 'spark3.2.0'
+
+Package will build against Hadoop 2.8.5 in default. If you want to build package against Hadoop 3.2.1, run:
+
+    ./build_distribution.sh --hadoop-profile 'hadoop3.2'
+
+rss-xxx.tgz will be generated for deployment
+
+## Deploy
+
+### Deploy Coordinator
+
+1. unzip package to RSS_HOME
+2. update RSS_HOME/bin/rss-env.sh, e.g.,
+   ```
+     JAVA_HOME=<java_home>
+     HADOOP_HOME=<hadoop home>
+     XMX_SIZE="16g"
+   ```
+3. update RSS_HOME/conf/coordinator.conf, e.g.,
+   ```
+     rss.rpc.server.port 19999
+     rss.jetty.http.port 19998
+     rss.coordinator.server.heartbeat.timeout 30000
+     rss.coordinator.app.expired 60000
+     rss.coordinator.shuffle.nodes.max 5
+     # enable dynamicClientConf, and coordinator will be responsible for most of client conf
+     rss.coordinator.dynamicClientConf.enabled true
+     # config the path of client conf
+     rss.coordinator.dynamicClientConf.path <RSS_HOME>/conf/dynamic_client.conf
+     # config the path of excluded shuffle server
+     rss.coordinator.exclude.nodes.file.path <RSS_HOME>/conf/exclude_nodes
+   ```
+4. update <RSS_HOME>/conf/dynamic_client.conf, rss client will get default conf from coordinator e.g.,
+   ```
+    # MEMORY_LOCALFILE_HDFS is recommended for production environment
+    rss.storage.type MEMORY_LOCALFILE_HDFS
+    # multiple remote storages are supported, and client will get assignment from coordinator
+    rss.coordinator.remote.storage.path hdfs://cluster1/path,hdfs://cluster2/path
+    rss.writer.require.memory.retryMax 1200
+    rss.client.retry.max 100
+    rss.writer.send.check.timeout 600000
+    rss.client.read.buffer.size 14m
+   ```
+5. start Coordinator
+   ```
+    bash RSS_HOME/bin/start-coordnator.sh
+   ```
+
+### Deploy Shuffle Server
+
+1. unzip package to RSS_HOME
+2. update RSS_HOME/bin/rss-env.sh, e.g.,
+   ```
+     JAVA_HOME=<java_home>
+     HADOOP_HOME=<hadoop home>
+     XMX_SIZE="80g"
+   ```
+3. update RSS_HOME/conf/server.conf, e.g.,
+   ```
+     rss.rpc.server.port 19999
+     rss.jetty.http.port 19998
+     rss.rpc.executor.size 2000
+     # it should be configured the same as in coordinator
+     rss.storage.type MEMORY_LOCALFILE_HDFS
+     rss.coordinator.quorum <coordinatorIp1>:19999,<coordinatorIp2>:19999
+     # local storage path for shuffle server
+     rss.storage.basePath /data1/rssdata,/data2/rssdata....
+     # it's better to config thread num according to local disk num
+     rss.server.flush.thread.alive 5
+     rss.server.flush.localfile.threadPool.size 10
+     rss.server.flush.hadoop.threadPool.size 10
+     rss.server.buffer.capacity 40g
+     rss.server.read.buffer.capacity 20g
+     rss.server.heartbeat.interval 10000
+     rss.rpc.message.max.size 1073741824
+     rss.server.preAllocation.expired 120000
+     rss.server.commit.timeout 600000
+     rss.server.app.expired.withoutHeartbeat 120000
+     # note: the default value of rss.server.flush.cold.storage.threshold.size is 64m
+     # there will be no data written to DFS if set it as 100g even rss.storage.type=MEMORY_LOCALFILE_HDFS
+     # please set a proper value if DFS is used, e.g., 64m, 128m.
+     rss.server.flush.cold.storage.threshold.size 100g
+   ```
+4. start Shuffle Server
+   ```
+    bash RSS_HOME/bin/start-shuffle-server.sh
+   ```
+
+### Deploy Spark Client
+1. Add client jar to Spark classpath, e.g., SPARK_HOME/jars/
 
-## Development
+   The jar for Spark2 is located in <RSS_HOME>/jars/client/spark2/rss-client-XXXXX-shaded.jar
 
-This project uses [Quarkus](https://quarkus.io/), the Supersonic Subatomic Java Framework.
+   The jar for Spark3 is located in <RSS_HOME>/jars/client/spark3/rss-client-XXXXX-shaded.jar
 
-To build the project, make sure to the following things are installed:
+2. Update Spark conf to enable Uniffle, e.g.,
 
-* Java 17
-* Alternatively, for creating native binaries, GraalVM 22.1.0 or newer
-* When using GraalVM, the native image tool (install via `$JAVA_HOME/bin/gu install native-image`)
-* Docker must for running the integration tests (via Testcontainers)
+   ```
+   # Uniffle transmits serialized shuffle data over network, therefore a serializer that supports relocation of
+   # serialized object should be used. 
+   spark.serialier org.apache.spark.serializer.KryoSerializer # this could also be in the spark-defaults.conf
+   spark.shuffle.manager org.apache.spark.shuffle.RssShuffleManager
+   spark.rss.coordinator.quorum <coordinatorIp1>:19999,<coordinatorIp2>:19999
+   # Note: For Spark2, spark.sql.adaptive.enabled should be false because Spark2 doesn't support AQE.
+   ```
 
-The following build commands are commonly used:
+### Support Spark dynamic allocation
 
-```shell script
-# Build and run all the tests
-./mvnw clean verify
+To support spark dynamic allocation with Uniffle, spark code should be updated.
+There are 3 patches for spark (2.4.6/3.1.2/3.2.1) in patch/spark folder for reference.
 
-# Build and skip integration tests
-./mvnw clean verify -Dquarkus.test.profile.tags="basic"
+After apply the patch and rebuild spark, add following configuration in spark conf to enable dynamic allocation:
+  ```
+  spark.shuffle.service.enabled false
+  spark.dynamicAllocation.enabled true
+  ```
 
-# Format sources
-./mvnw process-sources
-```
+### Deploy MapReduce Client
 
-### Running the Application in Dev Mode
+1. Add client jar to the classpath of each NodeManager, e.g., <HADOOP>/share/hadoop/mapreduce/
 
-You can run your application in dev mode that enables live coding using:
+The jar for MapReduce is located in <RSS_HOME>/jars/client/mr/rss-client-mr-XXXXX-shaded.jar
 
-```shell script
-./mvnw compile quarkus:dev
-```
+2. Update MapReduce conf to enable Uniffle, e.g.,
 
-To seed the command line arguments, pass the `-Dquarkus.args` option:
+   ```
+   -Dmapreduce.rss.coordinator.quorum=<coordinatorIp1>:19999,<coordinatorIp2>:19999
+   -Dyarn.app.mapreduce.am.command-opts=org.apache.hadoop.mapreduce.v2.app.RssMRAppMaster
+   -Dmapreduce.job.map.output.collector.class=org.apache.hadoop.mapred.RssMapOutputCollector
+   -Dmapreduce.job.reduce.shuffle.consumer.plugin.class=org.apache.hadoop.mapreduce.task.reduce.RssShuffle
+   ```
+Note that the RssMRAppMaster will automatically disable slow start (i.e., `mapreduce.job.reduce.slowstart.completedmaps=1`)
+and job recovery (i.e., `yarn.app.mapreduce.am.job.recovery.enable=false`)
 
-```shell script
-./mvnw compile quarkus:dev -Dquarkus.args='patch get connectors'
-```
+### Deploy Tez Client
 
-In dev mode, remote debuggers can connect to the running application on port 5005.
-In order to wait for a debugger to connect, pass the `-Dsuspend` option.
+1. Append client jar to pacakge which is set by 'tez.lib.uris'.
 
-### Packaging and Running the Application
+In production mode, you can append client jar (rss-client-tez-XXXXX-shaded.jar) to package which is set by 'tez.lib.uris'. 
 
-The application can be packaged using:
+In development mode, you can append client jar (rss-client-tez-XXXXX-shaded.jar) to HADOOP_CLASSPATH.
 
-```shell script
-./mvnw package
-```
+2. Update tez-site.xml to enable Uniffle.
 
-It produces the `quarkus-run.jar` file in the `target/quarkus-app/` directory.
-Be aware that it’s not an _über-jar_ as the dependencies are copied into the `target/quarkus-app/lib/` directory.
+| Property Name              |Default| Description                  |
+|----------------------------|---|------------------------------|
+| tez.am.launch.cmd-opts     |-XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps -XX:+UseNUMA -XX:+UseParallelGC org.apache.tez.dag.app.RssDAGAppMaster| enable remote shuffle service |
+| tez.rss.coordinator.quorum |coordinatorIp1:19999,coordinatorIp2:19999|coordinator address|
 
-The application is now runnable using `java -jar target/quarkus-app/quarkus-run.jar`.
-You should define an alias _kcctl_:
+Note that the RssDAGAppMaster will automatically disable slow start (i.e., `tez.shuffle-vertex-manager.min-src-fraction=1`, `tez.shuffle-vertex-manager.max-src-fraction=1`).
 
-```shell script
-alias kcctl="java -jar target/quarkus-app/quarkus-run.jar"
-```
+### Deploy In Kubernetes
 
-### Creating a Native Executable
+We have provided an operator for deploying uniffle in kubernetes environments.
 
-You can create a native executable using:
+For details, see the following document:
 
-```shell script
-./mvnw package -Pnative
-```
+[operator docs](docs/operator)
 
-You can then execute your native executable with: `./target/kcctl-1.0.0-SNAPSHOT-runner`
+## Configuration
 
-As above, either define an alias _kcctl_ or rename the resulting executable accordingly.
+The important configuration is listed as follows.
 
-### Updating the Completion Script
+|Role|Link|
+|---|---|
+|coordinator|[Uniffle Coordinator Guide](https://github.com/apache/incubator-uniffle/blob/master/docs/coordinator_guide.md)|
+|shuffle server|[Uniffle Shuffle Server Guide](https://github.com/apache/incubator-uniffle/blob/master/docs/server_guide.md)|
+|client|[Uniffle Shuffle Client Guide](https://github.com/apache/incubator-uniffle/blob/master/docs/client_guide.md)|
 
-Build the application in JVM mode.
-Then recreate the completion script:
+## Security: Hadoop kerberos authentication
+The primary goals of the Uniffle Kerberos security are:
+1. to enable secure data access for coordinator/shuffle-servers, like dynamic conf/exclude-node files stored in secured dfs cluster
+2. to write shuffle data to kerberos secured dfs cluster for shuffle-servers.
 
-```shell script
-java -cp "target/quarkus-app/app/*:target/quarkus-app/lib/main/*:target/quarkus-app/quarkus-run.jar" \
-  picocli.AutoComplete -n kcctl --force org.kcctl.command.KcCtlCommand
-```
+The following security configurations are introduced.
 
-Edit the completion script _kcctl\_completion_, replace all the quotes around generated completion invocations with back ticks, making them actual invocations of _kcctl_:
+|Property Name|Default|Description|
+|---|---|---|
+|rss.security.hadoop.kerberos.enable|false|Whether enable access secured hadoop cluster|
+|rss.security.hadoop.kerberos.krb5-conf.file|-|The file path of krb5.conf. And only when rss.security.hadoop.kerberos.enable is enabled, the option will be valid|
+|rss.security.hadoop.kerberos.keytab.file|-|The kerberos keytab file path. And only when rss.security.hadoop.kerberos.enable is enabled, the option will be valid|
+|rss.security.hadoop.kerberos.principal|-|The kerberos keytab principal. And only when rss.security.hadoop.kerberos.enable is enabled, the option will be valid|
+|rss.security.hadoop.kerberos.relogin.interval.sec|60|The kerberos authentication relogin interval. unit: sec|
 
-```shell script
---- local CONNECTOR_NAME_pos_param_args="kcctl connector-name-completions" # 0-0 values
-+++ local CONNECTOR_NAME_pos_param_args=`kcctl connector-name-completions` # 0-0 values
-```
+* The proxy user mechanism is used to keep the data isolation in uniffle, which means the shuffle-data written by 
+  shuffle-servers is owned by spark app's user. To achieve the this, the login user specified by above config should 
+  be as the superuser for HDFS. For more details of related sections, 
+  please see [Proxy user - Superusers Acting On Behalf Of Other Users](https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-common/Superusers.html)
 
-Currently, three kinds of completions exist: `connector-name-completions`, `task-name-completions`, and `logger-name-completions`.
+## Benchmark
+We provide some benchmark tests for Uniffle. For details, you can see [Uniffle Benchmark](docs/benchmark.md)
 
-### Related Quarkus Guides
+## LICENSE
 
-- Picocli ([guide](https://quarkus.io/guides/picocli)): Develop command line applications with Picocli
-- Quarkus native apps ([guide](https://quarkus.io/guides/maven-tooling.html)): Develop native applications with Quarkus and GraalVM
+Uniffle is under the Apache License Version 2.0. See the [LICENSE](https://github.com/apache/incubator-uniffle/blob/master/LICENSE) file for details.
 
-## License
-
-This code base is available under the Apache License, version 2.
+## Contributing
+For more information about contributing issues or pull requests, see [Uniffle Contributing Guide](https://github.com/apache/incubator-uniffle/blob/master/CONTRIBUTING.md).
