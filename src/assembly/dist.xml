@@ -1,0 +1,32 @@
+<assembly xmlns="http://maven.apache.org/ASSEMBLY/2.1.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/ASSEMBLY/2.1.0 http://maven.apache.org/xsd/assembly-2.1.0.xsd">
+  <id>dist</id>
+  <formats>
+    <format>tar.gz</format>
+  </formats>
+  <dependencySets>
+    <dependencySet>
+      <outputDirectory>app/libs</outputDirectory>
+      <scope>runtime</scope>
+    </dependencySet>
+  </dependencySets>
+  <fileSets>
+    <fileSet>
+      <outputDirectory />
+      <directory>${project.basedir}/src/main/extras</directory>
+      <includes>
+        <include>${cryostat.entrypoint}</include>
+      </includes>
+      <fileMode>0755</fileMode>
+    </fileSet>
+    <fileSet>
+      <outputDirectory />
+      <directory>${project.build.directory}/assets</directory>
+    </fileSet>
+    <fileSet>
+      <outputDirectory />
+      <directory>${project.basedir}/src/container/include</directory>
+    </fileSet>
+  </fileSets>
+</assembly>

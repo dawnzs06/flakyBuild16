@@ -1,0 +1,25 @@
+name: Clean up PR-scoped test images
+
+on:
+  push:
+    branches: [ cryostat ]
+
+
+
+
+jobs:
+  delete-images:
+    name: Delete PR-scoped test images
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+    steps:
+      - uses: r26d/ghcr-delete-image-action@v1.2.2
+        with:
+          owner: ${{ github.repository_owner }}
+          name: cryostat
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ignore-missing-package: true
+          tag-regex: pr-${{ github.event.number }}-.*
+          tagged-keep-latest: 0
+        if: github.repository_owner == 'cryostatio'

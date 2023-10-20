@@ -1,70 +1,32 @@
 version: 2
+registries:
+  maven-github:
+    type: maven-repository
+    url: https://maven.pkg.github.com/cryostatio/cryostat-core
+    username: dummy
+    password: ${{secrets.DEPENDABOT_READ_GHCR}}
 updates:
-- package-ecosystem: maven
-  directory: "/"
-  schedule:
-    interval: daily
-  open-pull-requests-limit: 10
-  target-branch: main
-  reviewers:
-  - cescoffier
-  - ozangunalp
-  ignore:
-  - dependency-name: com.amazonaws:aws-java-sdk-sns
-    versions:
-    - ">= 0"
-  - dependency-name: com.google.cloud:libraries-bom
-    versions:
-    - ">= 0"
-  - dependency-name: io.smallrye.reactive:*
-    versions:
-    - ">= 0"
-  - dependency-name: io.smallrye:smallrye-config
-    versions:
-    - "<2.0.0"
-  - dependency-name: io.smallrye:smallrye-fault-tolerance
-    versions:
-    - "<5.0.0"
-  - dependency-name: io.smallrye:smallrye-health
-    versions:
-    - "<3.0.0"
-  - dependency-name: io.vertx:vertx-stack-depchain
-    versions:
-    - "<4.0.0"
-  - dependency-name: org.eclipse.microprofile.metrics:microprofile-config-api
-    versions:
-    - "<2.0.0"
-  - dependency-name: org.eclipse.microprofile.metrics:microprofile-health-api
-    versions:
-    - "<3.0"
-  - dependency-name: org.eclipse.microprofile.metrics:microprofile-metrics-api
-    versions:
-    - "<3.0.0"
-  - dependency-name: org.eclipse:yasson
-    versions:
-    - ">= 0"
-  - dependency-name: software.amazon.awssdk:*
-    versions:
-    - ">= 0"
-  - dependency-name: io.smallrye.config:smallrye-config
-    versions:
-    - 2.1.0
-    - 2.2.0
-  - dependency-name: org.jboss.weld:weld-junit5
-    versions:
-    - 3.0.0.Final
-  - dependency-name: io.cloudevents:cloudevents-api
-    versions:
-    - 2.0.0
-  - dependency-name: org.eclipse.microprofile.config:microprofile-config-api
-    versions:
-    - "2.0"
-  - dependency-name: org.eclipse.microprofile.health:microprofile-health-api
-    versions:
-    - "3.0"
-  - dependency-name: org.slf4j:slf4j-log4j12
-    versions:
-    - "> 1.8.0"
-  - dependency-name: org.slf4j:simple
-    versions:
-    - "> 1.8.0"
+  - package-ecosystem: "maven"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    reviewers:
+      - "cryostatio/reviewers"
+    labels:
+      - "dependencies"
+      - "chore"
+      - "safe-to-test"
+    open-pull-requests-limit: 10
+    registries:
+      - "maven-github"
+
+  - package-ecosystem: "docker"
+    directory: "/src/container"
+    schedule:
+      interval: "weekly"
+    reviewers:
+      - "cryostatio/reviewers"
+    labels:
+      - "dependencies"
+      - "chore"
+      - "safe-to-test"
