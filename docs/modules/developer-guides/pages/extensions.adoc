@@ -1,9 +1,0 @@
-= Extensions
-
-Extensions are basements for the plugins. An extension provides generic abstraction for common
-functionality or wraps an external framework API.
-
-:path: vividus-extension/spring.xml
-:key: extension
-
-include::partial$configuration.adoc[]

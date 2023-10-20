@@ -1,3 +1,3 @@
-[submodule "vividus-build-system"]
-	path = vividus-build-system
-	url = https://github.com/vividus-framework/vividus-build-system.git
+[submodule "site/themes/hugo-solstice-theme"]
+	path = site/themes/hugo-solstice-theme
+	url = https://gitlab.eclipse.org/eclipsefdn/it/webdev/hugo-solstice-theme.git

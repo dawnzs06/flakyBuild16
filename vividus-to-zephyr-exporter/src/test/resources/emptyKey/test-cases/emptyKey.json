@@ -1,9 +1,0 @@
-{
-  "uid" : "001",
-  "name" : "Scenario 1.story",
-  "status" : "skipped",
-  "labels" : [ {
-    "name" : "issue",
-    "value" : "1"
-  }]
-}

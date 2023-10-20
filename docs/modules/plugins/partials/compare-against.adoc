@@ -1,3 +1,0 @@
-=== `COMPARE_AGAINST`
-
-Compares actual appearance of the page or element against the baseline. Make sure that the baseline you compare against actually exists.

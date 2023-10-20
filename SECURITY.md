@@ -1,17 +1,21 @@
-Reporting Security Issues and Vulnerabilities
-=============================================
+# Security Policy
 
-At VIVIDUS project we take security seriously. Whether it is the code we write or the dependencies we
-use, security is always extremely important.
+Eclipse RDF4J follows the [Eclipse Vulnerability Reporting Policy](https://www.eclipse.org/security/policy.php). Vulnerabilities are tracked by the Eclipse security team, in cooperation with the RDF4J project lead. Fixing vulnerabilities is taken care of by the RDF4J project committers, with assistance and guidance of the security team. 
 
-Please do not open an issue or pull request as this makes the problem immediately visible to everyone
-including malicious actors.
+## Supported Versions
 
-Security issues in this project can be safely reported via the following address:
+Eclipse RDF4J supports security updates for the following releases:
 
-team@vividus.dev
 
-In the report, please provide a [concise reproducible test case](http://sscce.org/) and describe
-what results you are seeing and what results you expect.
+| Version | Supported          |
+| ------- | ------------------ |
+| current release   | ✅ |
+| latest minor release before the current   | ✅(on request only) |
+| latest major release before the current   | ✅(on request only) |
+| anything older   | :x:                |
 
-Members of VIVIDUS project will be notified and will begin the triage process.
+For example if the current release is 4.1, we support security patches for 4.1.x (the current release) and 4.0.x (latest minor before current), as well as for 3.7.x (latest major before current), but not for 3.6.x or older. Security patches for the current release are provided proactively by the team, while patches for older supported releases are provided on request only.
+
+## Reporting a Vulnerability
+
+We recommend that in case of suspected vulnerabilities you do not use the RDF4J public issue tracker, but instead contact the Eclipse Security Team directly via security@eclipse.org.

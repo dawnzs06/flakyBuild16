@@ -1,1 +1,0 @@
-{"afterStoriesSteps": [{"outcome": "successful", "value": "org.vividus.steps.LoggingExecutionResultsSteps.afterStories()"},{"outcome": "successful", "value": "org.vividus.analytics.AnalyticsSteps.postAfterStoriesAnalytics()"}]}

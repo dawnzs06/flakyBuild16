@@ -1,5 +1,0 @@
-{valueSeparator=!}
-|step                                               |
-!Given I start mobile application with capabilities:!
-!|name|value     |                                  !
-!|app |${app-url}|                                  !

@@ -1,1 +1,0 @@
-{"id" : ${id},"name" : someName,"field" : "${field}"}

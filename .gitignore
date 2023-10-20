@@ -1,20 +1,50 @@
-#Ignore Gradle cache
-.gradle
-
-#Ignore IDE project files
-.settings
+# Eclipse settings
 .project
+**/.project
 .classpath
-**/bin/**
+**/.classpath
+.settings
+**/.settings
+bin
+**/bin
+**/.factorypath
+
+# Eclipse Plug-In Settings
+.pmd
+
+# Maven generated stuff
+target/
+*/target/
+**/.cache
+pom.xml.versionsBackup
+dependency-reduced-pom.xml
+
+# GEdit generated stuff
+*.*~
+
+# IntelliJ files
+.idea/
 *.iml
 *.ipr
 *.iws
-**/.idea/
 
-#Build Dirs#
-/output/
-/*/output/
-/.out/**
+# Hugo
+.hugo_build.lock
 
-# macOS system files
+# Mac nonsense
 .DS_Store
+
+# NetBean (generated) files
+**/nb-configuration.xml
+**/nbactions*.xml
+*.jfr
+compliance/repository/overlays
+**/webapp/META-INF/context.xml
+/core/sail/elasticsearch-store/tempElasticsearchDownload/*
+tempElasticsearchDownload
+cache.db
+formatter-maven-cache.properties
+compliance/*/overlays
+docker/ignore
+/core/queryparser/sparql/JavaCC/javacc/
+/scripts/temp/

@@ -1,1 +1,5 @@
-* @vividus-framework/maintainers
+# Each line is a file pattern followed by one or more owners.
+
+# The committer team are the default owners for everything in
+# the repo. 
+*       @eclipse/technology-rdf4j-committers

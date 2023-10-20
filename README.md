@@ -1,91 +1,60 @@
-[![GitHub release](https://img.shields.io/github/v/release/vividus-framework/vividus?display_name=tag&sort=semver)](https://github.com/vividus-framework/vividus/releases)
-[![Vividus CI](https://github.com/vividus-framework/vividus/workflows/Vividus%20CI/badge.svg)](https://github.com/vividus-framework/vividus/actions?query=workflow%3A%22Vividus+CI%22)
-[![codecov](https://codecov.io/gh/vividus-framework/vividus/branch/master/graph/badge.svg)](https://codecov.io/gh/vividus-framework/vividus)
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=vividus-framework_vividus&metric=alert_status)](https://sonarcloud.io/dashboard?id=vividus-framework_vividus)
-[![Stackoverflow](https://img.shields.io/badge/stackoverflow-vividus-green.svg)](http://stackoverflow.com/questions/tagged/vividus)
-[![BrowserStack Status](https://automate.browserstack.com/badge.svg?badge_key=VjFGZEtSdWpWZ3QrNkNBeHphOUpLbWFsL2VLMW15eUxySGEwamovU1ArTT0tLVN3dlROQWpVbnlNWWdsOGFxdDYwRGc9PQ==--4afc60c487e3a7d23e327c7b430c81e34277a35e)](https://automate.browserstack.com/public-build/VjFGZEtSdWpWZ3QrNkNBeHphOUpLbWFsL2VLMW15eUxySGEwamovU1ArTT0tLVN3dlROQWpVbnlNWWdsOGFxdDYwRGc9PQ==--4afc60c487e3a7d23e327c7b430c81e34277a35e)
-[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](code_of_conduct.md)
+# Welcome to the Eclipse RDF4J repository
 
-**This repository contains source code of VIVIDUS tool. If you are looking for the user guide, please, check out [Vividus Starter](https://github.com/vividus-framework/vividus-starter) and [the official documentation](https://docs.vividus.dev/).**
+![RDF4J](https://github.com/eclipse/rdf4j/blob/main/site/static/images/rdf4j-logo-orange-114.png)
 
-## How to build the project? (Only for VIVIDUS developers)
-Prerequisites: make sure [Java 17](https://adoptium.net/temurin/releases/?version=17) is used.
+This is the main code repository for the Eclipse RDF4J project. 
 
-1. Clone main [Vividus project](https://github.com/vividus-framework/vividus.git)
-    ```shell
-    git clone --recursive https://github.com/vividus-framework/vividus.git
-    ```
-1. Build the project:
-    ```shell
-    ./gradlew build
-    ```
+[![main status](https://github.com/eclipse/rdf4j/workflows/main%20status/badge.svg)](https://github.com/eclipse/rdf4j/actions?query=workflow%3A%22main+status%22)
+[![develop status](https://github.com/eclipse/rdf4j/workflows/develop%20status/badge.svg)](https://github.com/eclipse/rdf4j/actions?query=workflow%3A%22develop+status%22) [![Join the chat at https://gitter.im/eclipse/rdf4j](https://badges.gitter.im/eclipse/rdf4j.svg)](https://gitter.im/eclipse/rdf4j?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-## Acknowledgements
-<table>
-<tbody>
-<tr>
-<td>
-<br />
+Visit the [project website](https://rdf4j.org/) for news, documentation, and downloadable releases. For support questions, comments, and any ideas for improvements you'd like to discuss, please use our [discussion forum](https://github.com/eclipse/rdf4j/discussions). If you have found a bug or have a very specific feature/improvement request, you can also use our [issue tracker](https://github.com/eclipse/rdf4j/issues) to report it.
 
-[<img src="https://resources.jetbrains.com/storage/products/intellij-idea/img/meta/intellij-idea_logo_300x300.png" width="100px" alt="IntelliJ IDEA">](https://www.jetbrains.com/?from=Vividus)
+## Installation and usage
 
-[JetBrains](https://www.jetbrains.com/?from=Vividus) has provided us with the tools and IDEs necessary to build a high quality tool. Thank you.
+For installation and usage instructions of the RDF4J Workbench and Server applications, see [RDF4J Server and Workbench](https://rdf4j.org/documentation/tools/server-workbench). 
 
-<br />
-</td>
-<td>
-<br />
+For installation and usage instructions of the RDF4J Java libaries, see [Programming with RDF4J](https://rdf4j.org/documentation/programming). 
 
-[![Mobitru](https://mobitru.com/images/logo.svg)](https://mobitru.com)
+### Building from source
 
-[Mobitru](https://mobitru.com) has provided us with the tools and infrastructure necessary to build a high quality tool by testing our components on a range of browsers and platforms. Thank you.
+RDF4J is a multi-module [maven](https://maven.apache.org/index.html) project. It can be compiled, tested, and installed with the [usual maven lifecycle phases](https://maven.apache.org/guides/introduction/introduction-to-the-lifecycle.html) from the command line, for example:
 
-<br />
-</td>
-</tr>
-<tr></tr>
-<tr>
-<td>
-<br />
+- `mvn verify` - compiles and runs all tests
+- `mvn package` - compiles, tests, and packages all modules
+- `mvn install` - compiles, tests, packages, and installs all artifacts in the local maven repository
+- `mvn -Pquick install` - compiles, packages and installs everything (skipping test execution)
 
-[<img src="https://saucelabs.com/images/logo.svg" width="180px" alt="SauceLabs">](https://saucelabs.com)
+These commands can be run from the project root to execute on the entire project or (if you're only interested in working with a particular module) from any module's subdirectory. 
 
-[SauceLabs](https://saucelabs.com/) has provided us with the tools and infrastructure necessary to build a high quality tool by testing our components on a range of browsers and platforms. Thank you.
+To build the full RDF4J project, including onejar and SDK files and full aggregated javadoc, from source, run:
 
-<br />
-</td>
-<td>
-<br />
+     mvn -Passembly package
 
-[![BrowserStack](https://www.browserstack.com/images/mail/browserstack-logo-footer.png)](https://www.browserstack.com)
+The SDK and onejar will be available in `assembly/target`. Individual module jars and wars will be in `target/` in their respective modules. 
 
-[BrowserStack](https://www.browserstack.com/) has provided us with the tools and infrastructure necessary to build a high quality tool by testing our components on a range of browsers and platforms. Thank you.
+Modern IDEs like Eclipse, IntelliJ IDEA, or Netbeans can of course also be used to build, test, and run (parts of) the project. 
 
-<br />
-</td>
-</tr>
-<tr></tr>
-<tr>
-<td>
-<br />
+## Keen to contribute?
 
-[![LambdaTest](https://www.lambdatest.com/resources/images/logos/logo.svg)](https://www.lambdatest.com)
-&nbsp;&nbsp;
-[<img src="https://user-images.githubusercontent.com/5081226/214425833-cdafd4e2-a33e-4b6f-b345-91e1ffb70d32.png" width="150px" alt="LambdaTest HyperExecute">](https://www.lambdatest.com/hyperexecute?from=vividus)
+We welcome contributions! Whether you have a new feature you want to add, or a bug you want to fix, or a bit of documentation you want to improve, it's all very welcome. Have a look in our [issue tracker](https://github.com/eclipse/rdf4j/issues) for any open problems, in particular the ones marked as [good first issue](https://github.com/eclipse/rdf4j/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) or as [help wanted](https://github.com/eclipse/rdf4j/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22). Or feel free to add your own new issue if what you have in mind is not there yet.
 
-[LambdaTest](https://www.lambdatest.com/) has provided us with the tools and infrastructure necessary to build a high quality tool by testing our components on a range of browsers and platforms. Thank you.
+To get started on your contribution, please first read our [Contributor
+guidelines](https://github.com/eclipse/rdf4j/blob/main/CONTRIBUTING.md).
 
-<br />
-</td>
-<td>
-<br />
+The short version:
 
-[<img src="https://applitools.com/wp-content/uploads/2022/08/Applitools-Logo-Set-V2_Applitools_1c_Green_Applitools_fullcolor_tagline-1.svg" width="150px" alt="Applitools">](https://applitools.com/)
+1. Digitally sign the [Eclipse Contributor Agreement (ECA)](https://www.eclipse.org/legal/ECA.php), as follows: 
+     * [Register an Eclipse account](https://accounts.eclipse.org/user/register). **Important**: Use the same email address that you will use on Git commits as the author address. 
+     * Open the [ECA form](https://accounts.eclipse.org/user/eca) and complete it. See the [ECA FAQ](https://www.eclipse.org/legal/ecafaq.php) for more info. 
+2. Create an issue in the [issue tracker](https://github.com/eclipse/rdf4j/issues) that describes your improvement, new feature, or bug fix - or if you're picking up an existing issue, comment on that issue that you intend to provide a solution for it.
+3. Fork the GitHub repository.
+4. Create a new branch (starting from main) for your changes. Name your branch like this: `GH-1234-short-description-here` where 1234 is the Github issue number.
+5. Make your changes on this branch. Apply the [RDF4J code formatting guidelines](https://github.com/eclipse/rdf4j/blob/main/CONTRIBUTING.md#code-formatting). Don't forget to include unit tests.
+7. Run `mvn verify` from the project root to make sure all tests succeed (both your own new ones, and existing).
+8. Commit your changes into the branch. Make sure the commit author name and e-mail correspond to what you used to sign the ECA. Use meaningful commit messages. Reference the issue number in each commit message (for example "GH-276: added null check").
+9. Once your fix is complete, put it up for review by opening a Pull Request against the main branch in the central Github repository. If you have a lot of commits on your PR, make sure to [squash your commits](https://rdf4j.org/documentation/developer/squashing).
 
-[Applitools](https://applitools.com/) has provided us with the tools to build a high quality tool by testing our components on a range of browsers and platforms. Thank you.
+These steps are explained in more detail in the [Contributor
+guidelines](https://github.com/eclipse/rdf4j/blob/main/CONTRIBUTING.md).
 
-<br />
-</td>
-</tr>
-</tbody>
-</table>
+You can find more detailed information about our development and release processes in the [Developer Workflow and Project Management](https://rdf4j.org/documentation/developer/) documentation.

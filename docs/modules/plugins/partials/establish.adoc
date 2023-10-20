@@ -1,3 +1,0 @@
-=== `ESTABLISH`
-
-Creates a baseline image.
