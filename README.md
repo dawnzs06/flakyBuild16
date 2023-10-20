@@ -1,17 +1,23 @@
-# iDempiere. Community Powered Enterprise
+[![][Build Status img]][Build Status]
+[![][license img]][license]
+[![][Maven Central img]][Maven Central]
+[![][Javadocs img]][Javadocs]
 
-iDempiere Business Suite ERP/CRM/SCM done the community way.  Focus is on the Community that includes Subject Matter Specialists, Implementors and End-Users.
+jnr-unixsocket
+==============
 
-Please visit the project front page containing links for most of our resources: https://www.idempiere.org/
+Native I/O access for java.
 
-You can have a first-hand experience about the software in one of our live cloud test sites: https://www.idempiere.org/test-sites
+Check out the [examples](https://github.com/jnr/jnr-unixsocket/tree/master/src/test/java/jnr/unixsocket/example) for more information.
 
-If you want to install it by yourself, the most used way is to follow the guide: https://wiki.idempiere.org/en/Installing_iDempiere
+[Build Status]:https://travis-ci.org/jnr/jnr-unixsocket
+[Build Status img]:https://travis-ci.org/jnr/jnr-unixsocket.svg?branch=master
 
-In case of doubts please use our support forums at http://groups.google.com/group/idempiere  
-Or our Mattermost support channel in https://mattermost.idempiere.org/  
-Don't forget to check our [code of conduct](CODE_OF_CONDUCT.md) and our [contribution guide](CONTRIBUTING.md)
+[license]:LICENSE
+[license img]:https://img.shields.io/badge/license-Apache%202-blue.svg
 
-If you find a bug or want to register a feature request please consider discussing it first in our forums, and after you're totally sure, please use the JIRA ticketing system: https://idempiere.atlassian.net
+[Maven Central]:https://maven-badges.herokuapp.com/maven-central/com.github.jnr/jnr-unixsocket
+[Maven Central img]:https://maven-badges.herokuapp.com/maven-central/com.github.jnr/jnr-unixsocket/badge.svg
 
-Continuous integration when changing this repository is managed with Jenkins at http://ci.idempiere.org/
+[Javadocs]:http://javadoc.io/doc/com.github.jnr/jnr-unixsocket
+[Javadocs img]:http://javadoc.io/badge/com.github.jnr/jnr-unixsocket.svg

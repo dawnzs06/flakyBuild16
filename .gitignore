@@ -1,33 +1,49 @@
-**/target/
-**/bin/
-**/lib/*.jar
-**/seed/*.jar
-/org.adempiere.ui.zk/labelapplet.jar
-/org.adempiere.extend/test.properties
+# maven
+target/
+*.versionsBackup
+*.releaseBackup
 
-/.metadata/
-/PostgreSQL/
-/Oracle/
-/log/
-/*.log
-/.idpass
-/idempiere.properties
-/idempiereEnv.properties
-/hazelcast.xml
+# eclipse
+.classpath
+.project
+.settings
 
-swingclient.product*.launch
-server.product*.launch
+# intellij / android studio
+*.iml
+*.ipr
+*.iws
+.idea/
 
-/RemoteSystemsTempFiles/
-External Plug-in Libraries
-.recommenders
+# common junk
+*.log
+*.diff
+*.patch
+*.sw[a-p]
+*.bak
+*.backup
+*.debug
+*.dump
 
-/runtime-server.product/
-/jettyhome/
+# vim 
+.*.sw[a-p]
+*~
+~*
 
-/org.idempiere.javadoc/API
-/.sonarlint/
-**/org.sonarlint.eclipse.core.prefs
-/runtime-*.app/
-org.idempiere.maven.to.p2/org.idempiere.webservice.client/.settings/
-**/org.eclipse.jdt.core.prefs
+# Mac filesystem dust
+.DS_Store
+
+# pmd
+.pmdruleset
+.pmd
+
+# merge tooling
+*.orig
+*.rej
+\.orig$
+\.orig\..*$
+\.chg\..*$
+\.rej$
+\.conflict\~$
+
+.idea
+/.checkstyle
