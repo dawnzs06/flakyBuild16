@@ -1,55 +1,42 @@
-# Gradle
-.gradle/
-build/
-.gradletasknamecache
-
+#Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+release.properties
 
 # Eclipse
 .project
-.metadata
-bin/**
-tmp/**
-tmp/**/*
-*.tmp
-*.bak
-*.swp
-*~.nib
-local.properties
 .classpath
 .settings/
-.loadpath
-.externalToolBuilders/**
+bin/
 
 # IntelliJ
-*.iml
+.idea
 *.ipr
+*.iml
 *.iws
-.idea/
 
-# Android
-*.apk
-*.ap_
+# NetBeans
+nb-configuration.xml
 
-# files for the dex VM
-*.dex
+# Visual Studio Code
+.vscode
+.factorypath
 
-# Java class files
-*.class
+# OSX
+.DS_Store
 
-# generated files
-bin/
-gen/
+# Vim
+*.swp
+*.swo
 
-# Windows
-Thumbs.db
-ehthumbs.db
-Desktop.ini
-$RECYCLE.BIN/
-/.gitignore
-/.checkstyle
-libs/
-libs/**
-/project.properties
-/databases/
-/marathon1/
-/test.gpx
+# patch
+*.orig
+*.rej
+
+# Local environment
+.env
+
+#JReleaser
+out/

@@ -1,0 +1,121 @@
+#
+#  Copyright 2021 The original authors
+#
+#  Licensed under the Apache License, Version 2.0 (the "License");
+#  you may not use this file except in compliance with the License.
+#  You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+#  Unless required by applicable law or agreed to in writing, software
+#  distributed under the License is distributed on an "AS IS" BASIS,
+#  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#  See the License for the specific language governing permissions and
+#  limitations under the License.
+#
+
+name: EarlyAccess
+
+on:
+  push:
+    branches: [ kcctl ]
+
+
+
+
+
+
+
+
+jobs:
+  # Build native executable per runner
+  build:
+    name: 'Build with Graal on ${{ matrix.os }}'
+    if: github.repository == 'kcctl/kcctl' && startsWith(github.event.head_commit.message, '🏁 Releasing version') != true && startsWith(github.event.head_commit.message, '⬆️  Next version') != true
+    strategy:
+      fail-fast: true
+      matrix:
+        os: [ ubuntu-latest, macOS-latest, windows-latest ]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: 'Check out repository'
+        uses: actions/checkout@v3
+        
+      - name: 'Add Developer Command Prompt for Microsoft Visual C++ '
+        if: ${{ runner.os == 'Windows' }}
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - uses: graalvm/setup-graalvm@v1
+        with:
+          version: ${{ env.GRAAL_VERSION }}
+          java-version: ${{ env.JAVA_VERSION }}
+          components: 'native-image'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 'Cache Maven packages'
+        uses: actions/cache@v3.3.1
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: 'Build Native Image (Linux)'
+        if: ${{ runner.os == 'Linux' }}
+        run: ./mvnw -ntp -B --file pom.xml -Pnative package
+
+      - name: 'Build Native Image (macOS, Windows)'
+        if: ${{ runner.os == 'macOS' || runner.os == 'Windows' }}
+        run: ./mvnw -ntp -B --file pom.xml -Pnative package "-Dquarkus.test.profile.tags=basic"
+
+      - name: 'Create distribution'
+        run: ./mvnw -ntp -B --file pom.xml -Pdist package -DskipTests
+
+      - name: 'Upload build artifact'
+        uses: actions/upload-artifact@v3
+        with:
+          name: artifacts
+          path: |
+            target/*.zip
+            target/*.tar.gz
+
+  # Collect all executables and release
+  release:
+    needs: [ build ]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 'Check out repository'
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: 'Download all build artifacts'
+        uses: actions/download-artifact@v3
+
+      - name: 'Set up Java'
+        uses: actions/setup-java@v3
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRO }}
+
+      - name: 'Cache Maven packages'
+        uses: actions/cache@v3.3.1
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+
+      - name: 'Release with JReleaser'
+        env:
+          JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: ./mvnw -ntp -B --file pom.xml -Prelease -DartifactsDir=artifacts jreleaser:full-release
+
+      - name: JReleaser output
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: jreleaser-logs
+          path: |
+            target/jreleaser/trace.log
+            target/jreleaser/output.properties

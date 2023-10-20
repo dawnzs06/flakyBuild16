@@ -1,103 +1,210 @@
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=osmeditor4android&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=osmeditor4android) [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=osmeditor4android&metric=coverage)](https://sonarcloud.io/summary/new_code?id=osmeditor4android) [![sonarcloud bugs](https://sonarcloud.io/api/project_badges/measure?project=osmeditor4android&metric=bugs)](https://sonarcloud.io/component_measures?id=osmeditor4android&metric=bugs) [![sonarcould maintainability](https://sonarcloud.io/api/project_badges/measure?project=osmeditor4android&metric=sqale_rating)](https://sonarcloud.io/component_measures?id=osmeditor4android&metric=Maintainability) [![sonarcloud security](https://sonarcloud.io/api/project_badges/measure?project=osmeditor4android&metric=security_rating)](https://sonarcloud.io/component_measures?id=osmeditor4android&metric=Security) [![sonarcloud reliability](https://sonarcloud.io/api/project_badges/measure?project=osmeditor4android&metric=reliability_rating)](https://sonarcloud.io/component_measures?id=osmeditor4android&metric=Reliability)
+# 🧸 kcctl – Your Cuddly CLI for Apache Kafka Connect
 
-# Vespucci - An OpenStreetMap editor for Android
+_It's Casey. Casey Cuddle._
 
-This is the first [OpenStreetMap][openstreetmap] editor for
-[Android][android], codename "Vespucci".
+This project is a command-line client for [Kafka Connect](https://kafka.apache.org/documentation/#connect).
+Relying on the idioms and semantics of _kubectl_,
+it allows you to register and examine connectors, delete them, restart them, etc.
+You can see what _kcctl_ is about in this short video:
 
+[![kcctl Intro](https://img.youtube.com/vi/F9bUsM1ZwKk/0.jpg)](https://www.youtube.com/watch?v=F9bUsM1ZwKk)
 
-![Amerigo Vespucci](http://vespucci.io/180px-Amerigo_Vespucci.jpg "Amerigo Vespucci")
+## Installation
 
-## Installing
+The latest stable release of _kcctl_ (x86) for Linux, macOS, and Windows can be retrieved via [SDKMan](https://sdkman.io/sdks#kcctl):
 
-[GooglePlay](https://play.google.com/store/apps/details?id=de.blau.android)
+```shell script
+sdk install kcctl
+```
 
-[Latest release from Github](https://github.com/MarcusWolschon/osmeditor4android/releases/latest)
+You may also use [Homebrew](https://brew.sh/) to install _kcctl_ on Linux and macOs, by configuring our tap
 
-## Contributing
+```shell script
+brew install kcctl/tap/kcctl
+```
 
-If you're interested in this project, you're welcome to help improving it. We
-need UI designers, [translators](TRANSLATIONS.md), and of course Java programmers. 
-See the [build documentation](BUILDING.md) for more information.
+It is recommended to install the bash/zsh completion script _kcctl_completion_:
 
-## What is Vespucci?
+```shell script
+wget https://raw.githubusercontent.com/kcctl/kcctl/main/kcctl_completion
+. kcctl_completion
+```
 
-* An on- and offline editor for OpenStreetMap
-* Runs on mobile devices using the Android platform
-* Functionality:
-    * Create and edit new nodes and ways
-    * Move and rotate ways
-    * Append nodes to existing ways
-    * Delete nodes
-    * Create, edit and delete tags
-    * Edit relations and create new turn restrictions and routes
-    * JOSM presets support
-    * Thematic mapping with no programming
-    * Download and upload to OSM server
-    * Offline data support
-    * Saving and reading of JOSM format OSM data files
-    * Highlight objects with missing tags like unnamed roads
-    * Highlight ways/nodes with TODOs or FIXMEs
-    * Highlight very old objects that are likely to be out dated
-    * Add, comment and close OSM Notes
-    * OSMOSE and Maproulette support
-    * Use a variety of background tile layers as reference
-    * Show the user's GPS track with accuracy
-    * Upload to OSM and local saving of GPS tracks
-    * Display the raw data
-    * Display geo-referenced photographs and Mapillary images
-    * GeoJSON layers with support for importing objects
-    * ... and lots more ...
-    
-Detailed documentation can be found on the [Vespucci Website](https://vespucci.io/)
+Alternatively, you can obtain early access binaries from [here](https://github.com/kcctl/kcctl/releases).
+This is a rolling release, new binaries are published upon each commit pushed to the kcctl repository.
 
-## What is Vespucci NOT?
+Note: on macOS, you need to remove the quarantine flag after downloading, as the distribution currently is not signed:
 
-* a pure map-view or a routing-application
+```shell script
+xattr -r -d com.apple.quarantine path /to/kcctl-1.0.0-SNAPSHOT-osx-x86_64/
+```
 
-## Getting started with contributing
+## Usage
 
-Here is how you can start developing.
+### Quickstart
 
-Currently building is supported with gradle in eclipse, android studio and naturally gradle on the command line, see [build instructions](BUILDING.md).
+Before you can start using _kcctl_ you need to create a configuration context.
+A configuration context is a set of configuration parameters, grouped
+by a name, describing one particular Kafka Connect environment.
+All subsequent commands will be executed using the currently active context.
 
-If you are interested in adding a feature or other development work, please reach out to us before embarking on something that might be already in work or a fools errand. 
+To create a configuration context named `local`, with the Kafka Connect cluster URL set to
+`http://localhost:8083`, issue the following command
 
-Important note: if you are building your own version, particularly if you are making it available to third parties, please change app_version and app_name_version in res/values/appname.xml to something that makes it clear that this is not an "official" release and clearly identifies your builds.
+```shell script
+kcctl config set-context local --cluster http://localhost:8083
+```
 
-## Related projects
+:exclamation: Note that certain commands will require additional parameters, like `bootstrap-servers` and
+`offset-topic`.
 
-Vespucci utilizes a number of independent, separately maintained, projects. The most relevant of these are
+Type `kcctl info` to display some information about the Kafka Connect cluster.
+The command will use the currently active context, `local` in this case, to
+resolve the cluster URL.
 
-* [Editor Layer Index (ELI)](https://github.com/osmlab/editor-layer-index) background and overlay layers configuration
-* [JOSM](https://josm.openstreetmap.de/wiki/Maps) alternative background and overlay layers configuration
-* [Beautified JOSM Preset](https://github.com/simonpoole/beautified-JOSM-preset) independently maintained presets in JOSM format (can be utilized in JOSM too)
-* [OpeningHoursFragment](https://github.com/simonpoole/OpeningHoursFragment) opening hours user interface
-* [Name Suggestion Index](https://github.com/osmlab/name-suggestion-index) name/brand-related tag suggestions database
-* [iD tagging schema](https://github.com/openstreetmap/id-tagging-schema) for synonyms used for searching presets
+### Available Commands
 
-## License and trademarks
+Display the help to learn about using _kcctl_:
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+```shell script
+kcctl help
+Usage: kcctl [-hV] [COMMAND]
+A command-line interface for Kafka Connect
+  -h, --help      Show this help message and exit.
+  -V, --version   Print version information and exit.
+Commands:
+  info      Displays information about the Kafka Connect cluster
+  config    Sets or retrieves the configuration of this client
+  get       Displays information about connector plug-ins, connector offsets,
+              created connectors, and loggers
+  describe  Displays detailed information about the specified resources
+  apply     Applies the given files or the stdin content for registering or
+              updating connectors
+  patch     Modifies the configuration of some connectors or a logger
+  restart   Restarts some connectors or a task
+  pause     Pauses connectors
+  resume    Resumes connectors
+  stop      Stops (but does not delete) connectors
+  delete    Deletes connectors
+  help      Display help information about the specified command.
+```
 
-       http://www.apache.org/licenses/LICENSE-2.0
+### Authentication
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+If your cluster enforces authentication, you may configure your username and password with the `username` and `password` parameters:
 
+```shell script
+kcctl config set-context local --cluster http://localhost:8083 --username myusername --password mypassword
+```
 
-[openstreetmap]: http://www.openstreetmap.org
-[android]: http://developer.android.com
-[mailinglist]: http://groups.google.de/group/osmeditor4android
-[josm]: http://wiki.openstreetmap.org/wiki/JOSM 
+:exclamation: Note that setting user name and password via CLI may store those credentials in your terminal history. To work around this, you may set the username and password directly in your `.kcctl` file:
 
-__OpenStreetMap__ and the magnifying glass logo are trademarks of the OpenStreetMap Foundation. The Vespucci app is not endorsed by or affiliated with the OpenStreetMap Foundation.
+```json
+  "currentContext" : "local",
+  "local" : {
+    "cluster" : "http://localhost:8083",
+    "username" : "myusername",
+    "password" : "mypassword"
+  }
+```
 
-__Mapillary__ is a trademark of Mapillary AB, Sweden. The Vespucci app is not endorsed by or affiliated with Mapillary AB. 
+Currently, only basic authentication is supported.
 
+## Development
 
+This project uses [Quarkus](https://quarkus.io/), the Supersonic Subatomic Java Framework.
+
+To build the project, make sure to the following things are installed:
+
+* Java 17
+* Alternatively, for creating native binaries, GraalVM 22.1.0 or newer
+* When using GraalVM, the native image tool (install via `$JAVA_HOME/bin/gu install native-image`)
+* Docker must for running the integration tests (via Testcontainers)
+
+The following build commands are commonly used:
+
+```shell script
+# Build and run all the tests
+./mvnw clean verify
+
+# Build and skip integration tests
+./mvnw clean verify -Dquarkus.test.profile.tags="basic"
+
+# Format sources
+./mvnw process-sources
+```
+
+### Running the Application in Dev Mode
+
+You can run your application in dev mode that enables live coding using:
+
+```shell script
+./mvnw compile quarkus:dev
+```
+
+To seed the command line arguments, pass the `-Dquarkus.args` option:
+
+```shell script
+./mvnw compile quarkus:dev -Dquarkus.args='patch get connectors'
+```
+
+In dev mode, remote debuggers can connect to the running application on port 5005.
+In order to wait for a debugger to connect, pass the `-Dsuspend` option.
+
+### Packaging and Running the Application
+
+The application can be packaged using:
+
+```shell script
+./mvnw package
+```
+
+It produces the `quarkus-run.jar` file in the `target/quarkus-app/` directory.
+Be aware that it’s not an _über-jar_ as the dependencies are copied into the `target/quarkus-app/lib/` directory.
+
+The application is now runnable using `java -jar target/quarkus-app/quarkus-run.jar`.
+You should define an alias _kcctl_:
+
+```shell script
+alias kcctl="java -jar target/quarkus-app/quarkus-run.jar"
+```
+
+### Creating a Native Executable
+
+You can create a native executable using:
+
+```shell script
+./mvnw package -Pnative
+```
+
+You can then execute your native executable with: `./target/kcctl-1.0.0-SNAPSHOT-runner`
+
+As above, either define an alias _kcctl_ or rename the resulting executable accordingly.
+
+### Updating the Completion Script
+
+Build the application in JVM mode.
+Then recreate the completion script:
+
+```shell script
+java -cp "target/quarkus-app/app/*:target/quarkus-app/lib/main/*:target/quarkus-app/quarkus-run.jar" \
+  picocli.AutoComplete -n kcctl --force org.kcctl.command.KcCtlCommand
+```
+
+Edit the completion script _kcctl\_completion_, replace all the quotes around generated completion invocations with back ticks, making them actual invocations of _kcctl_:
+
+```shell script
+--- local CONNECTOR_NAME_pos_param_args="kcctl connector-name-completions" # 0-0 values
++++ local CONNECTOR_NAME_pos_param_args=`kcctl connector-name-completions` # 0-0 values
+```
+
+Currently, three kinds of completions exist: `connector-name-completions`, `task-name-completions`, and `logger-name-completions`.
+
+### Related Quarkus Guides
+
+- Picocli ([guide](https://quarkus.io/guides/picocli)): Develop command line applications with Picocli
+- Quarkus native apps ([guide](https://quarkus.io/guides/maven-tooling.html)): Develop native applications with Quarkus and GraalVM
+
+## License
+
+This code base is available under the Apache License, version 2.
