@@ -1,0 +1,90 @@
+@startuml
+!include style.puml
+
+package codegeneration {
+
+  class DslCodeGenerator {
+    String generateCodeFromJmx(File file)
+  }
+
+  abstract class MethodCallBuilder {
+    abstract boolean matches(MethodCallContext context)
+    abstract MethodCall buildMethodCall(MethodCallContext context)
+  }
+
+  class MethodCallContext {
+    Map<Object, Object> entries
+  }
+
+  interface MethodCallContextEndListener {
+    execute(MethodCallContext context, MethodCall call)
+  }
+
+  class MethodCall {
+    String methodName
+
+    String buildeCode(String indent)
+  }
+
+  abstract class MethodParam {
+    String name
+
+    String buildCode(String indent)
+  }
+
+  abstract class FixedParam extends MethodParam
+
+  class DynamicParam extends MethodParam
+
+  class StringParam extends FixedParam
+
+  class NameParam extends StringParam
+
+  class IntParam extends FixedParam
+
+  class LongParam extends FixedParam
+
+  class BoolParam extends FixedParam
+
+  class DurationParam extends FixedParam
+
+  abstract class SingleTestElementCallBuilder extends MethodCallBuilder {
+    abstract MethodCall buildMethodCall(TestElement testElement, MethodCallContext context)
+  }
+
+  abstract class SingleGuiClassCallBuilder extends MethodCallBuilder {
+  }
+
+  class TestElementParamBuilder {
+    nameParam(String defaultName)
+    intParam(String propName, int defaultValue)
+    longParam(String propName, long defaultValue)
+    boolParam(String propName, boolean defaultValue)
+    durationParam(String propName, Duration defaultValue)
+  }
+
+  DslCodeGenerator --> MethodCallBuilder
+  DslCodeGenerator ..> MethodCallContext
+
+  MethodCall --> "chain *" MethodParam
+  MethodCall --> "children *" MethodCall
+
+  MethodCallContext --> "parent 0..1" MethodCallContext
+  MethodCallContext --> "*" MethodCallContextEndListener
+  MethodCallContext --> DslCodeGenerator
+  MethodCallContext ..> MethodCall
+
+}
+
+package org.apache.jmeter {
+
+  interface TestElement
+  class HashTree
+
+}
+
+MethodCallContext --> TestElement
+MethodCallContext --> HashTree
+TestElementParamBuilder --> TestElement
+
+@enduml

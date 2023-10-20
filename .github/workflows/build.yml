@@ -1,0 +1,29 @@
+name: run tests
+on:
+  push:
+    branches: [ jmeter-java-dsl ]
+
+
+
+
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    concurrency: blazemeter_test
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 8
+          cache: maven
+      - uses: browser-actions/setup-chrome@v1
+      - name: Run maven tests
+        run: mvn --batch-mode --no-transfer-progress clean install
+        env:
+          BZ_TOKEN: ${{ secrets.BZ_TOKEN }}
+          OCTOPERF_API_KEY: ${{ secrets.OCTOPERF_API_KEY }}
+          AZURE_CREDS: ${{ secrets.AZURE_CREDS }}
+          DATADOG_API_KEY: ${{ secrets.DATADOG_API_KEY }}
+          DATADOG_APPLICATION_KEY: ${{ secrets.DATADOG_APPLICATION_KEY }}

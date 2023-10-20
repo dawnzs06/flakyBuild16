@@ -1,106 +1,117 @@
-![junixsocket logo](https://user-images.githubusercontent.com/822690/246675372-d1775152-5f5e-4576-8f3d-8445779ea584.png)
+![logo](/docs/.vuepress/public/logo.svg)
 
-# junixsocket
+[![Maven Central](https://img.shields.io/maven-central/v/us.abstracta.jmeter/jmeter-java-dsl.svg?label=Maven%20Central)](https://search.maven.org/artifact/us.abstracta.jmeter/jmeter-java-dsl)
+[![Reproducible Builds](https://img.shields.io/badge/Reproducible_Builds-ok-green?labelColor=1e5b96)](https://github.com/jvm-repo-rebuild/reproducible-central/blob/master/content/us/abstracta/jmeter/jmeter-java-dsl/README.md)
 
-junixsocket is a Java/JNI library that allows the use of
-[Unix Domain Sockets](https://en.wikipedia.org/wiki/Unix_domain_socket) (AF_UNIX sockets), and
-other address/protocol families (such as [AF_TIPC](http://tipc.io/), AF_VSOCK, and AF_SYSTEM),
-from Java.
+Simple Java API to run performance tests, using [JMeter] as engine, in a Git and programmers friendly way.
 
-## Unix sockets API, in Java, AF.
+If you like this project, **please give it a star :star:!** This helps the project be more visible, gain relevance, and encourage us to invest more effort in new features.
 
-* *junixsocket* is the most complete implementation of AF_UNIX sockets for the Java ecosystem.
-* Supports other socket types, such as TIPC (on Linux), VSOCK (on Linux, and certain macOS VMs), and
-  AF_SYSTEM (on macOS) as well!
-* Comes with pre-built native libraries for most operating systems and platforms, including
-  macOS, Linux, Android, Windows, Solaris, FreeBSD, NetBSD, OpenBSD, DragonFlyBSD, AIX, IBM i.
-* Additionally, you can build and run junixsocket natively on IBM z/OS (experimental).
-* Supports all Java versions since Java 8*
-* Supports both the Java Socket API and NIO (`java.net.Socket`, `java.net.SocketChannel`, etc.)
-* Supports streams and datagrams.
-* Supports Remote Method Invocation (RMI) over AF_UNIX.
-* Supports JDBC database connectors (connect to a local database server via Unix sockets).
-    * Generic *AFUNIXSocketFactory* for databases like PostgreSQL
-    * Custom socket factory for MySQL Connector/J, as [recommended by Oracle](https://dev.mysql.com/doc/connector-j/8.0/en/connector-j-unix-socket.html)
-* Supports [peer credentials](https://kohlschutter.github.io/junixsocket/peercreds.html).
-* Supports sending and receiving [file descriptors](https://kohlschutter.github.io/junixsocket/filedescriptors.html).
-* Supports the abstract namespace on Linux.
-* Supports socketpair, and instantiating socket classes from file descriptors.
-* Supports [HTTP over UNIX sockets](https://kohlschutter.github.io/junixsocket/http.html) (using [NanoHTTPD](https://github.com/NanoHttpd/nanohttpd), [OkHttp](https://github.com/square/okhttp), and [jetty](https://github.com/eclipse/jetty.project/)).
-* Supports JPMS/Jigsaw modules. The project is modularized so you can install only what you need.
-* Supports GraalVM native-image AOT/ahead-of-time compilation (since 2.6.0)
-* Provides a selftest package with 100+ tests to ensure compatibility with any target platform.
-* Apache 2.0 licensed.
+[Here](https://abstracta.github.io/jmeter-dotnet-dsl) you can find the .Net DSL.
 
-`*` (Tested up to Java 22; support for Java 7 was dropped in version 2.5.0).
+Please join [discord server](https://discord.gg/WNSn5hqmSd) or create GitHub [issues](https://github.com/abstracta/jmeter-java-dsl/issues) and [discussions](https://github.com/abstracta/jmeter-java-dsl/discussions) to be part of the community and clear out doubts, get the latest news, propose ideas, report issues, etc.
 
-## Quick links
+## Usage
 
- * [Project website](https://kohlschutter.github.io/junixsocket/) and [Github project](https://github.com/kohlschutter/junixsocket/)
- * [Changelog](https://kohlschutter.github.io/junixsocket/changelog.html)
- * [Getting started](https://kohlschutter.github.io/junixsocket/quickstart.html)
- * [Demo code](https://kohlschutter.github.io/junixsocket/demo.html) ([Java source](https://kohlschutter.github.io/junixsocket/junixsocket-demo/xref/index.html))
-    - Sockets (`org.newsclub.net.unix.demo`)
-    - RMI over Unix Sockets (`org.newsclub.net.unix.demo.rmi` and `org.newsclub.net.unix.demo.rmi.services`)
-    - MySQL over Unix Sockets  (`org.newsclub.net.mysql.demo`)
-  * [API Javadocs](https://kohlschutter.github.io/junixsocket/apidocs/)
-  * [Unix Domain Socket Reference](https://kohlschutter.github.io/junixsocket/unixsockets.html)
-  * [TIPC documentation](https://kohlschutter.github.io/junixsocket/junixsocket-tipc/index.html)
-  * [VSOCK documentation](https://kohlschutter.github.io/junixsocket/junixsocket-vsock/index.html)
-  * [AF_SYSTEM documentation](https://kohlschutter.github.io/junixsocket/junixsocket-darwin/index.html)
+If you use [maven](https://maven.apache.org/what-is-maven.html), just include the following dependency:
 
-## Licensing
-
-junixsocket is released under the Apache 2.0 License.
-
-Commercial support is available through [Kohlschütter Search Intelligence](http://www.kohlschutter.com/).
-
-## Self-test
-
-To verify that the software works as expected on your platform, you can run the
-[junixsocket-selftest](https://kohlschutter.github.io/junixsocket/selftest.html) program, which is
-located in the "junixsocket-dist" distribution package, and also released on GitHub.
-
-```
-java -jar junixsocket-selftest-VERSION-jar-with-dependencies.jar
-```
-
-(with VERSION being the corresponding junixsocket version).
-
-## Maven dependency
-
-To include the core junixsocket functionality in your project, add the following Maven dependency
-
-> **NOTE** Since version 2.4.0, `junixsocket-core` is POM-only (that's why you need to specify `<type>pom</type>`)
-
-```
+```xml
 <dependency>
-  <groupId>com.kohlschutter.junixsocket</groupId>
-  <artifactId>junixsocket-core</artifactId>
-  <version>2.6.2</version>
-  <type>pom</type>
+  <groupId>us.abstracta.jmeter</groupId>
+  <artifactId>jmeter-java-dsl</artifactId>
+  <version>1.19</version>
+  <scope>test</scope>
 </dependency>
+``` 
+
+Here is a simple example test in [JUnit 5](https://junit.org/junit5/)+ with 2 threads/users iterating 10 times each to send HTTP POST requests with a JSON body to `http://my.service`:
+
+```java
+import static org.assertj.core.api.Assertions.assertThat;
+import static us.abstracta.jmeter.javadsl.JmeterDsl.*;
+
+import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
+import org.apache.http.entity.ContentType;
+import org.junit.jupiter.api.Test;
+import us.abstracta.jmeter.javadsl.core.TestPlanStats;
+
+public class PerformanceTest {
+
+  @Test
+  public void testPerformance() throws IOException {
+    TestPlanStats stats = testPlan(
+      threadGroup(2, 10,
+        httpSampler("http://my.service")
+          .post("{\"name\": \"test\"}", ContentType.APPLICATION_JSON)
+      ),
+      //this is just to log details of each request stats
+      jtlWriter("target/jtls")
+    ).run();
+    assertThat(stats.overall().sampleTimePercentile99()).isLessThan(Duration.ofSeconds(5));
+  }
+  
+}
 ```
 
-While you should definitely pin your dependency to a specific version, you are very much encouraged to always update to the most recent version. Check back frequently.
+> This example also uses [AssertJ](https://joel-costigliola.github.io/assertj/assertj-core-quick-start.html) for assertions, but you can use whatever assertion library you choose.
 
-For more, optional packages (RMI, MySQL, Jetty, TIPC, VSOCK, server, GraalVM, etc.) and Gradle instructions see
-[here](https://kohlschutter.github.io/junixsocket/dependency.html)
+More examples can be found in [tests](jmeter-java-dsl/src/test/java/us/abstracta/jmeter/javadsl)
 
-If you're testing a `-SNAPSHOT` version, make sure that the Sonatype snapshot repository is enabled in your POM:
+You can use [this project](https://github.com/abstracta/jmeter-java-dsl-sample) as a starting point.
 
-```
-<repositories>
-    <repository>
-        <id>sonatype.snapshots</id>
-        <name>Sonatype snapshot repository</name>
-        <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-        <layout>default</layout>
-        <snapshots>
-            <enabled>true</enabled>
-        </snapshots>
-    </repository>
-</repositories>
-```
+> **Tip 1:** Check [the DSL recorder](https://abstracta.github.io/jmeter-java-dsl/guide/#dsl-recorder) and [jmx2dsl](https://abstracta.github.io/jmeter-java-dsl/guide/#dsl-code-generation-from-jmx-file) to ease test plan creation or migration from existing JMX files.
+>
+> **Tip 2:** Since JMeter uses [log4j2](https://logging.apache.org/log4j/2.x/), if you want to control the logging level or output, you can use something similar to the tests included [log4j2.xml](jmeter-java-dsl/src/test/resources/log4j2.xml).
+>
+> **Tip 3:** When working with multiple samplers in a test plan, specify their names to easily check their respective statistics.
 
-> **NOTE** Never rely on -SNAPSHOT builds. They can break any time.
+**Check [here](https://abstracta.github.io/jmeter-java-dsl/) for details on some interesting use cases**, like running tests at scale in [BlazeMeter](https://www.blazemeter.com/) or [OctoPerf](https://octoperf.com/), saving and loading test plans from JMX, publishing test metrics to [InfluxDB](https://www.influxdata.com/products/influxdb-overview/) (and visualizing them from [Grafana](https://grafana.com/)), and general usage guides.
+
+## Why?
+
+Check more about the motivation and analysis of alternatives [here](https://abstracta.github.io/jmeter-java-dsl/motivation/)
+
+## Support
+
+Join our [Discord server](https://discord.gg/WNSn5hqmSd) to engage with fellow JMeter DSL enthusiasts, ask questions, and share experiences. Visit [GitHub Issues](https://github.com/abstracta/jmeter-java-dsl/issues) or [GitHub Discussions](https://github.com/abstracta/jmeter-java-dsl/discussions) for bug reports, feature requests and share ideas.
+
+[Abstracta](https://abstracta.us), the main supporter for JMeter DSL development, offers enterprise-level support. Get faster response times, personalized customizations and consulting.
+
+For detailed support information, visit our [Support](https://abstracta.github.io/jmeter-java-dsl/support) page.
+
+## Articles & Talks
+
+* [Developer’s friendly tools for continuous performance testing](https://abstracta.us/blog/performance-testing/developers-friendly-tools-for-continuous-performance-testing/): Walk-through from Fiddler recording to JMeter DSL test plan by Belen Vignolo @ Abstracta. [Russian translation by Ksenia Moseenkova](https://habr.com/ru/company/otus/blog/653823/).
+* [JMeterDSL: Bringing Performance Testing Closer to Developers](https://www.blazemeter.com/blog/jmeterdsl-performance-testing-developers): Intro to JMeter DSL and scaling execution in BlazeMeter by Yaina Machado.
+* [Performance testing tools trend](https://www.linkedin.com/pulse/performance-testing-tools-trend-roger-abelenda/): A quick review of different alternatives for performance testing in Java and associated trend by Roger Abelenda @ Abstracta.
+* [JMeter scripting: la pieza faltante](https://www.youtube.com/watch?v=n-U6YPXAGX0): Spanish demo by Roger Abelenda and hosted by Blanca Moreno @ QA Minds.
+* [Getting Started with JMeter DSL](https://qainsights.com/getting-started-with-jmeter-dsl): Intro to JMeter DSL and general thoughts by Roger Abelenda and hosted by NaveenKumar Namachivayam @ QA Insights. [Here is the video version](https://www.youtube.com/watch?v=JnnmSSYE2ok).
+* [Virtual Threads: JMeter meets Project Loom](https://abstracta.us/blog/performance-testing/virtual-threads-jmeter-meets-project-loom/): Experimenting with Virtual Threads in JMeter using JMeter DSL as a prototyping tool by Roger Abelenda @ Abstracta. [Here is the Spanish version](https://medium.com/@abstracta/threads-virtuales-jmeter-y-project-loom-ad2a849af53f)
+* [JMeter Scripts Written in Java??](https://www.youtube.com/watch?v=_drADTk82kg): JMeter DSL demo and discussion at PerfBytes session by Roger Abelenda and hosted by Mark Tomlinson.
+* [JMeter: test as code solutions](https://octoperf.com/blog/2022/06/13/jmeter-test-as-code/): JMeter DSL & Taurus review by Gérald Pereira @ OctoPerf.
+* [JMeter DSL, an Innovative Tool for Performance Testing](https://abstracta.us/blog/tools/jmeter-dsl-an-innovative-tool-for-performance-testing/): Short article on JMeter DSL motivation by Roger Abelenda @ Abstracta. [Spanish version](https://medium.com/@abstracta/jmeter-dsl-una-innovadora-herramienta-para-testing-de-performance-e808e3e82c3b).
+* [JMeter DSL, the Story of Abstracta’s Latest Innovation in Software Testing](https://abstracta.us/blog/performance-testing/jmeter-dsl-abstractas-latest-innovation-in-software-testing/): Post about JMeter DSL inception story by Natalie Rodgers & Roger Abelenda @ Abstracta. [Spanish Version](https://medium.com/@abstracta/jmeter-dsl-la-historia-de-la-m%C3%A1s-reciente-innovaci%C3%B3n-en-testing-de-software-de-abstracta-743b02e287e2).
+* [Develop JMeter Scripts Using Java with Roger Abelenda](https://testguild.com/podcast/performance/p93-roger/): Short interview by Joe Colantonio from TestGuild to Roger Abelenda about JMeter DSL basics.
+* [PerfOps - faster and cheaper through a service approach](https://habr.com/ru/company/oleg-bunin/blog/682746/): A nice analysis on implementing a performance experts service while using JMeter DSL as basics for creating a framework on top of it by Kirill Yurkov. (In Russian, but you can use Chrome Translation ;))
+* [pymeter announcement](https://www.linkedin.com/feed/update/urn:li:activity:6987704015933304832/): Announcement of a python API, built on top JMeter DSL, which eases JMeter test plan creation and execution for python devs by Eldad Uzman. 
+* [Evolve Your Selenium Scripts Into Performance Scripts](https://www.youtube.com/watch?v=YZhCPXfMuqo): SeleniumConf 2023 talk showing generation of performance scripts from Selenium scripts, using JMeter DSL recorder. [Here](https://github.com/abstracta/selenium-jmeter-dsl-demo) is demo repository.
+* [Developer-Friendly JMeter DSL for Authoring JMeter Scripts](https://techcommunity.microsoft.com/t5/apps-on-azure-blog/developer-friendly-jmeter-dsl-for-authoring-jmeter-scripts/ba-p/3834565): Azure Load Testing article on integration between JMeter DSL and Azure Load Testing.
+* [JMeter DSL: Un giro emocionante en las pruebas de rendimiento](https://www.freerangetesters.com/post/jmeter-dsl-un-giro-emocionante-en-las-pruebas-de-rendimiento): Short Spanish article that highlights some of the benefits and differentiators of using JMeter DSL and included recorder.  
+
+## Ecosystem
+
+* [pymeter](https://github.com/eldaduzman/pymeter): python API based on JMeter DSL that allows python devs to create and run JMeter test plans.
+
+## Contributing & Requesting features
+
+Currently, the project covers the most used features required when implementing JMeter performance tests, but not everything the JMeter supports/provides.
+
+We invest in the development of DSL according to the community's (your) interest, which we evaluate by reviewing GitHub stars' evolution, feature requests, and contributions.
+
+To keep improving the DSL we need you to **please create an issue for any particular feature or need that you have**.
+
+We also really appreciate pull requests. Check the [CONTRIBUTING](CONTRIBUTING.md) guide for an explanation of the main library components and how you can extend the library.
+
+[JMeter]: http://jmeter.apache.org/
