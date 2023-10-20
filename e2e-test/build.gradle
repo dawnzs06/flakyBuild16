@@ -1,0 +1,56 @@
+/*
+ * Copyright OpenSearch Contributors
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+subprojects {
+    buildscript {
+        repositories {
+            mavenCentral()
+            gradlePluginPortal()
+        }
+        dependencies {
+            classpath 'com.bmuschko:gradle-docker-plugin:7.0.0'
+        }
+    }
+
+    sourceSets {
+        integrationTest {
+            java {
+                compileClasspath += main.output + test.output
+                runtimeClasspath += main.output + test.output
+                srcDir file('src/integrationTest/java')
+            }
+            resources.srcDir file('src/integrationTest/resources')
+        }
+    }
+
+    tasks.named('processIntegrationTestResources') {
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    }
+
+    configurations {
+        integrationTestImplementation.extendsFrom testImplementation
+        integrationTestRuntime.extendsFrom testRuntime
+    }
+
+    task copyDataPrepperJar(type: Copy) {
+        dependsOn project(':data-prepper-main').jar
+        dependsOn project(':data-prepper-plugins').jar
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+        from project(':data-prepper-main').jar.archivePath
+        from project(':data-prepper-main').configurations.runtimeClasspath
+        into("${project.buildDir}/bin/data-prepper")
+    }
+
+    dependencies {
+        testImplementation testLibs.junit.vintage
+    }
+
+    ext {
+        dataPrepperJarFilepath = "${project.buildDir.name}/bin/data-prepper/"
+        targetJavaVersion = project.hasProperty('endToEndJavaVersion') ? project.getProperty('endToEndJavaVersion') : '11'
+        targetOpenTelemetryVersion = project.hasProperty('openTelemetryVersion') ? project.getProperty('openTelemetryVersion') : "${libs.versions.opentelemetry.get()}"
+        dataPrepperBaseImage = "eclipse-temurin:${targetJavaVersion}-jre"
+    }
+}

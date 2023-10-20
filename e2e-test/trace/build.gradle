@@ -1,0 +1,243 @@
+apply plugin: DockerRemoteApiPlugin
+
+
+/*
+ * Copyright OpenSearch Contributors
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+
+import com.bmuschko.gradle.docker.DockerRemoteApiPlugin
+import com.bmuschko.gradle.docker.tasks.container.DockerCreateContainer
+import com.bmuschko.gradle.docker.tasks.container.DockerRemoveContainer
+import com.bmuschko.gradle.docker.tasks.container.DockerStartContainer
+import com.bmuschko.gradle.docker.tasks.container.DockerStopContainer
+import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
+import com.bmuschko.gradle.docker.tasks.image.DockerPullImage
+import com.bmuschko.gradle.docker.tasks.image.Dockerfile
+import com.bmuschko.gradle.docker.tasks.network.DockerCreateNetwork
+import com.bmuschko.gradle.docker.tasks.network.DockerRemoveNetwork
+
+/**
+ * End-to-end test docker network
+ */
+task createDataPrepperNetwork(type: DockerCreateNetwork) {
+    networkName = "data_prepper_network"
+}
+
+task removeDataPrepperNetwork(type: DockerRemoveNetwork) {
+    dependsOn createDataPrepperNetwork
+    networkId = createDataPrepperNetwork.getNetworkId()
+}
+
+def RAW_SPAN_PIPELINE_YAML = "raw-span-e2e-pipeline.yml"
+def SERVICE_MAP_PIPELINE_YAML = "service-map-e2e-pipeline.yml"
+def DATA_PREPPER_CONFIG_YAML = "data_prepper.yml"
+def DATA_PREPPER_CONFIG_STATIC_YAML = "data_prepper_static.yml"
+def RAW_SPAN_PIPELINE_FROM_BUILD_YAML = "raw-span-e2e-pipeline-from-build.yml"
+def RAW_SPAN_PIPELINE_LATEST_RELEASE_YAML = "raw-span-e2e-pipeline-latest-release.yml"
+
+/**
+ * DataPrepper Docker tasks
+ */
+task createDataPrepperDockerFile(type: Dockerfile) {
+    dependsOn copyDataPrepperJar
+    destFile = project.file('build/docker/Dockerfile')
+    from(dataPrepperBaseImage)
+    exposePort(21890)
+    workingDir("/app/data-prepper")
+    copyFile("${dataPrepperJarFilepath}", "/app/data-prepper/lib")
+    defaultCommand('java', '-Ddata-prepper.dir=/app/data-prepper', '-cp', '/app/data-prepper/lib/*', 'org.opensearch.dataprepper.DataPrepperExecute')
+}
+
+task buildDataPrepperDockerImage(type: DockerBuildImage) {
+    dependsOn createDataPrepperDockerFile
+    inputDir  = file(".")
+    dockerFile  = file("build/docker/Dockerfile")
+    images.add("integ-test-pipeline-image")
+}
+
+def createDataPrepperDockerContainer(final String taskBaseName, final String dataPrepperName, final int grpcPort,
+                                     final String pipelineConfigYAML, final String dataPrepperConfigYAML) {
+    return tasks.create("create${taskBaseName}", DockerCreateContainer) {
+        dependsOn buildDataPrepperDockerImage
+        dependsOn createDataPrepperNetwork
+        containerName = dataPrepperName
+        hostConfig.portBindings = [String.format('%d:21890', grpcPort)]
+        hostConfig.network = createDataPrepperNetwork.getNetworkName()
+        hostConfig.binds = [(project.file("src/integrationTest/resources/${pipelineConfigYAML}").toString()):"/app/data-prepper/pipelines/pipelines.yaml",
+                            (project.file("src/integrationTest/resources/${dataPrepperConfigYAML}").toString()):"/app/data-prepper/config/data-prepper-config.yaml"]
+        cmd = ['java', '-Ddata-prepper.dir=/app/data-prepper', '-cp', '/app/data-prepper/lib/*', 'org.opensearch.dataprepper.DataPrepperExecute']
+        targetImageId buildDataPrepperDockerImage.getImageId()
+    }
+}
+
+def startDataPrepperDockerContainer(final DockerCreateContainer createDataPrepperDockerContainerTask) {
+    return tasks.create("start${createDataPrepperDockerContainerTask.getName()}", DockerStartContainer) {
+        dependsOn createDataPrepperDockerContainerTask
+        targetContainerId createDataPrepperDockerContainerTask.getContainerId()
+    }
+}
+
+def stopDataPrepperDockerContainer(final DockerStartContainer startDataPrepperDockerContainerTask) {
+    return tasks.create("stop${startDataPrepperDockerContainerTask.getName()}", DockerStopContainer) {
+        targetContainerId startDataPrepperDockerContainerTask.getContainerId()
+    }
+}
+
+def removeDataPrepperDockerContainer(final DockerStopContainer stopDataPrepperDockerContainerTask) {
+    return tasks.create("remove${stopDataPrepperDockerContainerTask.getName()}", DockerRemoveContainer) {
+        targetContainerId stopDataPrepperDockerContainerTask.getContainerId()
+    }
+}
+
+task pullDataPrepperDockerImage(type: DockerPullImage) {
+    image = 'opensearchproject/data-prepper:latest'
+}
+
+def createDataPrepperDockerContainerFromPullImage(final String taskBaseName, final String dataPrepperName, final int grpcPort,
+                                                  final String pipelineConfigYAML, final String dataPrepperConfigYAML) {
+    return tasks.create("create${taskBaseName}", DockerCreateContainer) {
+        dependsOn createDataPrepperNetwork
+        dependsOn pullDataPrepperDockerImage
+        containerName = dataPrepperName
+        hostConfig.portBindings = [String.format('%d:21890', grpcPort)]
+        exposePorts('tcp', [21890])
+        hostConfig.network = createDataPrepperNetwork.getNetworkName()
+        hostConfig.binds = [(project.file("src/integrationTest/resources/${pipelineConfigYAML}").toString()):"/usr/share/data-prepper/pipelines.yaml",
+                            (project.file("src/integrationTest/resources/${dataPrepperConfigYAML}").toString()):"/usr/share/data-prepper/data-prepper-config.yaml"]
+        targetImageId pullDataPrepperDockerImage.image
+    }
+}
+
+/**
+ * OpenSearch Docker tasks
+ */
+task pullOpenSearchDockerImage(type: DockerPullImage) {
+    image = "opensearchproject/opensearch:${libs.versions.opensearch.get()}"
+}
+
+task createOpenSearchDockerContainer(type: DockerCreateContainer) {
+    dependsOn createDataPrepperNetwork
+    dependsOn pullOpenSearchDockerImage
+    targetImageId pullOpenSearchDockerImage.image
+    containerName = "node-0.example.com"
+    hostConfig.portBindings = ['9200:9200', '9600:9600']
+    hostConfig.autoRemove = true
+    hostConfig.network = createDataPrepperNetwork.getNetworkName()
+    envVars = ['discovery.type':'single-node']
+}
+
+task startOpenSearchDockerContainer(type: DockerStartContainer) {
+    dependsOn createOpenSearchDockerContainer
+    targetContainerId createOpenSearchDockerContainer.getContainerId()
+
+    doLast {
+        sleep(90*1000)
+    }
+}
+
+task stopOpenSearchDockerContainer(type: DockerStopContainer) {
+    targetContainerId createOpenSearchDockerContainer.getContainerId()
+
+    doLast {
+        sleep(5*1000)
+    }
+}
+
+/**
+ * End to end test. Spins up OpenSearch and DataPrepper docker containers, then runs the integ test
+ * Stops the docker containers when finished
+ */
+def createEndToEndTest(final String testName, final String includeTestsMatchPattern,
+                       final DockerCreateContainer createDataPrepper1Task, final DockerCreateContainer createDataPrepper2Task) {
+    return tasks.create(testName, Test) {
+        dependsOn build
+        dependsOn startOpenSearchDockerContainer
+        def startDataPrepper1Task = startDataPrepperDockerContainer(createDataPrepper1Task as DockerCreateContainer)
+        def startDataPrepper2Task = startDataPrepperDockerContainer(createDataPrepper2Task as DockerCreateContainer)
+        dependsOn startDataPrepper1Task
+        dependsOn startDataPrepper2Task
+        startDataPrepper1Task.mustRunAfter 'startOpenSearchDockerContainer'
+        startDataPrepper2Task.mustRunAfter 'startOpenSearchDockerContainer'
+        // wait for data-preppers to be ready
+        doFirst {
+            sleep(15*1000)
+        }
+
+        description = 'Runs the raw span integration tests.'
+        group = 'verification'
+        testClassesDirs = sourceSets.integrationTest.output.classesDirs
+        classpath = sourceSets.integrationTest.runtimeClasspath
+
+        filter {
+            includeTestsMatching includeTestsMatchPattern
+        }
+
+        def stopDataPrepper1Task = stopDataPrepperDockerContainer(startDataPrepper1Task as DockerStartContainer)
+        def stopDataPrepper2Task = stopDataPrepperDockerContainer(startDataPrepper2Task as DockerStartContainer)
+        finalizedBy stopDataPrepper1Task
+        finalizedBy stopDataPrepper2Task
+        finalizedBy removeDataPrepperDockerContainer(stopDataPrepper1Task as DockerStopContainer)
+        finalizedBy removeDataPrepperDockerContainer(stopDataPrepper2Task as DockerStopContainer)
+        finalizedBy stopOpenSearchDockerContainer
+        finalizedBy removeDataPrepperNetwork
+    }
+}
+
+// raw span e2e test
+def includeRawSpanTestsMatchPattern = "org.opensearch.dataprepper.integration.trace.EndToEndRawSpanTest.testPipelineEndToEnd*"
+
+def createRawSpanDataPrepper1Task = createDataPrepperDockerContainer(
+        "rawSpanDataPrepper1", "dataprepper1", 21890, "${RAW_SPAN_PIPELINE_YAML}", "${DATA_PREPPER_CONFIG_YAML}")
+def createRawSpanDataPrepper2Task = createDataPrepperDockerContainer(
+        "rawSpanDataPrepper2", "dataprepper2", 21891, "${RAW_SPAN_PIPELINE_YAML}", "${DATA_PREPPER_CONFIG_YAML}")
+
+def rawSpanEndToEndTest = createEndToEndTest("rawSpanEndToEndTest", includeRawSpanTestsMatchPattern,
+        createRawSpanDataPrepper1Task, createRawSpanDataPrepper2Task)
+
+// raw span with peer forwarding e2e test
+def createRawSpanPeerForwarderDataPrepper1Task = createDataPrepperDockerContainer(
+        "rawSpanPeerForwarderDataPrepper1", "dataprepper1", 21890, "${RAW_SPAN_PIPELINE_YAML}", "${DATA_PREPPER_CONFIG_STATIC_YAML}")
+def createRawSpanPeerForwarderDataPrepper2Task = createDataPrepperDockerContainer(
+        "rawSpanPeerForwarderDataPrepper2", "dataprepper2", 21891, "${RAW_SPAN_PIPELINE_YAML}", "${DATA_PREPPER_CONFIG_STATIC_YAML}")
+
+def rawSpanPeerForwarderEndToEndTest = createEndToEndTest("rawSpanPeerForwarderEndToEndTest", includeRawSpanTestsMatchPattern,
+        createRawSpanPeerForwarderDataPrepper1Task, createRawSpanPeerForwarderDataPrepper2Task)
+
+// raw span compatibility e2e test
+def rawSpanDataPrepperEventFromBuild = createDataPrepperDockerContainer(
+        "rawSpanDataPrepperEventFromBuild", "dataprepper1", 21890, "${RAW_SPAN_PIPELINE_FROM_BUILD_YAML}", "${DATA_PREPPER_CONFIG_STATIC_YAML}")
+def rawSpanDataPrepperLatestFromPull = createDataPrepperDockerContainerFromPullImage(
+        "rawSpanDataPrepperLatestFromPull", "dataprepper2", 21891, "${RAW_SPAN_PIPELINE_LATEST_RELEASE_YAML}", "${DATA_PREPPER_CONFIG_STATIC_YAML}")
+
+def rawSpanLatestReleaseCompatibilityEndToEndTest = createEndToEndTest("rawSpanLatestReleaseCompatibilityEndToEndTest",
+        includeRawSpanTestsMatchPattern,
+        rawSpanDataPrepperEventFromBuild, rawSpanDataPrepperLatestFromPull)
+
+// service map e2e
+def includeServiceMapTestsMatchPattern = "org.opensearch.dataprepper.integration.trace.EndToEndServiceMapTest.testPipelineEndToEnd*"
+
+// service map with peer forwarding e2e test
+def createServiceMapPeerForwarderDataPrepper1Task = createDataPrepperDockerContainer(
+        "serviceMapPeerForwarderDataPrepper1", "dataprepper1", 21890, "${SERVICE_MAP_PIPELINE_YAML}", "${DATA_PREPPER_CONFIG_STATIC_YAML}")
+def createServiceMapPeerForwarderDataPrepper2Task = createDataPrepperDockerContainer(
+        "serviceMapPeerForwarderDataPrepper2", "dataprepper2", 21891, "${SERVICE_MAP_PIPELINE_YAML}", "${DATA_PREPPER_CONFIG_STATIC_YAML}")
+
+def serviceMapPeerForwarderEndToEndTest = createEndToEndTest("serviceMapPeerForwarderEndToEndTest", includeServiceMapTestsMatchPattern,
+        createServiceMapPeerForwarderDataPrepper1Task, createServiceMapPeerForwarderDataPrepper2Task)
+
+dependencies {
+    integrationTestImplementation project(':data-prepper-api')
+    integrationTestImplementation project(':data-prepper-plugins:common')
+    integrationTestImplementation project(':data-prepper-plugins:opensearch')
+    integrationTestImplementation project(':data-prepper-plugins:aws-plugin-api')
+    integrationTestImplementation project(':data-prepper-plugins:otel-trace-group-processor')
+    integrationTestImplementation testLibs.awaitility
+    integrationTestImplementation "io.opentelemetry.proto:opentelemetry-proto:${targetOpenTelemetryVersion}"
+    integrationTestImplementation libs.protobuf.util
+    integrationTestImplementation libs.armeria.core
+    integrationTestImplementation libs.armeria.grpc
+    integrationTestImplementation libs.opensearch.rhlc
+    integrationTestImplementation 'com.fasterxml.jackson.core:jackson-databind'
+}

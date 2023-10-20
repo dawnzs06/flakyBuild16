@@ -1,0 +1,37 @@
+/*
+ * Copyright OpenSearch Contributors
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '2.7.11'
+    id 'io.spring.dependency-management' version '1.1.0'
+}
+
+
+group = 'com.example.restservice'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+
+repositories {
+    mavenCentral()
+}
+
+configurations.all {
+    resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+        if (details.requested.group == 'org.yaml') {
+            details.useVersion '2.0'
+        }
+    }
+}
+
+dependencies {
+    implementation('org.springframework.boot:spring-boot-starter-web')
+    testImplementation('org.springframework.boot:spring-boot-starter-test')
+}
+
+bootJar {
+    mainClass = 'com.example.restservice.RestServiceApplication'
+}
+

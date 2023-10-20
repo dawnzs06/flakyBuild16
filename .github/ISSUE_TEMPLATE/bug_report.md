@@ -1,8 +1,8 @@
 ---
 name: Bug report
-about: Create a bug report
-title: ''
-labels: bug
+about: Create a report to help us improve
+title: '[BUG]'
+labels: 'bug, untriaged'
 assignees: ''
 
 ---
@@ -10,11 +10,22 @@ assignees: ''
 **Describe the bug**
 A clear and concise description of what the bug is.
 
-**Dependencies and versions used**
-For example, `springwolf-kafka` version `0.6.1`.
+**To Reproduce**
+Steps to reproduce the behavior:
+1. Go to '...'
+2. Click on '....'
+3. Scroll down to '....'
+4. See error
 
-**Code example**
-If possible, an example project or snippet that reproduces the bug.
+**Expected behavior**
+A clear and concise description of what you expected to happen.
 
-**Stack trace and error logs**
-If an exception has been thrown or an error was logged by springwolf.
+**Screenshots**
+If applicable, add screenshots to help explain your problem.
+
+**Environment (please complete the following information):**
+ - OS: [e.g. Ubuntu 20.04 LTS]
+ - Version [e.g. 22]
+
+**Additional context**
+Add any other context about the problem here.

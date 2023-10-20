@@ -1,52 +1,24 @@
-# Contributor Covenant Code of Conduct
+This code of conduct applies to all spaces provided by the OpenSource project including in code, documentation, issue trackers, mailing lists, chat channels, wikis, blogs, social media and any other communication channels used by the project.
 
-## Our Pledge
 
-We as members, contributors, and leaders pledge to make participation in our
-community a harassment-free experience for everyone, regardless of age, body
-size, visible or invisible disability, ethnicity, sex characteristics, gender
-identity and expression, level of experience, education, socio-economic status,
-nationality, personal appearance, race, religion, or sexual identity
-and orientation.
+**Our open source communities endeavor to:**
 
-We pledge to act and interact in ways that contribute to an open, welcoming,
-diverse, inclusive, and healthy community.
+* Be Inclusive: We are committed to being a community where everyone can join and contribute. This means using inclusive and welcoming language.
+* Be Welcoming: We are committed to maintaining a safe space for everyone to be able to contribute.
+* Be Respectful: We are committed to encouraging differing viewpoints, accepting constructive criticism and work collaboratively towards decisions that help the project grow. Disrespectful and unacceptable behavior will not be tolerated.
+* Be Collaborative: We are committed to supporting what is best for our community and users. When we build anything for the benefit of the project, we should document the work we do and communicate to others on how this affects their work.
 
-## Our Standards
 
-Examples of behavior that contributes to a positive environment for our
-community include:
+**Our Responsibility. As contributors, members, or bystanders we each individually have the responsibility to behave professionally and respectfully at all times. Disrespectful and unacceptable behaviors include, but are not limited to:**
 
-* Demonstrating empathy and kindness toward other people
-* Being respectful of differing opinions, viewpoints, and experiences
-* Giving and gracefully accepting constructive feedback
-* Accepting responsibility and apologizing to those affected by our mistakes,
-  and learning from the experience
-* Focusing on what is best not just for us as individuals, but for the
-  overall community
+* The use of violent threats, abusive, discriminatory, or derogatory language;
+* Offensive comments related to gender, gender identity and expression, sexual orientation, disability, mental illness, race, political or religious affiliation;
+* Posting of sexually explicit or violent content;
+* The use of sexualized language and unwelcome sexual attention or advances;
+* Public or private harassment of any kind;
+* Publishing private information, such as physical or electronic address, without permission;
+* Other conduct which could reasonably be considered inappropriate in a professional setting;
+* Advocating for or encouraging any of the above behaviors.
+* Enforcement and Reporting Code of Conduct Issues:
 
-Examples of unacceptable behavior include:
-
-* The use of sexualized language or imagery, and sexual attention or
-  advances of any kind
-* Trolling, insulting or derogatory comments, and personal or political attacks
-* Public or private harassment
-* Publishing others' private information, such as a physical or email
-  address, without their explicit permission
-* Other conduct which could reasonably be considered inappropriate in a
-  professional setting
-
-## Attribution
-
-This Code of Conduct is adapted from the [Contributor Covenant][homepage],
-version 2.0, available at
-https://www.contributor-covenant.org/version/2/0/code_of_conduct.html.
-
-Community Impact Guidelines were inspired by [Mozilla's code of conduct
-enforcement ladder](https://github.com/mozilla/diversity).
-
-[homepage]: https://www.contributor-covenant.org
-
-For answers to common questions about this code of conduct, see the FAQ at
-https://www.contributor-covenant.org/faq. Translations are available at
-https://www.contributor-covenant.org/translations.
+Instances of abusive, harassing, or otherwise unacceptable behavior may be reported. [Contact us](mailto:opensource-codeofconduct@amazon.com). All complaints will be reviewed and investigated and will result in a response that is deemed necessary and appropriate to the circumstances.

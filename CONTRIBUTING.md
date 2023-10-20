@@ -1,45 +1,91 @@
-# Contributing to springwolf
+# Contributing Guidelines
 
-First off, thanks for taking the time to contribute! ❤️
+Thank you for your interest in contributing to our project. Whether it's a bug report, new feature, correction, or additional
+documentation, we greatly value feedback and contributions from our community.
 
-All types of contributions are encouraged and valued.
-Here, we collected some advice to smooth out the experience for everyone involved.
+Please read through this document before submitting any issues or pull requests to ensure we have all the necessary
+information to effectively respond to your bug report or contribution.
 
-> And if you like the project, but just don't have time to contribute, that's fine. Publicity in the form of github star, a tweet, mentioning in your project's readme and/or telling a friend (at a meetup) help as well.
 
-## I Have A Question
+## Reporting Bugs/Feature Requests
 
-> Some questions can be answered by reading our [documentation](https://www.springwolf.dev/docs/faq) including the FAQ page.
+We welcome you to use the GitHub issue tracker to report bugs or suggest features.
 
-Before you ask a question, it is best to search for existing [Issues](https://github.com/springwolf/springwolf-core/issues) that might help you.
-In case you have found a suitable issue and still need clarification, you can write your question in this issue.
+When filing an issue, please check existing open, or recently closed, issues to make sure somebody else hasn't already
+reported the issue. Please try to include as much information as you can. Details like these are incredibly useful:
 
-If you then still feel the need to ask a question and need clarification, we recommend the following:
-- Open an [issue](https://github.com/springwolf/springwolf-core/issues)
-- Connect with us on discord (see [README](README.md))
+* A reproducible test case or series of steps
+* The version of our code being used
+* Any modifications you've made relevant to the bug
+* Anything unusual about your environment or deployment
 
-## I Want To Contribute
-### Raising a bug/feature request
 
-Head over to our [issue](https://github.com/springwolf/springwolf-core/issues?q=is%3Aissue) page and file an issue.
+## Contributing via Pull Requests
+Contributions via pull requests are much appreciated. Before sending us a pull request, please ensure that:
 
-Please search also the closed issues whether your question has been answered before.
+1. You are working against the latest source on the *main* branch.
+2. You check existing open, and recently merged, pull requests to make sure someone else hasn't addressed the problem already.
+3. You open an issue to discuss any significant work - we would hate for your time to be wasted.
 
-### Contributing code
-> **Legal Notice**
-> 
-> When contributing to this project, you must agree that you have authored 100% of the content, that you have the necessary rights to the content and that the content you contribute may be provided under the project license.
+To send us a pull request, please:
 
-Contributing follows mostly the following steps:
+1. Fork the repository.
+2. Modify the source; please focus on the specific change you are contributing. If you also reformat all the code, it will be hard for us to focus on your change.
+3. Ensure local tests pass.
+4. Commit to your fork using clear commit messages. Please sign your commits - see the DCO section below.
+5. Send us a pull request, answering any default questions in the pull request interface.
+6. Pay attention to any automated CI failures reported in the pull request, and stay involved in the conversation.
 
-1. For bigger changes, open an [issue](https://github.com/springwolf/springwolf-core/issues) and/or drop by on our discord so that we can coordinate.
-2. Fork the repository
-3. Apply your changes
-   - Add/Adapt tests as necessary
-4. Run the tests
-   - We use GitHub Actions. You can run them in your fork, by activating GitHub Actions in the settings of your repo. Second, open a Pull-Request against _your_ repo.
-5. Commit your changes on a new branch & Push
-6. Open a Pull-Request against the springwolf repository
-   - Use the provided template to briefly describe why the changes should be included.
-7. Update the [documentation](https://github.com/springwolf/springwolf.github.io) as necessary
+GitHub provides additional document on [forking a repository](https://help.github.com/articles/fork-a-repo/) and
+[creating a pull request](https://help.github.com/articles/creating-a-pull-request/).
 
+
+## Finding contributions to work on
+Looking at the existing issues is a great way to find something to contribute on. As our projects, by default, use the default GitHub issue labels (enhancement/bug/duplicate/help wanted/invalid/question/wontfix), looking at any 'help wanted' issues is a great place to start.
+
+
+## Security issue notifications
+If you discover a potential security issue in this project we ask that you notify AWS/Amazon Security via our [vulnerability reporting page](http://aws.amazon.com/security/vulnerability-reporting/). Please do **not** create a public github issue.
+
+
+## Developer Certificate of Origin (DCO)
+We respect intellectual property rights of others and we want to make sure all incoming contributions are correctly attributed and licensed. A Developer Certificate of Origin (DCO) is a lightweight mechanism to do that.
+
+The DCO is a declaration attached to every contribution made by every developer. In the commit message of the contribution, the developer simply adds a `Signed-off-by` statement and thereby agrees to the DCO, which you can find below or at [DeveloperCertificate.org](http://developercertificate.org/).
+
+```
+Developer's Certificate of Origin 1.1
+
+By making a contribution to this project, I certify that:
+
+(a) The contribution was created in whole or in part by me and I
+    have the right to submit it under the open source license
+    indicated in the file; or
+
+(b) The contribution is based upon previous work that, to the
+    best of my knowledge, is covered under an appropriate open
+    source license and I have the right under that license to
+    submit that work with modifications, whether created in whole
+    or in part by me, under the same open source license (unless
+    I am permitted to submit under a different license), as
+    Indicated in the file; or
+
+(c) The contribution was provided directly to me by some other
+    person who certified (a), (b) or (c) and I have not modified
+    it.
+
+(d) I understand and agree that this project and the contribution
+    are public and that a record of the contribution (including
+    all personal information I submit with it, including my
+    sign-off) is maintained indefinitely and may be redistributed
+    consistent with this project or the open source license(s)
+    involved.
+ ```
+We require that every contribution is signed with a Developer Certificate of Origin. Additionally, please use your real name. We do not accept anonymous contributors nor those utilizing pseudonyms.
+
+Each commit must include a DCO which looks like this
+
+```
+Signed-off-by: Jane Smith <jane.smith@email.com>
+```
+You may type this line on your own when writing your commit messages. However, if your user.name and user.email are set in your git configs, you can use `-s` or `--signoff` to add the `Signed-off-by` line to the end of the commit message.
