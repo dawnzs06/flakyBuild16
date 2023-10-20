@@ -1,4 +1,0 @@
-[final-build-commands]
-COPY --chown=oracle:root files/customLivenessProbe.sh /u01
-USER oracle
-RUN cd /u01 && chmod ug+x *.sh
