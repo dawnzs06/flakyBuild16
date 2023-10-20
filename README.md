@@ -1,60 +1,103 @@
-# Welcome to the Eclipse RDF4J repository
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=osmeditor4android&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=osmeditor4android) [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=osmeditor4android&metric=coverage)](https://sonarcloud.io/summary/new_code?id=osmeditor4android) [![sonarcloud bugs](https://sonarcloud.io/api/project_badges/measure?project=osmeditor4android&metric=bugs)](https://sonarcloud.io/component_measures?id=osmeditor4android&metric=bugs) [![sonarcould maintainability](https://sonarcloud.io/api/project_badges/measure?project=osmeditor4android&metric=sqale_rating)](https://sonarcloud.io/component_measures?id=osmeditor4android&metric=Maintainability) [![sonarcloud security](https://sonarcloud.io/api/project_badges/measure?project=osmeditor4android&metric=security_rating)](https://sonarcloud.io/component_measures?id=osmeditor4android&metric=Security) [![sonarcloud reliability](https://sonarcloud.io/api/project_badges/measure?project=osmeditor4android&metric=reliability_rating)](https://sonarcloud.io/component_measures?id=osmeditor4android&metric=Reliability)
 
-![RDF4J](https://github.com/eclipse/rdf4j/blob/main/site/static/images/rdf4j-logo-orange-114.png)
+# Vespucci - An OpenStreetMap editor for Android
 
-This is the main code repository for the Eclipse RDF4J project. 
+This is the first [OpenStreetMap][openstreetmap] editor for
+[Android][android], codename "Vespucci".
 
-[![main status](https://github.com/eclipse/rdf4j/workflows/main%20status/badge.svg)](https://github.com/eclipse/rdf4j/actions?query=workflow%3A%22main+status%22)
-[![develop status](https://github.com/eclipse/rdf4j/workflows/develop%20status/badge.svg)](https://github.com/eclipse/rdf4j/actions?query=workflow%3A%22develop+status%22) [![Join the chat at https://gitter.im/eclipse/rdf4j](https://badges.gitter.im/eclipse/rdf4j.svg)](https://gitter.im/eclipse/rdf4j?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-Visit the [project website](https://rdf4j.org/) for news, documentation, and downloadable releases. For support questions, comments, and any ideas for improvements you'd like to discuss, please use our [discussion forum](https://github.com/eclipse/rdf4j/discussions). If you have found a bug or have a very specific feature/improvement request, you can also use our [issue tracker](https://github.com/eclipse/rdf4j/issues) to report it.
+![Amerigo Vespucci](http://vespucci.io/180px-Amerigo_Vespucci.jpg "Amerigo Vespucci")
 
-## Installation and usage
+## Installing
 
-For installation and usage instructions of the RDF4J Workbench and Server applications, see [RDF4J Server and Workbench](https://rdf4j.org/documentation/tools/server-workbench). 
+[GooglePlay](https://play.google.com/store/apps/details?id=de.blau.android)
 
-For installation and usage instructions of the RDF4J Java libaries, see [Programming with RDF4J](https://rdf4j.org/documentation/programming). 
+[Latest release from Github](https://github.com/MarcusWolschon/osmeditor4android/releases/latest)
 
-### Building from source
+## Contributing
 
-RDF4J is a multi-module [maven](https://maven.apache.org/index.html) project. It can be compiled, tested, and installed with the [usual maven lifecycle phases](https://maven.apache.org/guides/introduction/introduction-to-the-lifecycle.html) from the command line, for example:
+If you're interested in this project, you're welcome to help improving it. We
+need UI designers, [translators](TRANSLATIONS.md), and of course Java programmers. 
+See the [build documentation](BUILDING.md) for more information.
 
-- `mvn verify` - compiles and runs all tests
-- `mvn package` - compiles, tests, and packages all modules
-- `mvn install` - compiles, tests, packages, and installs all artifacts in the local maven repository
-- `mvn -Pquick install` - compiles, packages and installs everything (skipping test execution)
+## What is Vespucci?
 
-These commands can be run from the project root to execute on the entire project or (if you're only interested in working with a particular module) from any module's subdirectory. 
+* An on- and offline editor for OpenStreetMap
+* Runs on mobile devices using the Android platform
+* Functionality:
+    * Create and edit new nodes and ways
+    * Move and rotate ways
+    * Append nodes to existing ways
+    * Delete nodes
+    * Create, edit and delete tags
+    * Edit relations and create new turn restrictions and routes
+    * JOSM presets support
+    * Thematic mapping with no programming
+    * Download and upload to OSM server
+    * Offline data support
+    * Saving and reading of JOSM format OSM data files
+    * Highlight objects with missing tags like unnamed roads
+    * Highlight ways/nodes with TODOs or FIXMEs
+    * Highlight very old objects that are likely to be out dated
+    * Add, comment and close OSM Notes
+    * OSMOSE and Maproulette support
+    * Use a variety of background tile layers as reference
+    * Show the user's GPS track with accuracy
+    * Upload to OSM and local saving of GPS tracks
+    * Display the raw data
+    * Display geo-referenced photographs and Mapillary images
+    * GeoJSON layers with support for importing objects
+    * ... and lots more ...
+    
+Detailed documentation can be found on the [Vespucci Website](https://vespucci.io/)
 
-To build the full RDF4J project, including onejar and SDK files and full aggregated javadoc, from source, run:
+## What is Vespucci NOT?
 
-     mvn -Passembly package
+* a pure map-view or a routing-application
 
-The SDK and onejar will be available in `assembly/target`. Individual module jars and wars will be in `target/` in their respective modules. 
+## Getting started with contributing
 
-Modern IDEs like Eclipse, IntelliJ IDEA, or Netbeans can of course also be used to build, test, and run (parts of) the project. 
+Here is how you can start developing.
 
-## Keen to contribute?
+Currently building is supported with gradle in eclipse, android studio and naturally gradle on the command line, see [build instructions](BUILDING.md).
 
-We welcome contributions! Whether you have a new feature you want to add, or a bug you want to fix, or a bit of documentation you want to improve, it's all very welcome. Have a look in our [issue tracker](https://github.com/eclipse/rdf4j/issues) for any open problems, in particular the ones marked as [good first issue](https://github.com/eclipse/rdf4j/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) or as [help wanted](https://github.com/eclipse/rdf4j/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22). Or feel free to add your own new issue if what you have in mind is not there yet.
+If you are interested in adding a feature or other development work, please reach out to us before embarking on something that might be already in work or a fools errand. 
 
-To get started on your contribution, please first read our [Contributor
-guidelines](https://github.com/eclipse/rdf4j/blob/main/CONTRIBUTING.md).
+Important note: if you are building your own version, particularly if you are making it available to third parties, please change app_version and app_name_version in res/values/appname.xml to something that makes it clear that this is not an "official" release and clearly identifies your builds.
 
-The short version:
+## Related projects
 
-1. Digitally sign the [Eclipse Contributor Agreement (ECA)](https://www.eclipse.org/legal/ECA.php), as follows: 
-     * [Register an Eclipse account](https://accounts.eclipse.org/user/register). **Important**: Use the same email address that you will use on Git commits as the author address. 
-     * Open the [ECA form](https://accounts.eclipse.org/user/eca) and complete it. See the [ECA FAQ](https://www.eclipse.org/legal/ecafaq.php) for more info. 
-2. Create an issue in the [issue tracker](https://github.com/eclipse/rdf4j/issues) that describes your improvement, new feature, or bug fix - or if you're picking up an existing issue, comment on that issue that you intend to provide a solution for it.
-3. Fork the GitHub repository.
-4. Create a new branch (starting from main) for your changes. Name your branch like this: `GH-1234-short-description-here` where 1234 is the Github issue number.
-5. Make your changes on this branch. Apply the [RDF4J code formatting guidelines](https://github.com/eclipse/rdf4j/blob/main/CONTRIBUTING.md#code-formatting). Don't forget to include unit tests.
-7. Run `mvn verify` from the project root to make sure all tests succeed (both your own new ones, and existing).
-8. Commit your changes into the branch. Make sure the commit author name and e-mail correspond to what you used to sign the ECA. Use meaningful commit messages. Reference the issue number in each commit message (for example "GH-276: added null check").
-9. Once your fix is complete, put it up for review by opening a Pull Request against the main branch in the central Github repository. If you have a lot of commits on your PR, make sure to [squash your commits](https://rdf4j.org/documentation/developer/squashing).
+Vespucci utilizes a number of independent, separately maintained, projects. The most relevant of these are
 
-These steps are explained in more detail in the [Contributor
-guidelines](https://github.com/eclipse/rdf4j/blob/main/CONTRIBUTING.md).
+* [Editor Layer Index (ELI)](https://github.com/osmlab/editor-layer-index) background and overlay layers configuration
+* [JOSM](https://josm.openstreetmap.de/wiki/Maps) alternative background and overlay layers configuration
+* [Beautified JOSM Preset](https://github.com/simonpoole/beautified-JOSM-preset) independently maintained presets in JOSM format (can be utilized in JOSM too)
+* [OpeningHoursFragment](https://github.com/simonpoole/OpeningHoursFragment) opening hours user interface
+* [Name Suggestion Index](https://github.com/osmlab/name-suggestion-index) name/brand-related tag suggestions database
+* [iD tagging schema](https://github.com/openstreetmap/id-tagging-schema) for synonyms used for searching presets
 
-You can find more detailed information about our development and release processes in the [Developer Workflow and Project Management](https://rdf4j.org/documentation/developer/) documentation.
+## License and trademarks
+
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+    Unless required by applicable law or agreed to in writing, software
+    distributed under the License is distributed on an "AS IS" BASIS,
+    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+    See the License for the specific language governing permissions and
+    limitations under the License.
+
+
+[openstreetmap]: http://www.openstreetmap.org
+[android]: http://developer.android.com
+[mailinglist]: http://groups.google.de/group/osmeditor4android
+[josm]: http://wiki.openstreetmap.org/wiki/JOSM 
+
+__OpenStreetMap__ and the magnifying glass logo are trademarks of the OpenStreetMap Foundation. The Vespucci app is not endorsed by or affiliated with the OpenStreetMap Foundation.
+
+__Mapillary__ is a trademark of Mapillary AB, Sweden. The Vespucci app is not endorsed by or affiliated with Mapillary AB. 
+
+

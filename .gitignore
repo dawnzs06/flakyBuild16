@@ -1,50 +1,55 @@
-# Eclipse settings
+# Gradle
+.gradle/
+build/
+.gradletasknamecache
+
+
+# Eclipse
 .project
-**/.project
+.metadata
+bin/**
+tmp/**
+tmp/**/*
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
 .classpath
-**/.classpath
-.settings
-**/.settings
-bin
-**/bin
-**/.factorypath
+.settings/
+.loadpath
+.externalToolBuilders/**
 
-# Eclipse Plug-In Settings
-.pmd
-
-# Maven generated stuff
-target/
-*/target/
-**/.cache
-pom.xml.versionsBackup
-dependency-reduced-pom.xml
-
-# GEdit generated stuff
-*.*~
-
-# IntelliJ files
-.idea/
+# IntelliJ
 *.iml
 *.ipr
 *.iws
+.idea/
 
-# Hugo
-.hugo_build.lock
+# Android
+*.apk
+*.ap_
 
-# Mac nonsense
-.DS_Store
+# files for the dex VM
+*.dex
 
-# NetBean (generated) files
-**/nb-configuration.xml
-**/nbactions*.xml
-*.jfr
-compliance/repository/overlays
-**/webapp/META-INF/context.xml
-/core/sail/elasticsearch-store/tempElasticsearchDownload/*
-tempElasticsearchDownload
-cache.db
-formatter-maven-cache.properties
-compliance/*/overlays
-docker/ignore
-/core/queryparser/sparql/JavaCC/javacc/
-/scripts/temp/
+# Java class files
+*.class
+
+# generated files
+bin/
+gen/
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+/.gitignore
+/.checkstyle
+libs/
+libs/**
+/project.properties
+/databases/
+/marathon1/
+/test.gpx
