@@ -1,49 +1,72 @@
-# maven
-target/
-*.versionsBackup
-*.releaseBackup
+target
+GTAGS
+GRTAGS
+GPATH
+prop
+out
 
-# eclipse
-.classpath
-.project
-.settings
-
-# intellij / android studio
-*.iml
-*.ipr
-*.iws
-.idea/
-
-# common junk
-*.log
-*.diff
-*.patch
-*.sw[a-p]
-*.bak
-*.backup
-*.debug
-*.dump
-
-# vim 
-.*.sw[a-p]
-*~
-~*
-
-# Mac filesystem dust
+# OS X
 .DS_Store
 
-# pmd
-.pmdruleset
-.pmd
-
-# merge tooling
-*.orig
-*.rej
-\.orig$
-\.orig\..*$
-\.chg\..*$
-\.rej$
-\.conflict\~$
-
+# intellij
 .idea
-/.checkstyle
+*.iml
+
+# eclipse
+.project
+.classpath
+.settings
+
+# editors
+*.sublime-project
+*.sublime-workspace
+*~
+*.swp
+
+# the build
+build-local.properties
+.gradle
+build
+
+# Benchmark timings
+timings.log
+
+# JVM crash reports
+hs_err_pid*
+
+*-logs
+artio-system-tests/logs/
+logs/
+*acceptor-logs*
+acceptor_logs/
+
+*.pem
+
+# Profilers
+liblagent.so
+*.hpl
+*.jfr
+
+*attach_pid*
+file-leak-detector-*
+
+*/aeron-archive/*
+aeron-archive/
+buyer/
+buyer-archive/
+exchange-application/
+
+*-example
+artio-samples/src/main/java/uk/co/real_logic/artio/reproduction/
+
+client-aeron-archive/
+client-aeron/
+
+#iLink3
+artio-ilink3-codecs/src/main/resources/uk/co/real_logic/artio/ilink/ilinkbinary.xml
+artio-system-tests/generated/
+
+artio-system-tests/src/perf/java/br/
+benchmark-client-archive/
+latencies.csv
+latencies.png

@@ -1,23 +1,23 @@
-[![][Build Status img]][Build Status]
-[![][license img]][license]
-[![][Maven Central img]][Maven Central]
-[![][Javadocs img]][Javadocs]
+# Artio
 
-jnr-unixsocket
-==============
+[![Actions Status](https://github.com/real-logic/artio/workflows/Continuous%20Integration/badge.svg)](https://github.com/real-logic/artio/actions)
+[![CodeQL Status](https://github.com/real-logic/artio/workflows/CodeQL/badge.svg)](https://github.com/real-logic/artio/actions)
+[![GitHub](https://img.shields.io/github/license/real-logic/Aeron.svg)](https://github.com/real-logic/aeron/blob/master/LICENSE)
 
-Native I/O access for java.
+High-Performance FIX Gateway
 
-Check out the [examples](https://github.com/jnr/jnr-unixsocket/tree/master/src/test/java/jnr/unixsocket/example) for more information.
+Please check out the [Wiki](https://github.com/real-logic/artio/wiki).
 
-[Build Status]:https://travis-ci.org/jnr/jnr-unixsocket
-[Build Status img]:https://travis-ci.org/jnr/jnr-unixsocket.svg?branch=master
+## How to build
 
-[license]:LICENSE
-[license img]:https://img.shields.io/badge/license-Apache%202-blue.svg
+Just run the standard Gradle build and install process:
 
-[Maven Central]:https://maven-badges.herokuapp.com/maven-central/com.github.jnr/jnr-unixsocket
-[Maven Central img]:https://maven-badges.herokuapp.com/maven-central/com.github.jnr/jnr-unixsocket/badge.svg
+```
+    ./gradlew
+```
 
-[Javadocs]:http://javadoc.io/doc/com.github.jnr/jnr-unixsocket
-[Javadocs img]:http://javadoc.io/badge/com.github.jnr/jnr-unixsocket.svg
+After the first build this is all that is required.
+
+## Downloading
+
+Binaries can be found on [Maven Central](https://central.sonatype.com/search?q=artio&namespace=uk.co.real-logic)
