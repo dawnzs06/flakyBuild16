@@ -1,0 +1,16 @@
+{
+    "artemisApp": {
+        "markdownEditor": {
+            "commands": {
+                "katex": "Formel",
+                "fullscreen": "Vollbild"
+            },
+            "fileUpload": "Füge Dateien durch Drag & Drop oder durch Auswählen hinzu.",
+            "guide": "Formatierungen mit Markdown sind möglich",
+            "color": "Farbe",
+            "preview": {
+                "slideNotFound": "Referenzierte Folie wurde nicht gefunden"
+            }
+        }
+    }
+}

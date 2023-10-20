@@ -1,0 +1,98 @@
+{
+    "artemisApp": {
+        "lecture": {
+            "home": {
+                "title": "Vorlesungen",
+                "createLabel": "Vorlesung erstellen",
+                "importLabel": "Vorlesung importieren",
+                "filterLabel": "Filter",
+                "filterOptions": {
+                    "filterPast": "Vergangene",
+                    "filterCurrent": "Aktuelle",
+                    "filterFuture": "Zukünftige",
+                    "filterUnspecifiedDates": "Ohne Zeitangaben"
+                },
+                "createOrEditLabel": "Vorlesung erstellen oder bearbeiten",
+                "switchToGuidedModeLabel": "Zum geführten Modus wechseln",
+                "switchToTraditionalModeLabel": "Zum normalen Modus wechseln",
+                "nextStepLabel": "Weiter"
+            },
+            "created": "Vorlesung erstellt mit ID {{ param }}",
+            "updated": "Vorlesung aktualisiert mit ID {{ param }}",
+            "deleted": "Vorlesung gelöscht mit ID {{ param }}",
+            "delete": {
+                "question": "Soll die Vorlesung <strong>{{ title }}</strong> wirklich dauerhaft gelöscht werden? Diese Aktion kann NICHT rückgängig gemacht werden!",
+                "typeNameToConfirm": "Bitte gib den Namen der Vorlesung zur Bestätigung ein."
+            },
+            "title": "Titel",
+            "channelName": "Kanalname",
+            "description": "Beschreibung",
+            "startDate": "Start",
+            "endDate": "Ende",
+            "visibleDate": "Sichtbar ab",
+            "course": "Kurs",
+            "detail": {
+                "title": "Vorlesung"
+            },
+            "attachments": {
+                "title": "Anhänge der Vorlesung",
+                "name": "Name",
+                "type": "Typ",
+                "link": "Link",
+                "file": "Datei",
+                "releaseDate": "Freigabedatum",
+                "uploadDate": "Upload-Datum",
+                "version": "Version",
+                "uploading": "Lade hoch...",
+                "isBeingEdited": "Wird gerade bearbeitet...",
+                "isDownloading": "Wird heruntergeladen...",
+                "attachments": "Anhänge",
+                "newAttachment": "Neuer Anhang",
+                "editAttachment": "Anhang bearbeiten",
+                "notificationText": "Mitteilungstext",
+                "notificationPlaceholder": "Optional: Mitteilung über die Änderung",
+                "chooseFile": "Datei auswählen",
+                "error": "Die Datei {{ fileName }} ist zu groß. Die maximale Dateigröße beträgt 20MB.",
+                "fileLimitation": "(max. Größe 20 MB)",
+                "fileLimitationTooltip": "Unterstützte Formate: {{ extensions }}"
+            },
+            "import": {
+                "table": {
+                    "title": "Titel",
+                    "course": "Kurs",
+                    "semester": "Semester",
+                    "doImport": "Importieren"
+                },
+                "searchLecture": "Nach Vorlesung suchen:",
+                "loading": "Lade..."
+            },
+            "wizardMode": {
+                "steps": {
+                    "titleStepTitle": "Titel",
+                    "titleStepMessage": "Gib einen Titel und eine aussagekräftige Beschreibung für die neue Vorlesung ein.",
+                    "periodStepTitle": "Zeitraum",
+                    "periodStepMessage": "Lege das Start- und Enddatum der Vorlesung fest.",
+                    "attachmentsStepTitle": "Anhänge",
+                    "attachmentsStepMessage": "Lade Anhänge für die Vorlesung hoch.",
+                    "unitsStepTitle": "Vorlesungseinheiten",
+                    "unitsStepMessage": "Füge Inhalte zur Vorlesung hinzu durch Erstellung von Vorlesungseinheiten.",
+                    "competenciesStepTitle": "Kompetenzen",
+                    "competenciesStepMessage": "Verknüpfe die Einheiten dieser Vorlesung mit Kompetenzen, um zu zeigen, welche Kompetenzen Studierende erreichen werden, wenn sie die Einheit abschließen."
+                },
+                "newLectureUnit": "Neue Vorlesungseinheit",
+                "editLectureUnit": "Vorlesungseinheit bearbeiten",
+                "newExercise": "Neue Übung erstellen",
+                "backToWizard": "Zurück zur Vorlesung",
+                "competencyTitle": "Titel",
+                "competencyConnectedUnits": "Verknüpfte Einheiten",
+                "competencyNoConnectedUnits": "Keine verknüpften Einheiten"
+            }
+        },
+        "attachment": {
+            "deleteQuestion": "Soll der Anhang wirklich gelöscht werden?",
+            "created": "Anhang erstellt mit ID {{ param }}",
+            "updated": "Anhang aktualisiert mit ID {{ param }}",
+            "deleted": "Anhang gelöscht mit ID {{ param }}"
+        }
+    }
+}

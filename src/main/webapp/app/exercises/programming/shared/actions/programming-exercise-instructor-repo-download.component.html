@@ -1,0 +1,10 @@
+<jhi-button
+    [disabled]="!exerciseId"
+    [btnType]="ButtonType.INFO"
+    [btnSize]="ButtonSize.SMALL"
+    [shouldSubmit]="false"
+    [featureToggle]="[FeatureToggle.ProgrammingExercises, FeatureToggle.Exports]"
+    [icon]="faDownload"
+    [title]="title"
+    (onClick)="exportRepository()"
+></jhi-button>

@@ -1,0 +1,17 @@
+name: Issue Opened
+on:
+  push:
+    branches: [ artemis ]
+
+
+
+jobs:
+    addToProject:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Add Issue to Project
+              uses: alex-page/github-project-automation-plus@v0.8.3
+              with:
+                  project: Artemis Development
+                  column: To do
+                  repo-token: ${{ secrets.GH_TOKEN_ADD_TO_PROJECT }}

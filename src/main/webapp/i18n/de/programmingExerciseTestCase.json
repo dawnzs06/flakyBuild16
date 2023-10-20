@@ -1,0 +1,34 @@
+{
+    "artemisApp": {
+        "programmingExerciseTestCase": {
+            "home": {
+                "title": "Programming Exercise Test Cases",
+                "createLabel": "Programming Exercise Test Case erstellen"
+            },
+            "created": "Programming Exercise Test Case erstellt mit ID {{ param }}",
+            "updated": "Programming Exercise Test Case aktualisiert mit ID {{ param }}",
+            "deleted": "Programming Exercise Test Case gelöscht mit ID {{ param }}",
+            "delete": {
+                "question": "Soll Programming Exercise Test Case {{ id }} wirklich dauerhaft gelöscht werden?"
+            },
+            "detail": {
+                "title": "Programming Exercise Test Case"
+            },
+            "testName": "Test Name",
+            "weight": "Weight",
+            "active": "Active",
+            "exercise": "Exercise",
+            "visibility": {
+                "Always": "Immer",
+                "AfterDueDate": "Nach Einreichungsfrist",
+                "Never": "Nie"
+            },
+            "type": {
+                "null": "",
+                "STRUCTURAL": "Struktur",
+                "BEHAVIORAL": "Verhalten",
+                "MIXED": "Verschieden"
+            }
+        }
+    }
+}

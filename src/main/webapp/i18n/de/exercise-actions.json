@@ -1,0 +1,65 @@
+{
+    "artemisApp": {
+        "exerciseActions": {
+            "practice": "Üben",
+            "openQuiz": "Quiz öffnen",
+            "startQuiz": "Quiz starten",
+            "resumeQuiz": "Quiz fortführen",
+            "viewSubmissions": "Abgabe ansehen",
+            "viewResults": "Ergebnis ansehen",
+            "statistics": "Quiz-Statistiken",
+            "startExercise": "Aufgabe starten",
+            "resumeExercise": "Aufgabe fortführen",
+            "requestFeedback": "Feedback anfragen",
+            "requestFeedbackTooltip": "Sendet eine Feedbackanfrage vor der Einreichungsfrist. Diese Option ist erst möglich wenn 100% in den öffentlichen Tests erreicht wurden.",
+            "resumeExercisePractice": "Üben von Aufgabe fortführen",
+            "resumeExerciseError": "Fehler beim Versuch die Aufgabe fortzuführen",
+            "openCodeEditor": "Programmiereditor öffnen",
+            "openPracticeCodeEditor": "Übungs-Programmiereditor öffnen",
+            "openGradedCodeEditor": "Bewerteten Programmiereditor öffnen",
+            "openModelingEditor": "Modellierungseditor öffnen",
+            "importIntoIntelliJ": "In IntelliJ öffnen",
+            "practiceMode": {
+                "title": "Übungsmodus",
+                "explanation": "Der Übungsmodus ermöglicht es dir nach der Einreichungsfrist zu Übungszwecken weiter an der Aufgabe zu arbeiten. Dies wird deine Bewertung nicht beeinflussen! Artemis wird dafür ein separates Repository aufsetzen, das du erneut clonen musst.",
+                "repositoryChoice": "Du hast bereits vor der Einreichungsfrist eine bewertete Abgabe gemacht. Daher hast du die Wahl, ob der Code im neu aufgesetzten Repository der aus dem Template-Repository der Aufgabe oder deiner bewerteten Abgabe sein soll.",
+                "practiceWithTemplate": "Üben mit Template-Repository",
+                "practiceWithGradedParticipation": "Üben mit bewerteter Abgabe"
+            },
+            "resetRepository": {
+                "label": "Repository zurücksetzen",
+                "titleGraded": "Bewertetes Repository zurücksetzen",
+                "titlePractice": "Übungs-Repository zurücksetzen",
+                "explanation": "Du kannst dein Repository auf den Ausgangszustand zurücksetzen und von dort aus weiterarbeiten. Dies überschreibt all deine Änderungen! Die bisherigen gepushten Änderungen bleiben aber weiterhin in der History des Repositories.",
+                "offlineIDEExplanation": "Nachdem du das Repository zurückgesetzt hast, musst du die Änderungen auf deinem PC pullen.",
+                "repositoryChoice": "Du hast bereits vor der Einreichungsfrist eine bewertete Abgabe gemacht. Daher hast du die Wahl, ob du dein Übungs-Repository auf das Template-Repository oder das Repository deiner bewerteten Abgabe zurücksetzen willst.",
+                "questionGraded": "Soll das bewertete Repository der Aufgabe <strong>{{ title }}</strong> wirklich zurückgesetzt werden?",
+                "questionPractice": "Soll das Übungs-Repository der Aufgabe <strong>{{ title }}</strong> wirklich zurückgesetzt werden?",
+                "typeNameToConfirm": "Bitte gib den Namen der Aufgabe zur Bestätigung ein.",
+                "resetToTemplate": "Zurücksetzen auf Template-Repository",
+                "resetToGradedParticipation": "Zurücksetzen auf bewertete Abgabe",
+                "success": "Repository erfolgreich zurückgesetzt. Du kannst die Aufgabe jetzt neu bearbeiten."
+            },
+            "practiceModeTooltip": "Der Übungsmodus ermöglicht es dir nach der Einreichungsfrist zu Übungszwecken weiter an der Aufgabe zu arbeiten. Dies beeinflusst deine Bewertung nicht! Artemis setzt dafür ein separates Repository auf, das du erneut clonen musst.",
+            "cloneRepository": "Repository klonen",
+            "cloneRatedRepository": "Klone dein bewertetes Repository für diese Übung:",
+            "clonePracticeRepository": "Klone dein Übungs-Repository für diese Übung:",
+            "cloneExerciseRepository": "Klone ein Repository für diese Übung",
+            "repositoryPassword": "Dein Passwort lautet:",
+            "hoverToShow": "(hover, um es anzuzeigen)",
+            "cloneSourceTree": {
+                "button": "In Git-Client klonen",
+                "helpIcon": "Dies öffnet das Repository in Sourcetree oder Tower. Falls du diese nicht installiert hast, kannst du das Repository in deiner IDE oder dem Terminal klonen."
+            },
+            "goToBuildPlan": "Zum Build-Plan gehen",
+            "openTextEditor": "Texteditor öffnen",
+            "copyUrl": "URL kopieren",
+            "copiedUrl": "URL kopiert",
+            "uploadFile": "Datei hochladen",
+            "viewTeam": "Team",
+            "sshKeyTip": "Um SSH zu nutzen, musst du {link:hier} einen SSH-Schlüssel zu deinem Konto hinzufügen.",
+            "startExerciseBeforeStartDate": "Du kannst vor dem Startdatum nicht an der Aufgabe teilnehmen.",
+            "deleteMultipleExercisesQuestion": "Sollen die ausgewählten Aufgaben wirklich dauerhaft gelöscht werden?"
+        }
+    }
+}

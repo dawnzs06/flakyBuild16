@@ -1,0 +1,79 @@
+{
+    "artemisApp": {
+        "userSettings": {
+            "settings": "Benachrichtigungseinstellungen",
+            "saveChanges": "Änderungen speichern",
+            "saveSettingsSuccessAlert": "Die Einstellungen wurden erfolgreich gespeichert.",
+            "userSettings": "Benutzereinstellungen",
+            "accountInformation": "Account Informationen",
+            "notificationSettings": "Benachrichtigungen",
+            "notificationSettingsFilterInfo": "Diese Einstellungen filtern auch die Seitenleiste für Mitteilungen",
+            "accountInformationPage": {
+                "registrationNumber": "Matrikelnummer",
+                "fullName": "Vollständiger Name",
+                "login": "Login",
+                "email": "Email",
+                "joinedArtemis": "Artemis beigetreten am"
+            },
+            "categories": {
+                "NOTIFICATION_SETTINGS": "Benachrichtigungseinstellungen"
+            },
+            "settingGroupNames": {
+                "weeklySummary": "Wöchentliche Zusammenfassung",
+                "exerciseNotifications": "Aufgabenbenachrichtigungen",
+                "lectureNotifications": "Vorlesungsbenachrichtigungen",
+                "tutorialGroupNotifications": "Übungsgruppenbenachrichtigungen",
+                "courseWideDiscussionNotifications": "Kursdiskussionsbenachrichtigungen",
+                "tutorNotifications": "Benachrichtigungen für Tutor:innen",
+                "conversationNotifications": "Benachrichtigungen über Unterhaltungen",
+                "editorNotifications": "Benachrichtigungen für Editor:innen",
+                "instructorNotifications": "Benachrichtigungen für Lehrende"
+            },
+            "settingNames": {
+                "basicWeeklySummary": "Einfache wöchentliche Zusammenfassung",
+                "exerciseReleased": "Neue Aufgabe veröffentlicht",
+                "exerciseOpenForPractice": "Aufgabe zum Üben freigegeben",
+                "exerciseSubmissionAssessed": "Aufgabeneinreichung korrigiert",
+                "newExercisePost": "Neue Beiträge für Aufgaben",
+                "newReplyForExercisePost": "Neue Antworten für Aufgaben",
+                "attachmentChanges": "Änderungen von Anhängen",
+                "newLecturePost": "Neue Beiträge für Vorlesungen",
+                "newReplyForLecturePost": "Neue Antworten für Vorlesungen",
+                "newCoursePost": "Neue Beiträge für Kursdiskussionen",
+                "newReplyForCoursePost": "Neue Antworten von Kursdiskussionen",
+                "newAnnouncementPost": "Neue Ankündigungen",
+                "courseAndExamArchivingStarted": "Kurs und Klausur Archivierungsstart",
+                "fileSubmissionSuccessful": "Erfolgreiche Einreichung von Dateiupload-Aufgaben",
+                "programmingTestCasesChanged": "Veränderte Testfälle bei Programmieraufgaben",
+                "registrationTutorialGroup": "An- und Abmeldungen von Übungsgruppen",
+                "tutorialGroupUpdateDelete": "Änderungen und Löschungen von Übungsgruppen",
+                "newConversationMessages": "Neue Nachrichten in Unterhaltung",
+                "newReplyMessage": "Neue Antworten in Unterhaltung",
+                "assignUnassignTutorialGroup": "Anmeldungen und Abmeldungen von Übungsgruppenleitung"
+            },
+            "settingDescriptions": {
+                "basicWeeklySummaryDescription": "Erhalte jeden Freitag um 17:00 Uhr eine einfache wöchentliche Zusammenfassung (bsp. welche neuen Aufgaben diese Woche veröffentlicht wurden und noch bearbeitbar sind)",
+                "exerciseCreatedOrStartedDescription": "Erhalte eine Mitteilung wenn eine neue Aufgabe veröffentlicht wurde",
+                "exerciseOpenForPracticeDescription": "Erhalte eine Mitteilung, wenn eine Aufgabe zum Üben freigeschaltet wurde (z.B. ein Quiz)",
+                "exerciseSubmissionAssessedDescription": "Erhalte eine Mitteilung, wenn deine eingereichten Aufgaben bewertet wurden",
+                "newExercisePostDescription": "Erhalte eine Mitteilung, wenn ein neuer Beitrag zu einer Aufgabe erstellt wurde",
+                "newReplyForExercisePostDescription": "Erhalte eine Mitteilung, wenn eine neue Antwort auf einen Beitrag, welcher Aufgaben betrifft, erstellt wurde",
+                "attachmentChangesDescription": "Erhalte eine Mitteilung, wenn ein Anhang aktualisiert wurde",
+                "newLecturePostDescription": "Erhalte eine Mitteilung, wenn eine neue Antwort auf einen Beitrag, welcher Vorlesungen betrifft, erstellt wurde",
+                "newReplyForLecturePostDescription": "Erhalte eine Mitteilung, wenn eine neue Antwort auf einen Beitrag, welcher Vorlesungen betrifft, erstellt wurde",
+                "newCoursePostDescription": "Erhalte eine Mitteilung, wenn ein neuer Beitrag in den Kursdiskussionen erstellt wurde",
+                "newReplyForCoursePostDescription": "Erhalte eine Mitteilung, wenn eine neue Antwort auf einen Beitrag, welcher eine Kursdiskussion betrifft, erstellt wurde",
+                "newAnnouncementPostDescription": "Erhalte eine Mitteilung, wenn eine neue Ankündigung erstellt wurde",
+                "courseAndExamArchivingStartedDescription": "Erhalte eine Mitteilung, wenn das Archivieren eines Kurses oder einer Klausur angefangen hat",
+                "fileSubmissionSuccessfulDescription": "Erhalte eine Mitteilung nach dem erfolgreichen Einreichen von Dateiupload-Aufgaben",
+                "programmingTestCasesChangedDescription": "Erhalte eine Mitteilung bei Änderungen von Testfällen in Programmieraufgaben",
+                "registrationTutorialGroupTutorDescription": "Erhalte eine Mitteilung, wenn ein:e Student:in für deine Übungsgruppe registriert oder abgemeldet wurde",
+                "registrationTutorialGroupStudentDescription": "Erhalte eine Mitteilung, wenn du für eine Übungsgruppe registriert oder abgemeldet wurdest",
+                "tutorialGroupUpdateDeleteDescription": "Erhalte eine Mitteilung, wenn eine Übungsgruppe aktualisiert oder gelöscht wurde in der du registriert oder Tutor:in bist",
+                "newConversationMessageDescription": "Erhalte eine Mitteilung, wenn du eine neue Nachricht in einer Unterhaltung erhältst",
+                "conversationNewReplyMessageDescription": "Erhalte eine Mitteilung, wenn du eine neue Antwort in einer Unterhaltung erhältst",
+                "assignUnassignTutorialGroupDescription": "Erhalte eine Mitteilung, wenn du als Tutor:in der Leitung einer Übungsgruppe zugewiesen oder entzogen wurdest"
+            }
+        }
+    }
+}

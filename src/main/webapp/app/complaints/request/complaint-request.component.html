@@ -1,0 +1,30 @@
+<div>
+    <p class="mt-4">
+        {{
+            complaint.complaintType === ComplaintType.COMPLAINT
+                ? ('artemisApp.complaint.alreadySubmittedSubmissionAuthor' | artemisTranslate)
+                : ('artemisApp.moreFeedback.alreadySubmittedSubmissionAuthor' | artemisTranslate)
+        }}
+        <span [ngbTooltip]="complaint.submittedTime | artemisDate">{{ complaint.submittedTime | artemisTimeAgo }}</span>
+        <span *ngIf="complaint.accepted === true" class="badge bg-success">
+            {{
+                complaint.complaintType === ComplaintType.COMPLAINT
+                    ? ('artemisApp.complaint.acceptedLong' | artemisTranslate)
+                    : ('artemisApp.moreFeedback.acceptedLong' | artemisTranslate)
+            }}
+        </span>
+        <span *ngIf="complaint.accepted === false" class="badge bg-danger">
+            {{ 'artemisApp.complaint.rejectedLong' | artemisTranslate }}
+        </span>
+    </p>
+
+    <textarea
+        id="complainTextArea"
+        class="col-12 px-1"
+        rows="4"
+        [maxLength]="maxComplaintTextLimit"
+        [(ngModel)]="complaint.complaintText"
+        [readOnly]="true"
+        [disabled]="true"
+    ></textarea>
+</div>

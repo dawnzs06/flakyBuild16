@@ -1,0 +1,19 @@
+.tutorial-group-row {
+    .extra-buttons {
+        visibility: hidden;
+    }
+
+    &:hover {
+        .extra-buttons {
+            visibility: visible;
+        }
+    }
+
+    .long-text {
+        max-width: 150px;
+    }
+
+    .title {
+        max-width: 300px;
+    }
+}

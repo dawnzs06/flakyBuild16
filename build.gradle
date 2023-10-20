@@ -1,766 +1,489 @@
-import com.github.spotbugs.snom.SpotBugsTask
-import org.apache.tools.ant.taskdefs.condition.Os
-import org.gradle.internal.logging.text.StyledTextOutput.Style
-import org.gradle.internal.logging.text.StyledTextOutputFactory
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
 
-import java.nio.file.Files
+buildscript {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+}
 
 plugins {
-  id 'idea'
-  id 'java'
-  id 'maven-publish'
-  id 'com.diffplug.spotless' version '6.12.0'
-  id 'com.dorongold.task-tree' version '2.1.0'
-  id 'com.github.johnrengelman.shadow' version '6.1.0' apply false
-  id 'com.github.spotbugs' version '4.8.0' apply false
-  id 'org.gradle.test-retry' version '1.5.0' apply false
-  id 'com.form.diff-coverage' version '0.9.5' apply false
-  id 'me.champeau.jmh' version '0.6.7' apply false
-  id 'io.github.lhotari.gradle-nar-plugin' version '0.5.1' apply false
-  id 'com.google.protobuf' version '0.9.3' apply false
+    id "checkstyle"
+    id "java"
+    id "maven-publish"
+    id "idea"
+    id "jacoco"
+    id "org.springframework.boot" version "${spring_boot_version}"
+    id "io.spring.dependency-management" version "1.1.3"
+    id "com.google.cloud.tools.jib" version "3.3.2"
+    id "com.github.node-gradle.node" version "${gradle_node_plugin_version}"
+    id "com.diffplug.spotless" version "6.21.0"
+    // this allows us to find outdated dependencies via ./gradlew dependencyUpdates
+    id "com.github.ben-manes.versions" version "0.48.0"
+    id "com.github.andygoossens.modernizer" version "${modernizer_plugin_version}"
+    id "com.gorylenko.gradle-git-properties" version "2.4.1"
+    id "info.solidsoft.pitest" version "1.9.11"
+    id "org.owasp.dependencycheck" version "8.4.0"
+    id "com.adarshr.test-logger" version "3.2.0"
 }
 
-apply from: "$rootDir/gradle/helper/git.gradle"
-apply from: "$rootDir/gradle/helper/publishing.gradle"
+group = "de.tum.in.www1.artemis"
+version = "6.5.1"
+description = "Interactive Learning with Individual Feedback"
 
-/*
- * This snippet allows the Gradle environment to be overridden with custom
- * settings. This is useful in environments (such as a private company) where a
- * third party wishes to use custom repositories, or inject certain
- * functionality into the default Gradle build lifecycle.
- */
-if (project.hasProperty('overrideBuildEnvironment')) {
-  apply from: file(project.overrideBuildEnvironment)
-  product {
-    codeQuality {
-      ignoreFailures = true
-    }
-  }
+sourceCompatibility=17
+targetCompatibility=17
+
+//this enables us to invoke ./gradlew liquibaseDiffChangelog
+apply from: "gradle/liquibase.gradle"
+
+if (project.hasProperty("prod")) {
+    apply from: "gradle/profile_prod.gradle"
+} else {
+    apply from: "gradle/profile_dev.gradle"
 }
 
-def avroVersion = '1.9.2'
-def avroUtilVersion = '0.2.150'
-def grpcVersion = '1.54.1'
-def kafkaGroup = 'com.linkedin.kafka'
-def kafkaVersion = '2.4.1.65'
-def log4j2Version = '2.17.1'
-def pegasusVersion = '29.31.0'
-def protobufVersion = '3.21.7'
-def jacksonVersion = '2.13.3'
-
-
-ext.libraries = [
-    avro: 'org.apache.avro:avro:' + avroVersion,
-    avroCompiler: 'org.apache.avro:avro-compiler:' + avroVersion,
-    avroMapred: 'org.apache.avro:avro-mapred:' + avroVersion,
-    avroUtilBuilder: 'com.linkedin.avroutil1:builder:' + avroUtilVersion,
-    avroUtilCompatHelper: 'com.linkedin.avroutil1:helper-all:' + avroUtilVersion,
-    avroUtilFastserde: 'com.linkedin.avroutil1:avro-fastserde:' + avroUtilVersion,
-    avroUtilSpotbugsPlugin: 'com.linkedin.avroutil1:spotbugs-plugin:0.2.69',
-    bouncyCastle: 'org.bouncycastle:bcprov-jdk15on:1.55',
-    caffeine: 'com.github.ben-manes.caffeine:caffeine:2.8.5',
-    classgraph: 'io.github.classgraph:classgraph:4.8.60',
-    commonsCodec: 'commons-codec:commons-codec:1.4',
-    commonsConfiguration: 'commons-configuration:commons-configuration:1.9',
-    commonsIo: 'commons-io:commons-io:2.11.0',
-    commonsCli: 'commons-cli:commons-cli:1.5.0',
-    commonsLang: 'commons-lang:commons-lang:2.6',
-    conscrypt: 'org.conscrypt:conscrypt-openjdk-uber:2.5.2',
-    d2: 'com.linkedin.pegasus:d2:' + pegasusVersion,
-    failsafe: 'net.jodah:failsafe:2.4.0',
-    fastUtil: 'it.unimi.dsi:fastutil:8.3.0',
-    hadoopCommon: 'org.apache.hadoop:hadoop-common:2.3.0',
-    helix: 'org.apache.helix:helix-core:1.0.4',
-    httpAsyncClient: 'org.apache.httpcomponents:httpasyncclient:4.1.2',
-    httpClient5: 'org.apache.httpcomponents.client5:httpclient5:5.2.1',
-    httpCore5: 'org.apache.httpcomponents.core5:httpcore5:5.2.2',
-    httpCore5H2: 'org.apache.httpcomponents.core5:httpcore5-h2:5.2.2',
-    httpClient: 'org.apache.httpcomponents:httpclient:4.5.2',
-    httpCore: 'org.apache.httpcomponents:httpcore:4.4.5',
-    jacksonCore: 'com.fasterxml.jackson.core:jackson-core:' + jacksonVersion,
-    jacksonAnnotations: 'com.fasterxml.jackson.core:jackson-annotations:' + jacksonVersion,
-    jacksonDatabind: 'com.fasterxml.jackson.core:jackson-databind:' + jacksonVersion,
-    javax: 'javax.servlet:javax.servlet-api:3.1.0',
-    javaxActivation: 'com.sun.activation:javax.activation:1.2.0',
-    jdom: 'org.jdom:jdom:1.1',
-    jna: 'net.java.dev.jna:jna:4.5.1',
-    jsr305: 'com.google.code.findbugs:jsr305:3.0.2',
-    joptSimple: 'net.sf.jopt-simple:jopt-simple:3.2',
-    kafka: kafkaGroup + ':kafka_2.12:' + kafkaVersion,
-    kafkaClients: kafkaGroup + ':kafka-clients:' + kafkaVersion,
-    kafkaClientsTest: kafkaGroup + ':kafka-clients:' + kafkaVersion + ':test',
-    log4j2api: 'org.apache.logging.log4j:log4j-api:' + log4j2Version,
-    log4j2core: 'org.apache.logging.log4j:log4j-core:' + log4j2Version,
-    mail: 'javax.mail:mail:1.4.4',
-    mapreduceClientCore: 'org.apache.hadoop:hadoop-mapreduce-client-core:2.3.0',
-    mapreduceClientJobClient: 'org.apache.hadoop:hadoop-mapreduce-client-jobclient:2.3.0',
-    mockito: 'org.mockito:mockito-core:3.3.3',
-    netty: 'io.netty:netty-all:4.1.52.Final',
-    oss: 'org.sonatype.oss:oss-parent:7',
-    pulsarClient: "${pulsarGroup}:pulsar-client:${pulsarVersion}",
-    pulsarIoCore: "${pulsarGroup}:pulsar-io-core:${pulsarVersion}",
-    pulsarIoCommon: "${pulsarGroup}:pulsar-io-common:${pulsarVersion}",
-    r2: 'com.linkedin.pegasus:r2:' + pegasusVersion,
-    restliCommon: 'com.linkedin.pegasus:restli-common:' + pegasusVersion,
-    rocksdbjni: 'org.rocksdb:rocksdbjni:7.9.2',
-    samzaApi: 'org.apache.samza:samza-api:1.5.1',
-    slf4j: 'org.slf4j:slf4j:1.7.36',
-    slf4jApi: 'org.slf4j:slf4j-api:1.7.36',
-    slf4jSimple: 'org.slf4j:slf4j-simple:1.7.36',
-    snappy: 'org.iq80.snappy:snappy:0.4',
-    spark: 'com.sparkjava:spark-core:2.9.4',
-    spotbugs: 'com.github.spotbugs:spotbugs:4.5.2',
-    tehuti: 'io.tehuti:tehuti:0.10.0',
-    testcontainers: 'org.testcontainers:testcontainers:1.18.0',
-    testng: 'org.testng:testng:6.14.3',
-    // Resolves java.lang.UnsupportedOperationException:  setXIncludeAware is not supported on this JAXP implementation or earlier: class org.apache.xerces.jaxp.DocumentBuilderFactoryImpl
-    xalan: 'xalan:xalan:2.7.1',
-    xerces: 'xerces:xercesImpl:2.9.1',
-    zkclient: 'com.101tec:zkclient:0.7', // For Kafka AdminUtils
-    zookeeper: 'org.apache.zookeeper:zookeeper:3.5.9',
-    zstd: 'com.github.luben:zstd-jni:1.5.2-3',
-    grpcNettyShaded: 'io.grpc:grpc-netty-shaded:' + grpcVersion,
-    grpcProtobuf: 'io.grpc:grpc-protobuf:' + grpcVersion,
-    grpcStub: 'io.grpc:grpc-stub:' + grpcVersion,
-    tomcatAnnotations: 'org.apache.tomcat:annotations-api:6.0.53',
-]
-
-group = 'com.linkedin.venice'
-
-publishing {
-  repositories {
-    mavenLocal()
-    maven {
-      name 'LinkedInJFrog'
-      url 'https://linkedin.jfrog.io/artifactory/venice'
-      if (System.getenv('JFROG_USERNAME') != null && System.getenv('JFROG_API_KEY') != null) {
-        credentials {
-          username System.getenv('JFROG_USERNAME')
-          password System.getenv('JFROG_API_KEY')
-        }
-      }
-    }
-  }
+if (project.hasProperty("war")) {
+    apply from: "gradle/war.gradle"
 }
 
-def parser = new XmlSlurper()
-parser.setFeature("http://apache.org/xml/features/disallow-doctype-decl", false)
-parser.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false)
+apply plugin: "jacoco"
 
-// We remove square brackets from test names, which occur when using a DataProvider,
-// because occasionally the number in the brackets is non-deterministic (unknown why)
-// and when that occurs, the test-retry plugin gets confused and cannot match the
-// attempts together.
-def removeSquareBrackets(String testName) {
-  return testName.replaceFirst('\\[[0-9]+\\]', '')
-}
-
-subprojects {
-  //apply group and version to all submodules
-  group = rootProject.group
-  version = rootProject.version
-
-  def isLeafSubModule = project.childProjects.isEmpty()
-
-  apply {
-    plugin 'idea'
-    plugin 'java-library'
-    plugin 'com.github.spotbugs'
-    plugin 'org.gradle.test-retry'
-  }
-
-  if (isLeafSubModule) {
-    apply {
-      plugin 'jacoco'
-      plugin 'com.form.diff-coverage'
-      plugin 'com.google.protobuf'
-    }
-  }
-
-  if (JavaVersion.current() >= JavaVersion.VERSION_1_9) {
-    tasks.withType(JavaCompile) {
-      options.release = 8
-    }
-  }
-
-  java {
-    withSourcesJar()
-    // TODO: Enable after we have valid javadocs
-    //withJavadocJar()
-  }
-
-  if (isLeafSubModule) {
-    protobuf {
-      protoc {
-        artifact = 'com.google.protobuf:protoc:' + protobufVersion
-      }
-      plugins {
-        grpc {
-          artifact = 'io.grpc:protoc-gen-grpc-java:' + grpcVersion
-        }
-      }
-      generateProtoTasks {
-        ofSourceSet('main')*.plugins {
-          grpc {}
-        }
-      }
-    }
-  }
-
-  configurations {
-    implementation {
-      // These are global exclusions that will apply to the entire project
-      exclude group: 'backport-util-concurrent'
-      exclude group: 'com.intellij.annotations'
-      exclude group: 'com.linkedin.avro-schemas'
-      exclude group: 'com.linkedin.container'
-      exclude group: 'com.linkedin.container-core'
-      exclude group: 'com.linkedin.security'
-      exclude group: 'com.linkedin.dds-storage-core'
-      exclude group: 'com.linkedin.linkedin-kafka-clients'
-      exclude group: 'com.linkedin.util', module: 'util-sql'
-      exclude group: 'org.slf4j', module: 'slf4j-log4j12'
-      exclude module: 'clojure'
-      exclude module: 'kafka_2.10' // This ends up getting pulled in by a few dependencies, unfortunately :/ ...
-      exclude module: 'kafka_2.11'
-
-      // These various netty modules clash with netty-all, and we transitively pull a different version, which causes NoSuchMethodError
-      exclude group: 'io.netty', module: 'netty-buffer'
-      exclude group: 'io.netty', module: 'netty-codec'
-      exclude group: 'io.netty', module: 'netty-common'
-      exclude group: 'io.netty', module: 'netty-handler'
-      exclude group: 'io.netty', module: 'netty-resolver'
-      exclude group: 'io.netty', module: 'netty-transport'
-      exclude group: 'io.netty', module: 'netty-transport-native-epoll'
-      exclude group: 'io.netty', module: 'netty-transport-native-unix-common'
-    }
-    compileOnly {
-      // These dependencies are transitively used at runtime, so we cannot exclude them further than compileOnly
-      exclude group: 'com.google.guava'
-      exclude group: 'com.typesafe.scala-logging'
-      exclude group: 'log4j'
-      exclude group: 'org.slf4j'
-    }
-    all {
-      resolutionStrategy.force libraries.zookeeper
-    }
-    avroCompiler {
-    }
-  }
-
-  dependencies {
-    testImplementation libraries.log4j2api
-    testImplementation libraries.mockito
-    testImplementation libraries.testng
-    // Test utils and framework for all unit tests and integration tests.
-    testImplementation project(':internal:venice-test-common')
-
-    spotbugs libraries.spotbugs
-    spotbugsPlugins libraries.avroUtilSpotbugsPlugin
-
-    avroCompiler libraries.avroCompiler
-    avroCompiler libraries.avroUtilBuilder
-    avroCompiler 'org.slf4j:slf4j-simple:1.7.32'
-    runtimeOnly libraries.grpcNettyShaded
-    implementation libraries.grpcProtobuf
-    implementation libraries.grpcStub
-    compileOnly libraries.tomcatAnnotations
-  }
-
-  idea {
+idea {
     module {
-      downloadJavadoc = true
-      downloadSources = true
+        excludeDirs += files("node_modules")
     }
-  }
-
-  task compileAvro(type: SourceTask) {
-    def sourceDir = file('src/main/resources/avro')
-    def outputDir = file("$buildDir/generated/sources/avro/java/main")
-
-    source sourceDir
-    inputs.files(configurations.avroCompiler).withNormalizer(ClasspathNormalizer)
-    outputs.dir(outputDir)
-    outputs.cacheIf { true }
-
-    doFirst {
-      def versionOverrides = [
-//        project(':internal:venice-common').file('src/main/resources/avro/StoreVersionState/v5', PathValidation.DIRECTORY)
-      ]
-
-      def schemaDirs = [sourceDir]
-      sourceDir.eachDir { typeDir ->
-        def parseVersionId = { dir ->
-          (dir in versionOverrides) ? Integer.MAX_VALUE : dir?.name?.substring(1)?.toInteger()
-        }
-        def latestVersionDir = null
-        typeDir.eachDirMatch(~/v-?\d+/) { versionDir ->
-          if (parseVersionId(versionDir) > parseVersionId(latestVersionDir)) {
-            latestVersionDir = versionDir
-          }
-        }
-        if (latestVersionDir) {
-          schemaDirs << latestVersionDir
-        }
-      }
-
-      copy {
-        from (schemaDirs) {
-          include '*.avsc'
-        }
-        into temporaryDir
-        duplicatesStrategy = DuplicatesStrategy.FAIL
-        eachFile {
-          println "Copying avro schema ${relativePath(it.file)} ${it.file.parentFile in versionOverrides ? '(OVERRIDE)' : ''}"
-        }
-      }
-
-      javaexec {
-        classpath = configurations.avroCompiler
-        main = 'com.linkedin.avroutil1.builder.SchemaBuilder'
-        args = [
-            '--input', temporaryDir,
-            '--output', outputDir
-        ]
-      }
-    }
-  }
-  sourceSets.main.java.srcDir(compileAvro)
-
-  tasks.withType(SpotBugsTask) {
-    effort = 'max'
-    reportLevel = 'low'
-    includeFilter = file(
-      project.hasProperty('spotallbugs') ?
-        "$rootDir/gradle/spotbugs/include-all.xml" :
-        "$rootDir/gradle/spotbugs/include.xml"
-    )
-    excludeFilter = file("$rootDir/gradle/spotbugs/exclude.xml")
-    ignoreFailures = project.hasProperty('spotbugs.ignoreFailures')
-    showStackTraces = false
-    reports ({
-      xml {
-        enabled = project.hasProperty('spotbugs.xml')
-      }
-      html {
-        enabled = !reports.getByName('XML').enabled
-        stylesheet = 'fancy-hist.xsl'
-      }
-    })
-    doFirst {
-      sourceDirs += sourceSets.getByName(baseName).output.generatedSourcesDirs
-      def generatedSources = sourceDirs.sum { dir ->
-        dir.path =~ "^$buildDir/generated/sources/" ?
-          fileTree(dir: dir, include: '**/*.java').collect { dir.relativePath(it) } : []
-      }
-      if (generatedSources) {
-        def generatedClasses = generatedSources*.replaceFirst('.java$', '').sum {
-          [ it + '.class', it + '\$*.class' ]
-        }
-        classes = classDirs.asFileTree.matching { exclude generatedClasses }
-        auxClassPaths += classDirs.asFileTree.matching { include generatedClasses }.each {
-          println "Excluding generated class ${project.relativePath(it)}"
-        }
-      }
-    }
-  }
-
-  def ALPINI_TEST_FILTER = 'com.linkedin.alpini.*'
-  def ALPINI_NETTY_TEST_FILTER = 'io.netty.*'
-  def ALPINI_UNIT_TEST_TASK_NAME = 'alpiniUnitTest'
-  def ALPINI_FUNCTIONAL_TEST_TASK_NAME = 'alpiniFunctionalTest'
-
-  tasks.withType(Test) {
-    mustRunAfter tasks.withType(SpotBugsTask)
-
-    if (!project.ext.has("skipAlpnBoot") || !project.ext.skipAlpnBoot) {
-      // The ALPN version should match the JVM version
-      if (JavaVersion.current() < JavaVersion.VERSION_11) {
-        if (Os.isFamily(Os.FAMILY_MAC)) {
-          jvmArgs '-Xbootclasspath/p:/Library/Java/Boot/1_8_0_172/alpn-boot-8.1.12.v20180117.jar'
-        } else if (Os.isFamily(Os.FAMILY_UNIX)) {
-          jvmArgs '-Xbootclasspath/p:/export/apps/jdkboot/1_8_0_172/alpn-boot-8.1.12.v20180117.jar'
-        } else {
-          def osName = System.getProperty('os.name').toLowerCase(Locale.ENGLISH)
-          throw new GradleException("$osName is not supported since ALPN only works for either Mac or Linux right now.")
-        }
-      }
-    }
-
-    forkEvery = Integer.valueOf(System.getProperty('forkEvery', '0'))
-    maxParallelForks = Integer.valueOf(System.getProperty('maxParallelForks', '4'))
-    minHeapSize = System.getProperty('minHeapSize', '1g')
-    maxHeapSize = System.getProperty('maxHeapSize', '4g')
-
-    systemProperty 'pubSubBrokerFactory', System.getProperty('pubSubBrokerFactory', "com.linkedin.venice.integration.utils.KafkaBrokerFactory")
-
-    System.getProperty('jvmArgs')?.eachMatch(/(?:[^\s'"]+|'[^']*'|"[^"]*")+/) { jvmArgs it }
-
-    doFirst {
-      println "forkEvery=$forkEvery"
-      println "maxParallelForks=$maxParallelForks"
-      println "jvmArgs=$allJvmArgs"
-    }
-
-    if (name != ALPINI_UNIT_TEST_TASK_NAME && name != ALPINI_FUNCTIONAL_TEST_TASK_NAME) {
-      filter {
-        excludeTestsMatching ALPINI_TEST_FILTER
-        excludeTestsMatching ALPINI_NETTY_TEST_FILTER
-        failOnNoMatchingTests = false
-      }
-    }
-
-    useTestNG {
-      excludeGroups 'flaky'
-      listeners = ['com.linkedin.venice.testng.VeniceSuiteListener']
-    }
-
-    retry {
-      maxRetries = 4 // 5 attempts in total
-      maxFailures = 100
-      failOnPassedAfterRetry = false
-    }
-
-    testLogging {
-      events = [] // N.B. we suppress all events as everything is taken care of in beforeTest and afterTest
-      showStandardStreams = false // to mute the DDS Router's noisy behavior...
-      exceptionFormat = 'full'
-    }
-
-    beforeTest { descriptor ->
-      def testName = removeSquareBrackets(descriptor.displayName)
-      def out = services.get(StyledTextOutputFactory).create("an-ouput")
-
-      out.style(Style.Normal).println("$descriptor.className > $testName STARTED")
-    }
-
-    afterTest { descriptor, result ->
-      def totalTime = result.endTime - result.startTime
-      def prettyTime = totalTime < 1000 ? "$totalTime ms" : "${totalTime / 1000} s"
-      def testName = removeSquareBrackets(descriptor.displayName)
-      def out = services.get(StyledTextOutputFactory).create("an-ouput")
-
-      def style = result.resultType == TestResult.ResultType.SUCCESS
-        ? Style.Identifier
-        : result.resultType == TestResult.ResultType.FAILURE
-          ? Style.Failure
-          : Style.Normal
-
-      def status = result.resultType == TestResult.ResultType.SUCCESS
-        ? 'PASSED '
-        : result.resultType == TestResult.ResultType.FAILURE
-          ? 'FAILED '
-          : 'SKIPPED '
-
-      out.style(Style.Normal).text("$descriptor.className > $testName ")
-          .style(style).text(status)
-          .style(Style.Normal).println("($prettyTime)")
-
-      if (result.resultType == TestResult.ResultType.FAILURE) {
-        def originalStacktrace = result.exception.getStackTrace()
-        ArrayList<StackTraceElement> truncatedStackTrace = []
-        for (int i = 0; i < originalStacktrace.length; i++) {
-          def element = originalStacktrace[i]
-          def className = element.getClassName()
-          if (i > 1 && (className.startsWith('org.gradle') || className.startsWith('jdk.internal'))) {
-            break
-          }
-          truncatedStackTrace[i] = element
-        }
-        def truncatedException = result.exception
-        truncatedException.setStackTrace(truncatedStackTrace.toArray(new StackTraceElement[0]))
-        out.text('    ').exception(truncatedException)
-      }
-    }
-  }
-
-  if (isLeafSubModule) {
-    jacocoTestReport {
-      dependsOn test // tests are required to run before generating the report
-
-      reports {
-        xml.enabled = true
-        html.enabled = true
-      }
-
-      doLast {
-        parseJacocoXml("$buildDir/reports/jacoco/test/jacocoTestReport.xml")
-      }
-    }
-
-    afterEvaluate {
-      jacocoTestCoverageVerification {
-        dependsOn jacocoTestReport
-
-        violationRules {
-          rule {
-            def threshold = project.ext.has('jacocoCoverageThreshold') ? project.ext.jacocoCoverageThreshold : 0.6
-
-            limit {
-              counter = 'BRANCH'
-              value = 'COVEREDRATIO'
-              minimum = threshold
-            }
-          }
-        }
-      }
-
-      diffCoverageReport {
-        diffSource.file = createDiffFile()
-
-        // Report locates at <module_name>/build/reports/jacoco/diffCoverage/html/index.html
-        reports {
-          html = true
-          xml = true
-        }
-
-        violationRules {
-          minBranches = project.ext.has('diffCoverageThreshold') ? project.ext.diffCoverageThreshold : 0.33
-          failOnViolation = true
-        }
-      }
-
-      task logDiffCoverage {
-        doLast {
-          parseJacocoXml("$buildDir/reports/jacoco/diffCoverage/report.xml")
-        }
-      }
-
-      diffCoverage.dependsOn jacocoTestReport
-      diffCoverage.finalizedBy logDiffCoverage
-    }
-  }
-
-  task flakyTest(type: Test) {
-    useTestNG {
-      includeGroups 'flaky'
-    }
-  }
-
-  task "$ALPINI_UNIT_TEST_TASK_NAME"(type: Test) {
-    useTestNG() {
-      includeGroups 'unit'
-    }
-    filter {
-      includeTestsMatching ALPINI_TEST_FILTER
-      includeTestsMatching ALPINI_NETTY_TEST_FILTER
-      failOnNoMatchingTests = false
-    }
-  }
-
-  task "$ALPINI_FUNCTIONAL_TEST_TASK_NAME"(type: Test) {
-    useTestNG() {
-      includeGroups 'functional'
-    }
-    filter {
-      includeTestsMatching ALPINI_TEST_FILTER
-      includeTestsMatching ALPINI_NETTY_TEST_FILTER
-      failOnNoMatchingTests = false
-    }
-  }
-
-  tasks.withType(Jar) {
-    zip64 = true
-    duplicatesStrategy = DuplicatesStrategy.FAIL
-    exclude('**/*.xml')
-  }
-
-  task testJar(type: Jar) {
-    classifier 'tests'
-    from sourceSets.test.output
-  }
-
-  // Only publish artifacts for projects that are at the leaf level
-  if (isLeafSubModule) {
-    publishing.configureArtifactPublishing(project, testJar)
-  }
-}
-
-task aggregateJavadoc(type: Javadoc) {
-  source subprojects.collect { project ->
-    project.sourceSets.main.allJava
-  }
-  classpath = files(subprojects.collect { project ->
-    project.sourceSets.main.compileClasspath
-  })
-  // generate javadoc with no warnings
-  getOptions().addStringOption('Xdoclint:none', '-quiet')
-  destinationDir = new File(buildDir, 'javadoc')
 }
 
 spotless {
-  ratchetFrom "${git.getUpstreamRemote()}/main"
-  java {
-    importOrder()
-    removeUnusedImports()
-    eclipse().configFile("$rootDir/gradle/spotless/eclipse-java-formatter.xml")
-    target '**/*.java'
-    targetExclude '**/generated/**'
-  }
+    // allows to execute the code formatting commands ./gradlew spotlessApply and ./gradlew spotlessCheck
+    java {
+        target project.fileTree(project.rootDir) {
+            include "**/*.java"
+            exclude(
+                "**/src/main/java/de/tum/in/www1/artemis/service/connectors/BambooService.java",
+                "**/src/test/resources/test-data/repository-export/EncodingISO_8559_1.java",
+                "**/node_modules/**",
+                "**/out/**",
+                "**/repos/**",
+                "**/repos-download/**",
+                "**/build/**",
+                "**/src/main/generated/**",
+                "**/src/main/resources/templates/**",
+                "/docker/**"
+            )
+        }
+        importOrderFile "artemis-spotless.importorder"
+        eclipse("4.19").configFile "artemis-spotless-style.xml"
+
+        removeUnusedImports()
+        trimTrailingWhitespace()
+    }
 }
 
-task setupWorkspace {
-  println 'Setting up default git config'
-  def gitConfig = [
-      'core.hooksPath' : 'gradle/githooks',
-      'blame.ignoreRevsFile' : '.git-blame-ignore-revs',
-      'branch.autoSetupMerge' : 'true', // Only track remote branches
-      'branch.autoSetupRebase' : 'always',
-      'pull.rebase' : 'true',
-  ]
-  gitConfig.each(git.setConfig)
+defaultTasks "bootRun"
+
+springBoot {
+    mainClass = "de.tum.in.www1.artemis.ArtemisApp"
 }
 
-task spotbugs {
-  dependsOn subprojects.tasks*.withType(SpotBugsTask)
+modernizer {
+    failOnViolations = false
+    includeTestClasses = true
+    // Copy the rule name as defined in https://github.com/gaul/modernizer-maven-plugin/blob/master/modernizer-maven-plugin/src/main/resources/modernizer.xml to exclude it
+    exclusions = ["java/util/Optional.get:()Ljava/lang/Object;"]
 }
-check.dependsOn(spotbugs)
 
+// Execute the test cases: ./gradlew test
+// Execute only architecture tests: ./gradlew test -DincludeTags='ArchitectureTest'
 test {
-  mustRunAfter spotbugs
-  dependsOn subprojects.test
-  afterTest { descriptor, result ->
-    def totalTime = result.endTime - result.startTime
-    println "Total time of $descriptor.name was $totalTime"
-  }
-}
-
-assemble {
-  dependsOn (
-    setupWorkspace,
-    testClasses,
-    'internal:venice-test-common:jmhClasses',
-    'internal:venice-test-common:integrationTestClasses'
-  )
-}
-
-build {
-  dependsOn (
-    'services:venice-router:installDist',
-    'services:venice-server:installDist',
-    'services:venice-controller:installDist'
-  )
-}
-
-idea.project.ipr {
-  withXml { provider ->
-    provider.node.component
-            .find { it.@name == 'VcsDirectoryMappings' }
-            .mapping.@vcs = 'Git'
-
-    def inspectionProjectProfileManager = provider.node.component
-        .find { it.@name == 'InspectionProjectProfileManager' }
-
-    def danglingJavaDocInspectionProperties = [
-      class: "DanglingJavadoc",
-      enabled: "false",
-      level: "WARNING",
-      enabled_by_default: "false"
-    ]
-
-    if (inspectionProjectProfileManager == null) {
-      inspectionProjectProfileManager = provider.node.appendNode(
-        "component",
-        [
-          name: "InspectionProjectProfileManager"
-        ]
-      )
-
-      def profile = inspectionProjectProfileManager.appendNode(
-        "profile",
-        [
-          version: "1.0"
-        ]
-      )
-
-      profile.appendNode(
-        "option",
-        [
-          name: "myName",
-          value: "Project Default"
-        ]
-      )
-
-      profile.appendNode(
-        "inspection_tool",
-        danglingJavaDocInspectionProperties
-      )
-
-      inspectionProjectProfileManager.appendNode(
-        "version",
-        [
-          value: "1.0"
-        ]
-      )
+    if (System.getProperty("includeTags")) {
+        useJUnitPlatform {
+            includeTags System.getProperty("includeTags")
+        }
     } else {
-      def danglingJavaDoc = inspectionProjectProfileManager.profile.inspection_tool
-          .find { it.@class == 'DanglingJavadoc' }
-      if (danglingJavaDoc == null) {
-        inspectionProjectProfileManager.profile.get(0).appendNode(
-          "inspection_tool",
-          danglingJavaDocInspectionProperties
+        useJUnitPlatform()
+        exclude "**/*IT*", "**/*IntTest*"
+    }
+
+    testLogging {
+        events "FAILED", "SKIPPED"
+    }
+    testLogging.showStandardStreams = true
+    reports.html.required = false
+    minHeapSize = "1024m" // initial heap size
+    maxHeapSize = "3072m" // maximum heap size
+}
+
+tasks.register("testReport", TestReport) {
+    destinationDirectory = file("$buildDir/reports/tests")
+    testResults.from(test)
+}
+
+jacoco {
+    toolVersion = "0.8.10"
+}
+
+jar {
+    enabled = false
+}
+
+private excludedClassFilesForReport(classDirectories) {
+    classDirectories.setFrom(files(classDirectories.files.collect {
+        fileTree(dir: it,
+            exclude: [
+                "**/de/tum/in/www1/artemis/domain/**/*_*",
+                "**/de/tum/in/www1/artemis/config/migration/entries/**",
+                "**/gradle-wrapper.jar/**"
+            ]
         )
-      } else {
-        danglingJavaDoc.@enabled = false
-        danglingJavaDoc.@level = "WARNING"
-        danglingJavaDoc.@enabled_by_default = false
-      }
+    }))
+}
+
+jacocoTestReport {
+    reports {
+        xml.required = true
     }
-  }
-}
-
-// Allow running diffCoverage against uncommitted files
-// See https://github.com/form-com/diff-coverage-gradle/issues/73
-ext.createDiffFile = { ->
-  // Files that we don't plan to write unit tests for now. Will be worked in the future
-  def exclusionFilter = [
-        ':!services/venice-controller/src/main/java/com/linkedin/venice/controller/VeniceHelixAdmin.java',
-        ':!services/venice-controller/src/main/java/com/linkedin/venice/controller/VeniceParentHelixAdmin.java',
-        ':!internal/venice-test-common/*',
-        ':!services/venice-server/src/main/java/com/linkedin/venice/server/VeniceServer.java',
-        ':!internal/venice-common/src/main/java/com/linkedin/venice/controllerapi/ControllerClient.java',
-        ':!services/venice-controller/src/main/java/com/linkedin/venice/controller/VeniceController.java',
-        ':!services/venice-router/src/main/java/com/linkedin/venice/router/RouterServer.java',
-        ':!services/venice-router/src/main/java/com/linkedin/venice/router/streaming/VeniceChunkedResponse.java',
-        ':!services/venice-standalone/*', // exclude the entire standalone project
-        ':!clients/venice-client/src/main/java/com/linkedin/venice/fastclient/factory/ClientFactory.java',
-        ':!clients/da-vinci-client/src/main/java/com/linkedin/davinci/DaVinciBackend.java',
-        ':!clients/venice-producer/src/main/java/com/linkedin/venice/producer/online/OnlineProducerFactory.java',
-        ':!clients/venice-producer/src/main/java/com/linkedin/venice/producer/online/ProducerTool.java',
-
-        // Other files that have tests but are not executed in the regular unit test task
-        ':!internal/alpini/*'
-  ]
-  def file = Files.createTempFile(URLEncoder.encode(project.name, 'UTF-8'), '.diff').toFile()
-  def diffBase = "${git.getUpstreamRemote()}/main"
-  def command = [
-      'git', 'diff', diffBase, '--no-color', '--minimal', '--', '.'
-  ]
-  command.addAll(exclusionFilter)
-  file.withOutputStream { out ->
-    exec {
-      commandLine command
-      standardOutput = out
+    // we want to ignore some generated files in the domain folders
+    afterEvaluate {
+        excludedClassFilesForReport(classDirectories)
     }
-  }
-
-  return file
 }
 
-// for a given xml jacoco report, parse it and print out the branch coverage
-ext.parseJacocoXml = { filePath ->
-  try {
-    def jacocoReport = parser.parse(filePath).children()
-    def branchCoverage = jacocoReport.find { it.name() == 'counter' && it.@type == 'BRANCH' }
-    def branchCoverageRatio = branchCoverage.@covered.toDouble() / (branchCoverage.@missed.toDouble() + branchCoverage.@covered.toDouble())
-    println "Branch coverage: ${(branchCoverageRatio * 100.0).round(2)}%"
-  } catch (Exception e) {
-    // failure to retrieve numbers should not fail the build
-    project.logger.debug("Branch coverage: N/A. There's either no branch coverage or " +
-        "the jacoco report is not generated.", e)
-  }
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                counter = "INSTRUCTION"
+                value = "COVEREDRATIO"
+                minimum = 0.90
+            }
+            limit {
+                counter = "CLASS"
+                value = "MISSEDCOUNT"
+                // TODO: in the future the following value should become less than 10
+                maximum = 19
+            }
+        }
+    }
+    // we want to ignore some generated files in the domain folders
+    afterEvaluate {
+        excludedClassFilesForReport(classDirectories)
+    }
+}
+check.dependsOn jacocoTestCoverageVerification
+
+configurations {
+    providedRuntime
 }
 
-allprojects {
-  task printAllDependencies(type: DependencyReportTask) {}
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven {
+        url "https://repo.gradle.org/gradle/libs-releases/"
+    }
 }
+
+ext["jackson.version"] = fasterxml_version
+
+dependencies {
+
+    // This will make sure that e.g. src/main/java/de/tum/in/www1/artemis/config/BeanInfoProcessor.java is invoked during the build
+    annotationProcessor "com.google.auto.service:auto-service:1.1.1"
+    compileOnly "com.google.auto.service:auto-service:1.1.1"
+
+    // Note: jenkins-client is not well maintained and includes dependencies to libraries with critical security issues (e.g. CVE-2020-10683 for dom4j@1.6.1)
+    //    implementation "com.offbytwo.jenkins:jenkins-client:0.3.8"
+    implementation files("libs/jenkins-client-0.4.0.jar")
+    // The following 4 dependencies are explicitly integrated as transitive dependencies of jenkins-client-0.4.0.jar
+    implementation "org.apache.httpcomponents:httpclient:4.5.14"
+    implementation "org.apache.httpcomponents:httpcore:4.4.16"
+    implementation "org.apache.httpcomponents:httpmime:4.5.14"
+    implementation ("org.dom4j:dom4j:2.1.4") {
+        // Note: avoid org.xml.sax.SAXNotRecognizedException: unrecognized feature http://xml.org/sax/features/external-general-entities
+        // also see https://github.com/dom4j/dom4j/issues/99
+        exclude module: "pull-parser"
+        exclude module: "jaxen"
+        exclude module: "xpp3"
+        exclude module: "xsdlib"
+        exclude module: "stax-api"
+        exclude module: "jaxb-api"
+    }
+
+
+    implementation "org.gitlab4j:gitlab4j-api:5.3.0"
+
+    implementation "de.jplag:jplag:${jplag_version}"
+    implementation "de.jplag:java:${jplag_version}"
+    implementation "de.jplag:kotlin:${jplag_version}"
+    implementation "de.jplag:cpp:${jplag_version}"
+    implementation "de.jplag:swift:${jplag_version}"
+    implementation "de.jplag:java:${jplag_version}"
+    implementation "de.jplag:python-3:${jplag_version}"
+    implementation "de.jplag:text:${jplag_version}"
+
+    // we have to override those values to avoid issues with Spring (JPlag wants to use a newer version which would conflict otherwise)
+    implementation "org.slf4j:jcl-over-slf4j:${slf4j_version}"
+    implementation "org.slf4j:jul-to-slf4j:${slf4j_version}"
+    implementation ("org.slf4j:slf4j-api") {
+        version {
+            strictly "${slf4j_version}"
+        }
+    }
+
+    implementation "org.apache.logging.log4j:log4j-to-slf4j:2.20.0"
+
+    implementation "uk.ac.ox.ctl:spring-security-lti13:0.0.4"
+
+    // https://search.maven.org/artifact/org.eclipse.jgit/org.eclipse.jgit
+    implementation "org.eclipse.jgit:org.eclipse.jgit:${jgit_version}"
+    implementation "org.eclipse.jgit:org.eclipse.jgit.ssh.apache:${jgit_version}"
+    implementation "org.eclipse.jgit:org.eclipse.jgit.http.server:${jgit_version}"
+    // https://mvnrepository.com/artifact/net.sourceforge.plantuml/plantuml
+    implementation "net.sourceforge.plantuml:plantuml:1.2023.10"
+    implementation "org.imsglobal:basiclti-util:1.2.0"
+    implementation "org.jasypt:jasypt:1.9.3"
+    implementation "me.xdrop:fuzzywuzzy:1.4.0"
+    implementation "com.atlassian.bamboo:bamboo-specs:9.3.3"
+    implementation ("org.yaml:snakeyaml") {
+        version {
+            strictly "2.0" // needed for Bamboo-specs and to reduce the number of vulnerabilities, also see https://mvnrepository.com/artifact/org.yaml/snakeyaml
+        }
+    }
+
+
+    implementation "com.thoughtworks.qdox:qdox:2.0.3"
+    implementation "io.sentry:sentry-logback:${sentry_version}"
+    implementation "io.sentry:sentry-spring-boot-starter:${sentry_version}"
+    implementation "org.jsoup:jsoup:1.16.1"
+    implementation "commons-codec:commons-codec:1.16.0"   // needed for spring security saml2
+
+    implementation "org.springdoc:springdoc-openapi-ui:1.7.0"
+    implementation "com.vdurmont:semver4j:3.1.0"
+
+    implementation "com.github.docker-java:docker-java-core:3.3.3"
+    implementation "com.github.docker-java:docker-java-transport-httpclient5:3.3.3"
+
+    // import JHipster dependencies BOM
+    implementation platform("tech.jhipster:jhipster-dependencies:${jhipster_dependencies_version}")
+
+    implementation "tech.jhipster:jhipster-framework:${jhipster_dependencies_version}"
+    implementation "org.springframework.boot:spring-boot-starter-cache:${spring_boot_version}"
+    implementation "io.micrometer:micrometer-registry-prometheus:1.11.4"
+    implementation "net.logstash.logback:logstash-logback-encoder:7.4"
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-hppc:${fasterxml_version}"
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${fasterxml_version}"
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-hibernate5:${fasterxml_version}"
+    implementation "com.fasterxml.jackson.core:jackson-annotations:${fasterxml_version}"
+    implementation "com.fasterxml.jackson.core:jackson-databind:${fasterxml_version}"
+    implementation "com.hazelcast:hazelcast:${hazelcast_version}"
+    implementation "com.hazelcast:hazelcast-spring:${hazelcast_version}"
+    implementation "com.hazelcast:hazelcast-hibernate53:5.1.0"
+    implementation "javax.cache:cache-api:1.1.1"
+    implementation "org.hibernate:hibernate-core:${hibernate_version}"
+    implementation "com.zaxxer:HikariCP:5.0.1"
+    implementation "org.apache.commons:commons-text:1.10.0"
+    implementation "org.apache.commons:commons-math3:3.6.1"
+    implementation "javax.transaction:javax.transaction-api:1.3"
+    implementation "org.hibernate:hibernate-entitymanager:${hibernate_version}"
+    implementation "org.liquibase:liquibase-core:4.23.2"
+    implementation "org.springframework.boot:spring-boot-starter-validation:${spring_boot_version}"
+    implementation "org.springframework.boot:spring-boot-loader-tools:${spring_boot_version}"
+    implementation "org.springframework.boot:spring-boot-starter-mail:${spring_boot_version}"
+    implementation "org.springframework.boot:spring-boot-starter-logging:${spring_boot_version}"
+    implementation "org.springframework.boot:spring-boot-starter-actuator:${spring_boot_version}"
+    implementation "org.springframework.boot:spring-boot-starter-aop:${spring_boot_version}"
+    implementation "org.springframework.boot:spring-boot-starter-data-jpa:${spring_boot_version}"
+    implementation "org.springframework.boot:spring-boot-starter-security:${spring_boot_version}"
+    implementation ("org.springframework.boot:spring-boot-starter-web:${spring_boot_version}") {
+        exclude module: "spring-boot-starter-undertow"
+    }
+    implementation "org.springframework.boot:spring-boot-starter-tomcat:${spring_boot_version}"
+    implementation "org.springframework.boot:spring-boot-starter-websocket:${spring_boot_version}"
+    implementation "org.springframework.boot:spring-boot-starter-thymeleaf:${spring_boot_version}"
+
+    implementation "org.springframework.ldap:spring-ldap-core:2.4.1"
+    implementation "org.springframework.data:spring-data-ldap:2.7.15"
+
+    implementation "org.springframework.cloud:spring-cloud-starter-netflix-eureka-client:3.1.7"
+    implementation "org.springframework.cloud:spring-cloud-starter-config:3.1.8"
+    implementation "org.springframework.boot:spring-boot-starter-cloud-connectors:2.2.13.RELEASE"
+
+    implementation "io.netty:netty-all:4.1.97.Final"
+    implementation "io.projectreactor.netty:reactor-netty:1.1.11"
+    implementation "org.springframework:spring-messaging:5.3.29"
+    implementation "org.springframework.retry:spring-retry:2.0.3"
+
+    implementation "org.springframework.security:spring-security-config:${spring_security_version}"
+    implementation "org.springframework.security:spring-security-data:${spring_security_version}"
+    implementation "org.springframework.security:spring-security-web:${spring_security_version}"
+    implementation "org.springframework.security:spring-security-messaging:${spring_security_version}"
+    implementation "org.springframework.security:spring-security-ldap:${spring_security_version}"
+    implementation "org.springframework.security:spring-security-saml2-service-provider:${spring_security_version}"
+    implementation "org.xmlbeam:xmlprojector:1.4.24"
+    implementation "io.jsonwebtoken:jjwt-api:0.11.5"
+    implementation "org.bouncycastle:bcprov-jdk15on:1.70"
+    runtimeOnly "io.jsonwebtoken:jjwt-impl:0.11.5"
+    runtimeOnly "io.jsonwebtoken:jjwt-jackson:0.11.5"
+    implementation ("io.springfox:springfox-swagger2:3.0.0") {
+        exclude module: "mapstruct"
+    }
+    implementation "io.springfox:springfox-bean-validators:3.0.0"
+    implementation "mysql:mysql-connector-java:8.0.33"
+    implementation "org.postgresql:postgresql:42.6.0"
+    implementation "com.h2database:h2:2.2.222"
+
+    // zalando problem spring web can only be updated when we support Spring 6
+    implementation "org.zalando:problem-spring-web:0.27.0"
+    implementation "com.ibm.icu:icu4j:73.2"
+    implementation "com.github.seancfoley:ipaddress:5.4.0"
+    implementation "org.apache.maven:maven-model:3.9.4"
+    implementation "org.apache.pdfbox:pdfbox:3.0.0"
+    implementation "com.google.protobuf:protobuf-java:3.24.3"
+    implementation "org.apache.commons:commons-csv:1.10.0"
+    implementation "org.commonmark:commonmark:0.21.0"
+    implementation "commons-fileupload:commons-fileupload:1.5"
+    implementation "net.lingala.zip4j:zip4j:2.11.5"
+    implementation "org.jgrapht:jgrapht-core:1.5.2"
+
+
+    annotationProcessor "org.hibernate:hibernate-jpamodelgen:${hibernate_version}"
+    annotationProcessor ("org.glassfish.jaxb:jaxb-runtime:${jaxb_runtime_version}") {
+        exclude group: "javax.ws.rs", module: "jsr311-api"
+    }
+    annotationProcessor ("org.springframework.boot:spring-boot-configuration-processor:${spring_boot_version}") {
+        exclude group: "com.vaadin.external.google", module: "android-json"
+    }
+    testImplementation ("org.springframework.boot:spring-boot-starter-test:${spring_boot_version}") {
+        exclude module: "junit"
+        exclude group: "org.junit.vintage", module: "junit-vintage-engine"
+        exclude group: "com.vaadin.external.google", module: "android-json"
+    }
+    testImplementation "org.springframework.security:spring-security-test:${spring_security_version}"
+    testImplementation "org.springframework.boot:spring-boot-test:${spring_boot_version}"
+    testImplementation "org.assertj:assertj-core:3.24.2"
+    testImplementation "org.junit.jupiter:junit-jupiter:${junit_version}"
+    testImplementation "org.mockito:mockito-core:${mockito_version}"
+    testImplementation "org.mockito:mockito-junit-jupiter:${mockito_version}"
+    testImplementation "io.github.classgraph:classgraph:4.8.162"
+    testImplementation "org.awaitility:awaitility:4.2.0"
+    testImplementation "org.apache.maven.shared:maven-invoker:3.2.0"
+    testImplementation "org.gradle:gradle-tooling-api:8.3"
+    testImplementation "org.apache.maven.surefire:surefire-report-parser:3.1.2"
+    testImplementation "com.opencsv:opencsv:5.8"
+    testImplementation "io.zonky.test:embedded-database-spring-test:2.3.0"
+    testImplementation "com.tngtech.archunit:archunit:1.1.0"
+    testImplementation "org.skyscreamer:jsonassert:1.5.1"
+
+    // Lightweight JSON library needed for the internals of the MockRestServiceServer
+    testImplementation "org.json:json:20230618"
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "io.zonky.test.postgres:embedded-postgres-binaries-bom:15.3.0"
+    }
+}
+
+tasks.register("cleanResources", Delete) {
+    delete "build/resources"
+}
+
+// Taken from here: https://stackoverflow.com/questions/3963708/gradle-how-to-display-test-results-in-the-console-in-real-time
+tasks.withType(Test).configureEach {
+    testLogging {
+        // set options for log level LIFECYCLE
+        events TestLogEvent.FAILED,
+            TestLogEvent.PASSED,
+            TestLogEvent.SKIPPED
+        exceptionFormat TestExceptionFormat.FULL
+        showExceptions true
+        showCauses true
+        showStackTraces true
+
+        info.events = debug.events
+        info.exceptionFormat = debug.exceptionFormat
+
+        afterSuite { desc, result ->
+            if (!desc.parent) { // will match the outermost suite
+                def output = "Results: ${result.resultType} (${result.testCount} tests, ${result.successfulTestCount} successes, ${result.failedTestCount} failures, ${result.skippedTestCount} skipped)"
+                def startItem = "|  ", endItem = "  |"
+                def repeatLength = startItem.length() + output.length() + endItem.length()
+                println("\n" + ("-" * repeatLength) + "\n" + startItem + output + endItem + "\n" + ("-" * repeatLength))
+            }
+        }
+    }
+}
+
+wrapper {
+    gradleVersion = "8.3"
+}
+
+tasks.register("stage") {
+    dependsOn "bootWar"
+}
+
+node {
+    download = true
+    version = "${node_version}"
+    npmVersion = "${npm_version}"
+}
+
+// Command to execute the JavaDoc checkstyle verification ./gradlew checkstyleMain
+checkstyle {
+    toolVersion "${checkstyle_version}"
+    configFile file("checkstyle.xml")
+    checkstyleTest.enabled = false
+    maxErrors = 0
+}
+
+def isNonStable = { String version ->
+    def stableKeyword = ["RELEASE", "FINAL", "GA"].any { it -> version.toUpperCase().contains(it) }
+    def regex = /^[0-9,.v-]+(-r)?$/
+    return !stableKeyword && !(version ==~ regex)
+}
+
+tasks.named("dependencyUpdates").configure {
+    rejectVersionIf {
+        isNonStable(it.candidate.version)
+    }
+
+    rejectVersionIf {
+        isNonStable(it.candidate.version) && !isNonStable(it.currentVersion)
+    }
+}
+
+pitest {
+    targetClasses = ["de.tum.in.www1.artemis.service.exam.ExamService"]
+    targetTests = [
+        "de.tum.in.www1.artemis.StudentExamIntegrationTest",
+        "de.tum.in.www1.artemis.ExamIntegrationTest",
+    ]
+    outputFormats = ["XML", "HTML"]
+    timestampedReports = false
+    junit5PluginVersion = "1.0.0"
+    timeoutFactor = 1.5
+    timeoutConstInMillis = 10000
+    useClasspathFile = true
+}
+
+// Available commands:
+//
+// 1) Build production:                             ./gradlew -Pprod -Pwar clean bootWar
+// 2) Execute tests with coverage report:           ./gradlew test jacocoTestReport -x webapp
+// 2a) Execute tests without coverage report:       ./gradlew test -x webapp
+// 2b) Run a single test:                           ./gradlew test --tests ExamIntegrationTest -x webapp or ./gradlew test --tests ExamIntegrationTest.testGetExamScore -x webapp
+// 3) Verify code coverage (after tests):           ./gradlew jacocoTestCoverageVerification
+// 4) Check Java code format:                       ./gradlew spotlessCheck -x webapp
+// 5) Apply Java code formatter:                    ./gradlew spotlessApply -x webapp
+// 6) Find dependency updates:                      ./gradlew dependencyUpdates -Drevision=release
+// 7) Check JavaDoc:                                ./gradlew checkstyleMain -x webapp
+// 8) Detects uses of legacy code:                  ./gradlew modernizer -x webapp
+// 9) Check for vulnerabilities in dependencies     ./gradlew dependencyCheckAnalyze -x webapp
+// 10) Generate Liquibase diff:                     ./gradlew liquibaseDiffChangelog
+// 11) Clear Liquibase checksums:                   ./gradlew liquibaseClearChecksums
+// 12) Create changelog between Java and DB         ./gradlew liquibaseDiffChangeLog (make sure to set the correct username and password in liquibase.gradle)
+// 13) Generate initial schema from DB              ./gradlew liquibaseGenerateChangelog (make sure to set the correct username and password in liquibase.gradle)
+// 14) Run PIT Mutation Tests:                      ./gradlew pitest -x webapp

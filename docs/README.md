@@ -1,151 +1,87 @@
-<html>
-    <h1 align="center">
-      Venice
-    </h1>
-    <h3 align="center">
-      Derived Data Platform for Planet-Scale Workloads<br/>
-    </h3>
-    <div align="center">
-        <a href="https://blog.venicedb.org/stable-releases">
-          <img src="https://img.shields.io/docker/v/venicedb/venice-router?label=stable&color=green&logo=docker" alt="Stable Release">
-        </a>
-        <a href="https://github.com/linkedin/venice/actions/workflows/gh-ci.yml">
-          <img src="https://img.shields.io/github/actions/workflow/status/linkedin/venice/gh-ci.yml" alt="CI">
-        </a>
-        <a href="https://venicedb.org/">
-          <img src="https://img.shields.io/badge/docs-grey" alt="Docs">
-        </a>
-    </div>
-    <div align="center">
-        <a href="https://github.com/linkedin/venice">
-          <img src="https://img.shields.io/badge/github-%23121011.svg?logo=github&logoColor=white" alt="GitHub">
-        </a>
-        <a href="https://www.linkedin.com/company/venicedb/">
-          <img src="https://img.shields.io/badge/linkedin-%230077B5.svg?logo=linkedin&logoColor=white" alt="LinkedIn">
-        </a>
-        <a href="https://twitter.com/VeniceDataBase">
-          <img src="https://img.shields.io/badge/Twitter-%231DA1F2.svg?logo=Twitter&logoColor=white" alt="Twitter">
-        </a>
-        <a href="http://slack.venicedb.org">
-          <img src="https://img.shields.io/badge/Slack-4A154B?logo=slack&logoColor=white" alt="Slack">
-        </a>
-    </div>
-</html>
+# Artemis Documentation
 
-Venice is a derived data storage platform, providing the following characteristics:
+We use [Sphinx] for creating the Artemis documentation using [reStructuredText] (RST).
+To get started with RST, check out the [Quickstart] or this [cheatsheet].
 
-1. High throughput asynchronous ingestion from batch and streaming sources (e.g. [Hadoop](https://github.com/apache/hadoop) and [Samza](https://github.com/apache/samza)).
-2. Low latency online reads via remote queries or in-process caching.
-3. Active-active replication between regions with CRDT-based conflict resolution.
-4. Multi-cluster support within each region with operator-driven cluster assignment.
-5. Multi-tenancy, horizontal scalability and elasticity within each cluster.
+## Documentation Hosting
 
-The above makes Venice particularly suitable as the stateful component backing a Feature Store, such as [Feathr](https://github.com/feathr-ai/feathr). 
-AI applications feed the output of their ML training jobs into Venice and then query the data for use during online 
-inference workloads.
+[Read the Docs] (RtD) hosts the [Artemis documentation] for the `develop` (latest) branch, as well as for
+git tags and branches of pull requests.
+You can switch the shown version at the bottom of the sidebar.
+The latest tag is always the _stable_ version.
+For pull requests, the documentation is available at `https://artemis-platform--{PR_NUMBER}.org.readthedocs.build/en/{PR_NUMBER}/`.
+RtD will build and deploy changes automatically.
 
-Write Path
-----------
+## Installing Sphinx Locally
+[Sphinx] can run locally to generate the documentation in HTML and other formats.
+You can install Sphinx using `pip` or choose a system-wide installation instead.
+When using pip, consider using [Python virtual environments].
+```bash
+pip install -r requirements.txt
+```
+or
+```bash
+pip3 install -r requirements.txt
+```
+The [Installing Sphinx] documentation explains more install options.
+For macOS, it is recommended to install it using homebrew:
+```bash
+brew install sphinx-doc
+brew link sphinx-doc --force
+pip3 install -r requirements.txt
+```
 
-The Venice write path can be broken down into three granularities: full dataset swap, insertion of many rows into an 
-existing dataset, and updates of some columns of some rows. All three granularities are supported by Hadoop and Samza, 
-thus leading to the below full matrix of supported operations:
+## Running Sphinx Locally
 
-|                                                 | Hadoop                                   | Samza                             |
-| ----------------------------------------------- | ---------------------------------------- | --------------------------------- |
-| Full dataset swap                               | Full Push Job                            | Reprocessing Job                  |
-| Insertion of some rows into an existing dataset | Incremental Push Job                     | Real-Time Job                     |
-| Updates to some columns of some rows            | Incremental Push Job doing Write Compute | Real-Time Job doing Write Compute |
+To generate the documentation as a single HTML file, use the provided `Makefile`/`make.bat` files in the folder `docs`:
+```bash
+# maxOS / Linux
+make singlehtml
 
-### Hybrid Stores
-Moreover, the three granularities of write operations can all be mixed within a single dataset. A dataset which gets 
-full dataset swaps in addition to row insertion or row updates is called _hybrid_.
+# Windows
+make.bat singlehtml
+```
 
-As part of configuring a store to be _hybrid_, an important concept is the _rewind time_, which defines how far back 
-should recent real-time writes be rewound and applied on top of the new generation of the dataset getting swapped in.
 
-Leveraging this mechanism, it is possible to overlay the output of a stream processing job on top of that of a batch 
-job. If using partial updates, then it is possible to have some of the columns be updated in real-time and some in 
-batch, and these two sets of columns can either overlap or be disjoint, as desired.
+Using [sphinx-autobuild], the browser will live-reload on changes, ideal for viewing changes while writing documentation:
+```bash
+# maxOS / Linux
+make livehtml
 
-### Write Compute
-Write Compute includes two kinds of operations, which can be performed on the value associated with a given key:
+# Windows
+make.bat livehtml
+```
 
-- **Partial update**: set the content of a field within the value.
-- **Collection merging**: add or remove entries in a set or map.  
+## Running Sphinx Locally with Docker
 
-N.B.: Currently, write compute is only supported in conjunction with active-passive replication. Support for 
-active-active replication is under development. 
+To generate the documentation as an HTML file, use the provided docker command from the project root:
+```bash
+docker run --rm -v ${PWD}/docs:/docs $(docker build -q -t sphinx -f docs/Dockerfile ./docs) make singlehtml
+```
 
-Read Path
----------
+To auto-generate the documentation as HTML file and live-reload on changes,
+use the provided docker command from the project root:
+```bash
+docker run --rm -it -v ${PWD}/docs:/docs -p 8000:8000 $(docker build -q -t sphinx -f docs/Dockerfile ./docs)
+```
 
-Venice supports the following read APIs:
+## Tool support
+A list of useful tools to write documentation:
+- [reStructuredText for Visual Studio Code](https://www.restructuredtext.net)
+- [LanguageTool for Visual Studio Code](https://marketplace.visualstudio.com/items?itemName=adamvoss.vscode-languagetool): Provides offline grammar checking
+- [ReStructuredText for IntelliJ](https://plugins.jetbrains.com/plugin/7124-restructuredtext)
 
-- **Single get**: get the value associated with a single key
-- **Batch get**: get the values associated with a set of keys
-- **Read compute**: project some fields and/or compute some function on the fields of values associated with a set of 
-  keys.
 
-### Read Compute
-When using the read compute DSL, the following functions are currently supported:
 
-- **Dot product**: perform a dot product on the float vector stored in a given field, against another float vector 
-  provided as query param, and return the resulting scalar.
-- **Cosine similarity**: perform a cosine similarity on the float vector stored in a given field, against another float 
-  vector provided as query param, and return the resulting scalar.
-- **Hadamard product**: perform a Hadamard product on the float vector stored in a given field, against another float 
-  vector provided as query param, and return the resulting vector.
-- **Collection count**: return the number of items in the collection stored in a given field.
+<!-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -->
+[Artemis documentation]: https://artemis-platform.readthedocs.io
 
-### Client Modes
+[reStructuredText]: https://docutils.sourceforge.io/rst.html
+[Quickstart]: https://docutils.sourceforge.io/docs/user/rst/quickstart.html
+[cheatsheet]: http://github.com/ralsina/rst-cheatsheet/raw/master/rst-cheatsheet.pdf
 
-There are two main client modes for accessing Venice data:
-
-- **Classical Venice**: perform remote queries against Venice's distributed backend service. In this mode, read compute 
-  queries are pushed down to the backend and only the computation results are returned to the client. 
-- **Da Vinci**: eagerly load some or all partitions of the dataset and perform queries against the resulting local
-  cache. Future updates to the data continue to be streamed in and applied to the local cache.
-
-# Getting Started
-Refer to the [Venice quickstart](./quickstart/quickstart.md) to create your own Venice cluster and play around with some 
-features like creating a data store, batch push, incremental push, and single get. We recommend sticking to our latest 
-[stable release](https://blog.venicedb.org/stable-releases).
-
-# Previously Published Content
-
-The following blog posts have previously been published about Venice:
-
-- 2015: [Prototyping Venice: Derived Data Platform](https://engineering.linkedin.com/distributed-systems/prototyping-venice-derived-data-platform)
-- 2017: [Building Venice with Apache Helix](https://engineering.linkedin.com/blog/2017/02/building-venice-with-apache-helix)
-- 2017: [Building Venice: A Production Software Case Study](https://engineering.linkedin.com/blog/2017/04/building-venice--a-production-software-case-study)
-- 2017: [Venice Hybrid: Doing Lambda Better](https://engineering.linkedin.com/blog/2017/12/venice-hybrid--doing-lambda-better)
-- 2018: [Venice Performance Optimization](https://engineering.linkedin.com/blog/2018/04/venice-performance-optimization)
-- 2021: [Taming memory fragmentation in Venice with Jemalloc](https://engineering.linkedin.com/blog/2021/taming-memory-fragmentation-in-venice-with-jemalloc)
-- 2022: [Supporting large fanout use cases at scale in Venice](https://engineering.linkedin.com/blog/2022/supporting-large-fanout-use-cases-at-scale-in-venice)
-- 2022: [Open Sourcing Venice – LinkedIn’s Derived Data Platform](https://engineering.linkedin.com/blog/2022/open-sourcing-venice--linkedin-s-derived-data-platform)
-
-The following talks have been given about Venice:
-
-- 2018: [Venice with Apache Kafka & Samza](https://www.youtube.com/watch?v=Usz8E4S-hZE)
-- 2019: [People You May Know: Fast Recommendations over Massive Data](https://www.infoq.com/presentations/recommendation-massive-data/)
-- 2019: [Enabling next generation models for PYMK Scale](https://www.youtube.com/watch?v=znd-Q6IvCqY)
-- 2022: [Open Sourcing Venice](https://www.youtube.com/watch?v=pJeg4V3JgYo)
-- 2023: [Partial Updates in Venice](https://www.youtube.com/watch?v=WlfvpZuIa6Q&t=3880s)
-
-Keep in mind that older content reflects an earlier phase of the project and may not be entirely correct anymore.
-
-# Community Resources
-
-Feel free to engage with the community using our:
-- [Slack workspace](http://slack.venicedb.org)
-  - Archived and publicly searchable on [Linen](http://linen.venicedb.org)
-- [LinkedIn group](https://www.linkedin.com/groups/14129519/)
-- [GitHub issues](https://github.com/linkedin/venice/issues)
-- [Contributor's guide](CONTRIBUTING.md)
-
-Follow us to hear more about the progress of the Venice project and community:
-- [Official blog](https://blog.venicedb.org)
-- [LinkedIn page](https://www.linkedin.com/company/venicedb)
-- [Twitter handle](https://twitter.com/VeniceDataBase)
-- [YouTube channel](https://youtube.com/@venicedb)
+[Sphinx]: https://www.sphinx-doc.org/en/master/
+[Installing Sphinx]: https://www.sphinx-doc.org/en/master/usage/installation.html
+[Python virtual environments]: https://docs.python.org/3/library/venv.html
+[sphinx-autobuild]: https://pypi.org/project/sphinx-autobuild/
+[Read the Docs]: https://readthedocs.org
