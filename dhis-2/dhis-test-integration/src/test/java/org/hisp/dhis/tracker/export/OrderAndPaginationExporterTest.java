@@ -228,6 +228,11 @@ class OrderAndPaginationExporterTest extends TrackerTest {
       throws ForbiddenException, BadRequestException, NotFoundException {
     TrackedEntity QS6w44flWAf = get(TrackedEntity.class, "QS6w44flWAf");
     TrackedEntity dUE514NMOlo = get(TrackedEntity.class, "dUE514NMOlo");
+    List<String> expected =
+        Stream.of(QS6w44flWAf, dUE514NMOlo)
+            .sorted(Comparator.comparing(TrackedEntity::getCreated)) // asc
+            .map(TrackedEntity::getUid)
+            .toList();
 
     TrackedEntityOperationParams params =
         TrackedEntityOperationParams.builder()
@@ -239,19 +244,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
     List<String> trackedEntities = getTrackedEntities(params);
 
-    boolean isSameCreatedDate = QS6w44flWAf.getCreated().equals(dUE514NMOlo.getCreated());
-    if (isSameCreatedDate) {
-      // the order is non-deterministic if the created date is the same. we can then only assert
-      // the correct TEs are in the result. otherwise the test is flaky
-      assertContainsOnly(List.of("QS6w44flWAf", "dUE514NMOlo"), trackedEntities);
-    } else {
-      List<String> expected =
-          Stream.of(QS6w44flWAf, dUE514NMOlo)
-              .sorted(Comparator.comparing(TrackedEntity::getCreated)) // asc
-              .map(TrackedEntity::getUid)
-              .toList();
-      assertEquals(expected, trackedEntities);
-    }
+    assertEquals(expected, trackedEntities);
   }
 
   @Test
@@ -259,6 +252,11 @@ class OrderAndPaginationExporterTest extends TrackerTest {
       throws ForbiddenException, BadRequestException, NotFoundException {
     TrackedEntity QS6w44flWAf = get(TrackedEntity.class, "QS6w44flWAf");
     TrackedEntity dUE514NMOlo = get(TrackedEntity.class, "dUE514NMOlo");
+    List<String> expected =
+        Stream.of(QS6w44flWAf, dUE514NMOlo)
+            .sorted(Comparator.comparing(TrackedEntity::getCreated).reversed()) // reversed = desc
+            .map(TrackedEntity::getUid)
+            .toList();
 
     TrackedEntityOperationParams params =
         TrackedEntityOperationParams.builder()
@@ -270,19 +268,7 @@ class OrderAndPaginationExporterTest extends TrackerTest {
 
     List<String> trackedEntities = getTrackedEntities(params);
 
-    boolean isSameCreatedDate = QS6w44flWAf.getCreated().equals(dUE514NMOlo.getCreated());
-    if (isSameCreatedDate) {
-      // the order is non-deterministic if the created date is the same. we can then only assert
-      // the correct TEs are in the result. otherwise the test is flaky
-      assertContainsOnly(List.of("QS6w44flWAf", "dUE514NMOlo"), trackedEntities);
-    } else {
-      List<String> expected =
-          Stream.of(QS6w44flWAf, dUE514NMOlo)
-              .sorted(Comparator.comparing(TrackedEntity::getCreated).reversed()) // reversed = desc
-              .map(TrackedEntity::getUid)
-              .toList();
-      assertEquals(expected, trackedEntities);
-    }
+    assertEquals(expected, trackedEntities);
   }
 
   @Test

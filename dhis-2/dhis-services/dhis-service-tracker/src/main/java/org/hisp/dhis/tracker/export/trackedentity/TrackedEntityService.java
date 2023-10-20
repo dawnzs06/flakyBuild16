@@ -27,7 +27,6 @@
  */
 package org.hisp.dhis.tracker.export.trackedentity;
 
-import java.util.Set;
 import org.hisp.dhis.feedback.BadRequestException;
 import org.hisp.dhis.feedback.ForbiddenException;
 import org.hisp.dhis.feedback.NotFoundException;
@@ -55,12 +54,4 @@ public interface TrackedEntityService {
    */
   TrackedEntities getTrackedEntities(TrackedEntityOperationParams operationParams)
       throws ForbiddenException, NotFoundException, BadRequestException;
-
-  /**
-   * Fields the {@link #getTrackedEntities(TrackedEntityOperationParams)} can order tracked entities
-   * by. Ordering by fields other than these is considered a programmer error. Validation of user
-   * provided field names should occur before calling {@link
-   * #getTrackedEntities(TrackedEntityOperationParams)}.
-   */
-  Set<String> getOrderableFields();
 }
