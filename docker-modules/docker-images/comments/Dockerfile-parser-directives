@@ -1,4 +1,0 @@
-# escape=`
-FROM ubuntu:latest
-RUN echo 'This is a Tuyucheng tutorial&' `
-  && echo 'Print more stuff'

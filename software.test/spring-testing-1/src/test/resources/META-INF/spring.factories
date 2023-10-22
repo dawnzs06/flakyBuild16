@@ -1,3 +1,0 @@
-# Test Execution Listeners
-org.springframework.test.context.TestExecutionListener=\
-testexecutionlisteners.cn.tuyucheng.taketoday.CustomTestExecutionListener

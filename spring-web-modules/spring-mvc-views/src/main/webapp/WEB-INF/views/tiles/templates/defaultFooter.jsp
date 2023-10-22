@@ -1,1 +1,0 @@
-<footer>copyright � Tuyucheng</footer>

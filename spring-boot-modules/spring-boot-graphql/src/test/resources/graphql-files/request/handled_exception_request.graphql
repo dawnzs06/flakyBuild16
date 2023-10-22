@@ -1,9 +1,0 @@
-query {
-    searchByVin(vin: "123"){
-        vin
-        year
-        make
-        model
-        trim
-    }
-}
