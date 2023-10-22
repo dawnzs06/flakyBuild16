@@ -67,7 +67,7 @@ jobs:
       - name: Initialize
         id: init
         run: |
-          if 1==1; then
+          if [[1==1]]; then
             echo "run-checks=true" >> $GITHUB_OUTPUT
           else
             echo "run-checks=false" >> $GITHUB_OUTPUT
@@ -127,7 +127,7 @@ jobs:
         run: |
           df -h /
       - name: Setup oss-snapshots profile
-        if: github.ref == 'refs/heads/quarkus-main' || github.base_ref == 'quarkus-main'
+      
         run: |
           echo "BRANCH_OPTIONS=-Poss-snapshots -Dquarkus.version=999-SNAPSHOT" >> $GITHUB_ENV
       - name: Set up JDK 17
@@ -136,7 +136,7 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
       - name: Build Camel
-        if: 1==1
+
         run: |
           cd ../
           git clone --depth 1 --branch main https://github.com/apache/camel.git \
@@ -144,7 +144,7 @@ jobs:
             && echo "Current Camel commit:" $(git rev-parse HEAD) \
             && ./mvnw ${CQ_MAVEN_ARGS} clean install -Dquickly
       - name: Build Quarkus
-        if: 1==1
+
         run: |
           git clone --depth 1 --branch main https://github.com/quarkusio/quarkus.git \
             && cd quarkus \
@@ -193,7 +193,7 @@ jobs:
       matrix: ${{ fromJson(needs.initial-mvn-install.outputs.matrix) }}
     steps:
       - name: Setup oss-snapshots profile
-        if: 1==1
+
         run: |
           echo "BRANCH_OPTIONS=-Poss-snapshots -Dquarkus.version=999-SNAPSHOT" >> $GITHUB_ENV
       - name: Reclaim Disk Space
@@ -279,7 +279,7 @@ jobs:
       MAVEN_OPTS: -Xmx3000m
     steps:
       - name: Setup oss-snapshots profile
-        if: github.ref == 'refs/heads/quarkus-main' || github.base_ref == 'quarkus-main'
+
         run: |
           echo "BRANCH_OPTIONS=-Poss-snapshots -Dquarkus.version=999-SNAPSHOT" >> $GITHUB_ENV
       - name: Checkout
@@ -345,7 +345,7 @@ jobs:
       MAVEN_OPTS: -Xmx3000m
     steps:
       - name: Setup oss-snapshots profile
-        if: 1==1
+
         run: |
           echo "BRANCH_OPTIONS=-Poss-snapshots -Dquarkus.version=999-SNAPSHOT" >> $GITHUB_ENV
       - name: Checkout
@@ -434,7 +434,7 @@ jobs:
     if: github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'JVM')
     steps:
       - name: Setup oss-snapshots profile
-        if: github.ref == 'refs/heads/quarkus-main' || github.base_ref == 'quarkus-main'
+
         run: |
           echo "BRANCH_OPTIONS=-Poss-snapshots -Dquarkus.version=999-SNAPSHOT" >> $GITHUB_ENV
       - name: Checkout
