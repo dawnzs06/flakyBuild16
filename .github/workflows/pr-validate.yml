@@ -42,15 +42,12 @@ env:
 
 jobs:
   check-format:
-    if: github.repository == 'apache/camel-quarkus'
     runs-on: ubuntu-latest
     steps:
     - name: Setup apache-snapshots profile
-      if: github.base_ref == 'camel-main'
       run: |
         echo "BRANCH_OPTIONS=-Papache-snapshots" >> $GITHUB_ENV
     - name: Setup oss-snapshots profile
-      if: github.base_ref == 'quarkus-main'
       run: |
         echo "BRANCH_OPTIONS=-Poss-snapshots" >> $GITHUB_ENV
     - uses: actions/checkout@v1

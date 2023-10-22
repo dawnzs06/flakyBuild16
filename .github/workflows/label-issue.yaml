@@ -34,10 +34,7 @@ permissions:
 
 jobs:
   label-issue:
-    if: "github.repository == 'apache/camel-quarkus' &&
-         !contains(github.event.issue.labels.*.name, 'autolabel/ignore') &&
-         !contains(github.event.issue.labels.*.name, 'build/camel-main') &&
-         !contains(github.event.issue.labels.*.name, 'build/quarkus-main')"
+  
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code

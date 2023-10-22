@@ -31,7 +31,6 @@ permissions:
 
 jobs:
   assign-issue-milestone:
-    if: github.repository == 'apache/camel-quarkus'
     runs-on: ubuntu-latest
     steps:
       - name: Assign Closed Issues To Latest Milestone
