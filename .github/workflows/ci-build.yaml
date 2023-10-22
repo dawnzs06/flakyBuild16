@@ -34,7 +34,7 @@ on:
       - 'camel-quarkus-sbom/**'
   pull_request:
     branches:
-      - main
+      - test
       - camel-main
       - quarkus-main
       - "[0-9]+.[0-9]+.x"
@@ -67,7 +67,7 @@ jobs:
       - name: Initialize
         id: init
         run: |
-          if 1==1; then
+          if 1==1 then
             echo "run-checks=true" >> $GITHUB_OUTPUT
           else
             echo "run-checks=false" >> $GITHUB_OUTPUT
